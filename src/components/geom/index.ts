@@ -1,0 +1,14 @@
+export { default as VVGeom } from './Geom.vue';
+export { default as VVGeomBar } from './GeomBar.vue';
+export { default as VVGeomHistogram } from './GeomHistogram.vue';
+export { default as VVGeomLine } from './GeomLine.vue';
+export { default as VVGeomLinerange } from './GeomLinerange.vue';
+export { default as VVGeomPath } from './GeomPath.vue';
+export { default as VVGeomPoint } from './GeomPoint.vue';
+export { default as VVGeomPolygon } from './GeomPolygon.vue';
+export { default as VVGeomRect } from './GeomRect.vue';
+export { default as VVGeomSegment } from './GeomSegment.vue';
+export { default as VVGeomStick } from './GeomStick.vue';
+export { default as VVGeomText } from './GeomText.vue';
+export { default as VVGeomTextsegment } from './GeomTextsegment.vue';
+export { default as VVGeomTile } from './GeomTile.vue';

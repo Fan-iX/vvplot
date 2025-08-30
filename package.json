@@ -1,0 +1,38 @@
+{
+  "name": "vvplot",
+  "version": "0.0.1",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev"
+  },
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "imports": {
+    "#base/*": "./src/*"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./components": "./dist/components.js",
+    "./scale": "./dist/scale.js",
+    "./theme": "./dist/theme.js",
+    "./label": "./dist/label.js",
+    "./style.css": "./dist/style.css"
+  },
+  "dependencies": {
+    "@vueuse/core": "^13.7.0",
+    "d3": "^7.9.0",
+    "tailwind-merge": "^3.3.1",
+    "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.12",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vite": "^7.0.6"
+  }
+}

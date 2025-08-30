@@ -1,0 +1,96 @@
+<script setup>
+import { computed } from 'vue';
+const { extendX, extendY, data, coord2pos, layout } = defineProps({
+    extendX: { type: Number, default: 0 },
+    extendY: { type: Number, default: 0 },
+    data: Object, coord2pos: Function, layout: Object
+})
+const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+
+const binds = computed(() => {
+    let xlim_min = -layout.fullWidth * extendX - layout.l,
+        xlim_max = layout.fullWidth * (1 + extendX) - layout.l,
+        ylim_min = -layout.fullHeight * extendY - layout.t,
+        ylim_max = layout.fullHeight * (1 + extendY) - layout.t
+    return data.map(group => group.map(({
+        x, xend, y, yend,
+        color, size = 4, label, stroke, linewidth, linetype, alpha,
+        xtranslate = 0, ytranslate = 0, $raw
+    }) => {
+        let parts = splitLabel(String(label))
+        let dx = (xend - x) / (parts.length - 1 || 1),
+            dy = (yend - y) / (parts.length - 1 || 1)
+        let { x: x1, y: y1 } = coord2pos({ x: x, y: y })
+        let { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
+        if (
+            x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
+            y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
+        ) return null
+        let content = parts.map((v, i) => {
+            let { x: tx, y: ty } = coord2pos({ x: x + i * dx, y: y + i * dy })
+            return {
+                bind:
+                {
+                    x: tx, y: ty,
+                    'text-anchor': 'middle',
+                    'alignment-baseline': 'central'
+                },
+                label: v
+            }
+        })
+        let result = {
+            content: content,
+            fill: color,
+            'font-size': size * 4,
+            stroke: stroke,
+            'stroke-width': linewidth,
+            'stroke-dasharray': linetype,
+            'fill-opacity': alpha,
+            'stroke-opacity': alpha,
+            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            onClick: (e) => emit('click', e, $raw),
+            onContextmenu: (e) => emit('contextmenu', e, $raw),
+            onPointerover: (e) => emit('pointerover', e, $raw),
+            onPointerout: (e) => emit('pointerout', e, $raw),
+            onPointerenter: (e) => emit('pointerenter', e, $raw),
+            onPointerleave: (e) => emit('pointerleave', e, $raw),
+            onPointerdown: (e) => emit('pointerdown', e, $raw),
+            onPointerup: (e) => emit('pointerup', e, $raw),
+            onPointermove: (e) => emit('pointermove', e, $raw),
+        }
+        return result
+    }).filter(x => x != null))
+})
+/**
+ * split label into parts, use \x01 and \x02 to represent start and end of a segment
+ * @param {string} label 
+ * @returns {Array}
+ */
+function splitLabel(label) {
+    let result = []
+    for (let i = 0; i < label.length; i++) {
+        if (label[i] == '\x01') {
+            let j = i + 1
+            while (j < label.length && label[j] != '\x02') j++
+            result.push(label.slice(i + 1, j))
+            i = j
+        } else {
+            result.push(label[i])
+        }
+    }
+    return result
+}
+</script>
+<template>
+    <g>
+        <g v-for="group in binds">
+            <template v-for="item in group">
+                <text v-bind="{ ...item, content: null }">
+                    <template v-for="span in item.content">
+                        <tspan v-if="span.label" v-bind="span.bind">{{ span.label }}</tspan>
+                    </template>
+                </text>
+            </template>
+        </g>
+    </g>
+</template>

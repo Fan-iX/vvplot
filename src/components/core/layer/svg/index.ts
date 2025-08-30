@@ -1,0 +1,8 @@
+export { default as point } from './CoreSvgPoint.vue'
+export { default as line } from './CoreSvgLine.vue'
+export { default as stick } from './CoreSvgLine.vue'
+export { default as rect } from './CoreSvgRect.vue'
+export { default as tile } from './CoreSvgRect.vue'
+export { default as text } from './CoreSvgText.vue'
+export { default as textsegment } from './CoreSvgTextsegment.vue'
+export { default as polygon } from './CoreSvgPolygon.vue'

@@ -1,0 +1,7 @@
+export { default as point } from './CoreCanvasPoint.vue'
+export { default as line } from './CoreCanvasLine.vue'
+export { default as stick } from './CoreCanvasLine.vue'
+export { default as rect } from './CoreCanvasRect.vue'
+export { default as tile } from './CoreCanvasRect.vue'
+export { default as text } from './CoreCanvasText.vue'
+export { default as polygon } from './CoreCanvasPolygon.vue'
