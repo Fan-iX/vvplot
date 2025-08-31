@@ -20,13 +20,13 @@ const axisTitle = computed(() => {
         'text-anchor': 'middle',
         'alignment-baseline': isTop ? 'baseline' : 'hanging',
         'font-size': theme.title_size,
-        'color': theme.title_color ?? 'black',
+        'color': theme.title_color,
         'transform': theme.title_angle ? `rotate(${theme.title_angle})` : "",
     }
 })
 const axisLine = computed(() => {
     return {
-        'stroke': theme.line_color ?? 'black',
+        'stroke': theme.line_color,
         'stroke-width': theme.line_width,
         'stroke-dasharray': theme.line_dasharray,
         'style': theme.line_style
@@ -42,15 +42,13 @@ const tickLines = computed(() => {
         if (position < 0 || position > width.value) continue
         let offset = (theme.ticks_position == "top" ? -1 : 1) * (tick.length ?? theme.ticks_length)
         result.push({
-            bind: {
-                y1: 0, y2: offset,
-                x1: position, x2: position,
-                'stroke': tick.color ?? theme.ticks_color ?? 'black',
-                'stroke-width': tick.width ?? theme.ticks_width,
-            }
+            y1: 0, y2: offset,
+            x1: position, x2: position,
+            'stroke': tick.color ?? theme.ticks_color,
+            'stroke-width': tick.width ?? theme.ticks_width,
         })
     }
-    return result
+    return result.filter(t => t.stroke != null)
 })
 const tickTexts = computed(() => {
     let isTop = theme.ticks_position == "top"
@@ -69,12 +67,12 @@ const tickTexts = computed(() => {
                 'text-anchor': 'middle',
                 'alignment-baseline': isTop ? 'baseline' : 'hanging',
                 'font-size': tick.size ?? theme.label_size,
-                'color': tick.color ?? theme.label_color ?? 'black',
+                'color': tick.color ?? theme.label_color,
             },
             text: tick.label
         })
     }
-    return result
+    return result.filter(t => t.bind.color != null)
 })
 
 function oob_squish(value, min, max) {
@@ -229,7 +227,7 @@ function applyTransform(act, event) {
 <template>
     <g>
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
-        <line v-for="tick in tickLines" v-bind="tick.bind" />
+        <line v-for="tick in tickLines" v-bind="tick" />
         <text v-for="tick in tickTexts" v-bind="tick.bind">
             <title>{{ tick.text }}</title>
             {{ tick.text }}

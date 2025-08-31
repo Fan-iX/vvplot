@@ -566,6 +566,8 @@ const gridBreaks = computed(() => {
                 <rect x="0" y="0" :width="outerRect.width" :height="outerRect.height" />
             </clipPath>
         </defs>
+        <rect :transform="`translate(${outerRect.left}, ${outerRect.top})`" :width="outerRect.width"
+            :height="outerRect.height" :fill="theme.plot.background"></rect>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
             <CoreGridX v-if="theme.grid.x" v-bind="gridBreaks.x" :layout="innerRect" :theme="theme.grid.x"
                 :translate="translateX" :transcale="transcaleX" :coord2pos="coord2pos" />

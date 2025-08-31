@@ -23,15 +23,13 @@ const majorLines = computed(() => {
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         result.push({
-            bind: {
-                y1: 0, y2: height.value,
-                x1: position, x2: position,
-                'stroke': line.color ?? theme.line_color_major ?? theme.line_color ?? 'black',
-                'stroke-width': line.width ?? theme.line_width_major ?? theme.line_width,
-            }
+            y1: 0, y2: height.value,
+            x1: position, x2: position,
+            'stroke': line.color ?? theme.line_color_major ?? theme.line_color,
+            'stroke-width': line.width ?? theme.line_width_major ?? theme.line_width,
         })
     }
-    return result
+    return result.filter(l => l.stroke !== null)
 })
 const minorLines = computed(() => {
     let result = []
@@ -42,20 +40,18 @@ const minorLines = computed(() => {
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         result.push({
-            bind: {
-                y1: 0, y2: height.value,
-                x1: position, x2: position,
-                'stroke': line.color ?? theme.line_color_minor ?? theme.line_color ?? 'black',
-                'stroke-width': line.width ?? theme.line_width_minor ?? theme.line_width,
-            }
+            y1: 0, y2: height.value,
+            x1: position, x2: position,
+            'stroke': line.color ?? theme.line_color_minor ?? theme.line_color,
+            'stroke-width': line.width ?? theme.line_width_minor ?? theme.line_width,
         })
     }
-    return result
+    return result.filter(l => l.stroke !== null)
 })
 </script>
 <template>
     <g>
-        <line v-for="line in majorLines" v-bind="line.bind" />
-        <line v-for="line in minorLines" v-bind="line.bind" />
+        <line v-for="line in majorLines" v-bind="line" />
+        <line v-for="line in minorLines" v-bind="line" />
     </g>
 </template>

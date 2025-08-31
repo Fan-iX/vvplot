@@ -2,7 +2,7 @@
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue';
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
-import { theme_base, theme_default, themeMerge } from '../js/theme'
+import { theme_base, theme_default, themeBuild, themeMerge } from '../js/theme'
 import { str_c } from '../js/utils'
 import CorePlot from './core/CorePlot.vue'
 import CoreLegend from './core/CoreLegend.vue'
@@ -302,7 +302,7 @@ const action = computed(() => {
             return res
         })
 })
-const theme = reactiveComputed(() => themeMerge(theme_base, $props.theme), { deep: true })
+const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, $props.theme)), { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
