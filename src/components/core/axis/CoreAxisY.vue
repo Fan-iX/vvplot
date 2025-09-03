@@ -70,7 +70,8 @@ const tickTexts = computed(() => {
                 'font-size': tick.size ?? theme.label_size,
                 'color': tick.color ?? theme.label_color,
             },
-            text: tick.label
+            text: tick.label,
+            title: tick.title ?? tick.label
         })
     }
     return result.filter(t => t.bind.color != null)
@@ -229,7 +230,7 @@ function applyTransform(act, event) {
         <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <text v-for="tick in tickTexts" v-bind="tick.bind">
-            <title>{{ tick.text }}</title>
+            <title>{{ tick.title }}</title>
             {{ tick.text }}
         </text>
         <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="gb-interactive"

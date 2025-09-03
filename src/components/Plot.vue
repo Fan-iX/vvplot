@@ -241,7 +241,7 @@ const axes = computed(() => {
         }
         flags[ax.type] = true
         if (ax.position == 'none') continue
-        let axis = (({ title, breaks, labels, 'minor-breaks': minorBreaks }) => ({ title, breaks, labels, minorBreaks }))(ax)
+        let axis = (({ title, extend, breaks, labels, 'minor-breaks': minorBreaks }) => ({ title, extend, breaks, labels, minorBreaks }))(ax)
         axis.showGrid = ax['show-grid'] !== false
         if (c.children) {
             axis.action = Object.keys(c.children)

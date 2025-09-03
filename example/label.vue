@@ -1,5 +1,5 @@
 <script setup>
-import { VVPlot, VVAxisX, VVAxisY, VVGeomLine } from '#base/components'
+import { VVPlot, VVAxisX, VVAxisY, VVGeomLine, VVAction } from '#base/components'
 import vvlabel from '#base/js/label'
 
 import economics_txt from './data/economics.csv?raw'
@@ -21,13 +21,42 @@ function parse_csv(text) {
 </script>
 <template>
     <div class="plot-container">
+        <pre class="code">{{`<VVPlot :data="economics">
+    <VVAxisY :labels="v => \`\${v * 100}%\`" :min-range="0" />
+    <VVAxisX>
+        <VVAction move rescale zoom />
+    </VVAxisX>
+    <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
+</VVPlot>`}}</pre>
         <VVPlot :data="economics">
-            <VVAxisX :labels="vvlabel.timestamp()" />
-            <VVGeomLine :x="d => d.date" :y="d => d.pop" />
+            <VVAxisY :labels="v => `${v * 100}%`" :min-range="0" />
+            <VVAxisX>
+                <VVAction move rescale zoom />
+            </VVAxisX>
+            <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
         </VVPlot>
+        <hr>
+        <pre class="code">{{`<VVPlot :data="economics">
+    <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM/dd' })" />
+    <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
+</VVPlot>`}}</pre>
         <VVPlot :data="economics">
-            <VVAxisX :labels="vvlabel.timestamp()" />
-            <VVAxisY :labels="vvlabel.default()" :min="0" />
+            <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM/dd' })" />
+            <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
+        </VVPlot>
+        <hr>
+        <pre class="code">{{`<VVPlot :data="economics">
+    <VVAxisX :labels="vvlabel.timestamp()" :extend="2">
+        <VVAction move rescale zoom />
+    </VVAxisX>
+    <VVAxisY :labels="vvlabel.default()" :min="0" :expand-mult="0" />
+    <VVGeomLine :x="d => d.date" :y="d => d.unemploy" />
+</VVPlot>`}}</pre>
+        <VVPlot :data="economics">
+            <VVAxisX :labels="vvlabel.timestamp()" :extend="2">
+                <VVAction move rescale zoom />
+            </VVAxisX>
+            <VVAxisY :labels="vvlabel.default()" :min="0" :expand-mult="0" />
             <VVGeomLine :x="d => d.date" :y="d => d.unemploy" />
         </VVPlot>
     </div>

@@ -1,17 +1,17 @@
 export const numutils = {
     min(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number')
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity)
     },
     max(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number')
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
     },
     extent(arr, { na_rm = true, infinity_rm = true } = {}) {
         if (arr.length == 0) return []
-        if (na_rm) arr = arr.filter(x => typeof x == 'number')
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         let min = Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity),
             max = Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
@@ -24,7 +24,7 @@ export const vecutils = {
         if (values.some(x => x == null)) return null
         if (values.some(x => !Array.isArray(x) && typeof x != 'number'))
             throw new Error('Arguments must be numbers or arrays')
-        let nums = values.filter(x => !Array.isArray(x)).reduce((s, a) => s + a, 0)
+        let nums = values.filter(x => !Array.isArray(x)).reduce((s, a) => +a + s, 0)
         values = values.filter(x => Array.isArray(x))
         if (values.length == 0)
             return [nums]
@@ -33,7 +33,7 @@ export const vecutils = {
         let length = values[0].length
         if (values.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
-        return Array.from({ length }, (_, i) => values.reduce((s, a) => s + a[i], nums))
+        return Array.from({ length }, (_, i) => values.reduce((s, a) => +a[i] + s, nums))
     },
     opposite(value) {
         if (value == null) return null
