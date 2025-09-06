@@ -19,6 +19,7 @@ export default defineConfig({
         index: resolve(__dirname, 'src/index.ts'),
         components: resolve(__dirname, 'src/components/index.ts'),
         scale: resolve(__dirname, 'src/js/scale.js'),
+        break: resolve(__dirname, 'src/js/break.js'),
         label: resolve(__dirname, 'src/js/label.js'),
         theme: resolve(__dirname, 'src/js/theme.js'),
       },

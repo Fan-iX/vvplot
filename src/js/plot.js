@@ -1,6 +1,7 @@
 import vvgeom from './geom'
 import vvstat from './stat'
 import vvscale from './scale'
+import vvbreak from './break'
 import vvlabel from './label'
 import { numutils } from './utils'
 
@@ -425,20 +426,15 @@ export class GPlot {
         return result
     }
 
-    getAxes(coordScales, expandMult, $axes = { left: true, bottom: true }) {
+    getAxes(coordScales, expandMult, axes = []) {
         coordScales = {
             x: coordScales.x.expand(expandMult?.x),
             y: coordScales.y.expand(expandMult?.y)
         }
-        let axes = { x: {}, y: {} }
-        if ($axes.left) axes.y.left = new GAxis($axes.left, coordScales.y)
-        if ($axes.bottom) axes.x.bottom = new GAxis($axes.bottom, coordScales.x)
-        if ($axes.right) axes.y.right = new GAxis($axes.right, coordScales.y)
-        if ($axes.top) axes.x.top = new GAxis($axes.top, coordScales.x)
-        return axes
+        return axes.filter(a => a.type in coordScales).map(ax => new GAxis(ax, coordScales[ax.type]))
     }
 
-    render(range, expandAdd, expandMult, axes = { left: true, bottom: true }, minRange) {
+    render(range, expandAdd, expandMult, axes, minRange) {
         let coordScales = this.getCoordScales(range, expandAdd, minRange)
         return {
             layers: this.getComputedLayers(),
@@ -545,126 +541,14 @@ class DatetimeCoordScale extends ContinuousCoordScale {
     }
 }
 
-function getContinuousBreaks({ min, max } = {}, extend = 0) {
-    let interval = max - min
-    if (!(interval > 0)) return []
-    min -= interval * extend
-    max += interval * extend
-    let exp = 10 ** Math.floor(Math.log10(interval) - 1),
-        m = interval / exp
-    let step = (m > 50 ? 20 : m > 25 ? 10 : 5) * exp
-    let nMin = Math.ceil(min / step)
-    let nMax = Math.floor(max / step)
-    return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
-}
-
-function getContinuousMinorBreaks({ min, max } = {}, extend = 0) {
-    let interval = max - min
-    if (!(interval > 0)) return []
-    min -= interval * extend
-    max += interval * extend
-    let exp = 10 ** Math.floor(Math.log10(interval) - 1),
-        m = interval / exp
-    let step = (m > 50 ? 10 : m > 25 ? 5 : 2.5) * exp
-    let nMin = Math.ceil(min / step)
-    let nMax = Math.floor(max / step)
-    return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
-}
-
-function getDatetimeBreaks({ min, max } = {}, extend = 0) {
-    let interval = max - min
-    if (!(interval > 0)) return []
-    let s = new Date(min - interval * extend),
-        e = new Date(max + interval * extend)
-    let sYear = s.getUTCFullYear(),
-        sMonth = s.getUTCMonth(),
-        sDate = s.getUTCDate(),
-        sHours = s.getUTCHours(),
-        sMinutes = s.getUTCMinutes(),
-        sSeconds = s.getUTCSeconds()
-    let breaks = []
-    if (interval > 3 * 31536000000) { // > 3 year
-        let itvlYear = interval / 31536000000
-        let exp = 10 ** Math.floor(Math.log10(itvlYear) - 1),
-            m = itvlYear / exp
-        let step = Math.max((m > 50 ? 10 : m > 25 ? 5 : 2) * exp, 1)
-        s = new Date(Date.UTC(
-            Math.ceil(sYear / step) * step
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCFullYear(s.getUTCFullYear() + step) < e)
-    } else if (interval > 3 * 2592000000) { // > 3 months
-        let itvlMonth = interval / 2592000000
-        let step = [2, 3, 6].findLast(x => x * 3 <= itvlMonth) || 1
-        s = new Date(Date.UTC(
-            sYear,
-            Math.ceil(sMonth / step) * step
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCMonth(s.getUTCMonth() + step) < e)
-    } else if (interval > 21 * 86400000) { // > 21 days
-        s = new Date(Date.UTC(
-            sYear, sMonth,
-            sDate + (7 - s.getUTCDay()) % 7
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCDate(s.getUTCDate() + 7) < e)
-    } else if (interval > 3 * 86400000) { // > 3 days
-        let itvlDate = interval / 86400000
-        let step = [2, 3].findLast(x => x * 3 <= itvlDate) || 1
-        s = new Date(Date.UTC(
-            sYear, sMonth,
-            Math.ceil(sDate)
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCDate(s.getUTCDate() + step) < e)
-    } else if (interval > 3 * 3600000) { // > 3 hours
-        let itvlHours = interval / 3600000
-        let step = [2, 3, 6].findLast(x => x * 3 <= itvlHours) || 1
-        s = new Date(Date.UTC(
-            sYear, sMonth, sDate,
-            Math.ceil(sHours / step) * step
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCHours(s.getUTCHours() + step) < e)
-    } else if (interval > 3 * 60000) { // > 3 minutes
-        let itvlMinutes = interval / 60000
-        let step = [2, 5, 10, 30].findLast(x => x * 3 <= itvlMinutes) || 1
-        s = new Date(Date.UTC(
-            sYear, sMonth, sDate,
-            sHours,
-            Math.ceil(sMinutes / step) * step
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCMinutes(s.getUTCMinutes() + step) < e)
-    } else if (interval > 3000) { // > 3 seconds
-        let itvlSeconds = interval / 1000
-        let step = [2, 5, 10, 30].findLast(x => x * 3 <= itvlSeconds) || 1
-        s = new Date(Date.UTC(
-            sYear, sMonth, sDate,
-            sHours, sMinutes,
-            Math.ceil(sSeconds / step) * step
-        ))
-        do { breaks.push(new Date(s)) }
-        while (s.setUTCSeconds(s.getUTCSeconds() + step) < e)
-    } else {
-        let exp = 10 ** Math.floor(Math.log10(interval) - 1),
-            m = interval / exp
-        let step = (m > 50 ? 20 : m > 25 ? 10 : 5) * exp
-        let nMin = Math.ceil(min / step)
-        let nMax = Math.floor(max / step)
-        return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
-    }
-    return breaks
-}
-
 class GAxis {
     constructor(config = {}, scale) {
-        Object.assign(this, (({ breaks, extend, labels, minorBreaks, showGrid, ...etc }) => etc)(config))
+        let { breaks, extend, labels, minorBreaks, showGrid, ...etc } = config
+        Object.assign(this, etc)
         if (scale.level) {
             let level = scale.level.level.sort((a, b) => a - b)
-            let breaks = level.map(x => +x)
-            let labels = config.labels
+            breaks = breaks ?? level.map(x => +x) ?? []
+            if (typeof breaks == 'function') breaks = breaks(level)
             if (Array.isArray(labels)) {
                 if (labels.length != breaks.length) {
                     throw new Error('Length of labels must be the same as breaks')
@@ -675,11 +559,12 @@ class GAxis {
                 labels = level.map(x => String(x))
             }
             this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
-            this.majorBreaks = config.showGrid ? breaks : []
+            this.majorBreaks = showGrid ? breaks : []
             this.minorBreaks = []
         } else if (scale instanceof DatetimeCoordScale) {
-            let breaks = config.breaks ?? getDatetimeBreaks(scale.limits) ?? []
-            let labels = config.labels ?? vvlabel.date()
+            breaks = breaks ?? vvbreak.datetime({ extend }) ?? []
+            if (typeof breaks == 'function') breaks = breaks(scale.limits)
+            labels = labels ?? vvlabel.datetime()
             if (!Array.isArray(breaks)) breaks = []
             if (Array.isArray(labels)) {
                 if (labels.length != breaks.length) {
@@ -693,12 +578,14 @@ class GAxis {
             let titles = breaks.map(b => new Date(b).toISOString())
             this.ticks = breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
                 .sort((a, b) => a.position - b.position)
-            this.majorBreaks = config.showGrid ? breaks.sort() : []
+            this.majorBreaks = showGrid ? breaks.sort() : []
             this.minorBreaks = []
         } else {
-            let breaks = config.breaks ?? getContinuousBreaks(scale.limits, config.extend) ?? []
-            let minorBreaks = config.minorBreaks ?? getContinuousMinorBreaks(scale.limits, config.extend) ?? []
-            let labels = config.labels ?? vvlabel.number()
+            breaks = breaks ?? vvbreak.number({ extend }) ?? []
+            if (typeof breaks == 'function') breaks = breaks(scale.limits)
+            minorBreaks = minorBreaks ?? vvbreak.number({ extend, minor: true }) ?? []
+            if (typeof minorBreaks == 'function') minorBreaks = minorBreaks(scale.limits)
+            labels = labels ?? vvlabel.number()
             if (!Array.isArray(breaks)) breaks = []
             if (Array.isArray(labels)) {
                 if (labels.length != breaks.length) {
@@ -711,8 +598,8 @@ class GAxis {
             }
             this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
                 .sort((a, b) => a.position - b.position)
-            this.majorBreaks = config.showGrid ? breaks.sort() : []
-            this.minorBreaks = config.showGrid ? minorBreaks.sort() : []
+            this.majorBreaks = showGrid ? breaks.sort() : []
+            this.minorBreaks = showGrid ? minorBreaks.sort() : []
         }
     }
 }

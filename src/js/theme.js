@@ -149,6 +149,8 @@ export function themeMerge(...themes) {
 export function themeBuild(theme) {
     return {
         axis: {
+            x: obj_merge(["axis", "axis_x"].map(k => theme?.[k])),
+            y: obj_merge(["axis", "axis_y"].map(k => theme?.[k])),
             left: obj_merge(
                 ["axis", "axis_y", "axis_left"].map(k => theme?.[k])
             ),
@@ -163,12 +165,8 @@ export function themeBuild(theme) {
             ),
         },
         grid: {
-            x: obj_merge(
-                ["grid", "grid_x"].map(k => theme?.[k])
-            ),
-            y: obj_merge(
-                ["grid", "grid_y"].map(k => theme?.[k])
-            )
+            x: obj_merge(["grid", "grid_x"].map(k => theme?.[k])),
+            y: obj_merge(["grid", "grid_y"].map(k => theme?.[k]))
         },
         plot: {
             margin: {

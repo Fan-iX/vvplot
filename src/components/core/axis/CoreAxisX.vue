@@ -1,17 +1,32 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue';
-const { ticks, title, coord2pos, pos2coord, layout, theme, action } = defineProps({
+const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
-    coord2pos: Function,
-    pos2coord: Function,
+    coord2pos: Function, pos2coord: Function,
     layout: Object,
     theme: { type: Object, default: () => ({}) },
-    action: { type: Object, default: () => ({}) }
+    action: { type: Object, default: () => ({}) },
+    position: null
 })
 const width = computed(() => layout.width + layout.l + layout.r)
+const height = computed(() => layout.height + layout.t + layout.b)
 
-const translate = defineModel('translate', { type: Number, default: 0 })
-const transcale = defineModel('transcale')
+const translateX = defineModel('translateX', { type: Number, default: 0 })
+const translateY = defineModel('translateY', { type: Number, default: 0 })
+const transcaleX = defineModel('transcaleX')
+const transcaleY = defineModel('transcaleY')
+const transform = computed(() => {
+    let translate = 0
+    let aln = { bottom: "0%", center: "50%", top: "100%" }[position] ?? position
+    if (typeof aln == "string" && aln.endsWith("%")) {
+        translate = height.value * (1 - aln.slice(0, -1) / 100)
+    } else {
+        translate = translateY.value + coord2pos({ y: +aln }).y + layout.top
+        if (transcaleY.value?.ratio != null)
+            translate = translate * transcaleY.value.ratio + (1 - transcaleY.value.ratio) * (transcaleY.value.origin ?? 0.5) * height.value
+    }
+    return `translate(0, ${translate})`
+})
 const axisTitle = computed(() => {
     let isTop = theme.ticks_position == "top"
     return {
@@ -36,9 +51,9 @@ const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
-        let position = coord2pos({ x: tick.position }).x + layout.l + translate.value
-        if (transcale.value?.ratio != null)
-            position = position * transcale.value.ratio + (1 - transcale.value.ratio) * (transcale.value.origin ?? 0.5) * width.value
+        let position = coord2pos({ x: tick.position }).x + layout.l + translateX.value
+        if (transcaleX.value?.ratio != null)
+            position = position * transcaleX.value.ratio + (1 - transcaleX.value.ratio) * (transcaleX.value.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         let offset = (theme.ticks_position == "top" ? -1 : 1) * (tick.length ?? theme.ticks_length)
         result.push({
@@ -55,9 +70,9 @@ const tickTexts = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick, label: tick }
-        let position = coord2pos({ x: tick.position }).x + layout.l + translate.value
-        if (transcale.value?.ratio != null)
-            position = position * transcale.value.ratio + (1 - transcale.value.ratio) * (transcale.value.origin ?? 0.5) * width.value
+        let position = coord2pos({ x: tick.position }).x + layout.l + translateX.value
+        if (transcaleX.value?.ratio != null)
+            position = position * transcaleX.value.ratio + (1 - transcaleX.value.ratio) * (transcaleX.value.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.ticks_length) + 3)
         result.push({
@@ -85,9 +100,9 @@ const iRef = useTemplateRef("i")
 function getPos(event) {
     let rect = iRef.value.getBoundingClientRect()
     return {
-        x: event.pageX - rect.left - layout.left,
-        l: event.pageX - rect.left - layout.left,
-        r: rect.left + layout.left + layout.width - event.pageX,
+        x: event.clientX - rect.left - layout.left,
+        l: event.clientX - rect.left - layout.left,
+        r: rect.left + layout.left + layout.width - event.clientX,
     }
 }
 const emit = defineEmits(['move', 'zoom', 'rescale', 'nudge'])
@@ -102,7 +117,7 @@ function axisMovePointerdown(e) {
         dxmin = boundary.xmax == null ? -Infinity : layout.width - boundary.xmax
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        translate.value = oob_squish(translate.value + ev.movementX, dxmin, dxmax)
+        translateX.value = oob_squish(translateX.value + ev.movementX, dxmin, dxmax)
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -128,7 +143,7 @@ function axisRescaleLeftPointerdown(e) {
         let ratio = (layout.width - x - dx) / (layout.width - x)
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
-        transcale.value = { ratio, origin: (layout.left + layout.width) / width.value }
+        transcaleX.value = { ratio, origin: (layout.left + layout.width) / width.value }
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -153,7 +168,7 @@ function axisRescaleRightPointerdown(e) {
         let ratio = (x + dx) / x
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
-        transcale.value = { ratio, origin: layout.left / width.value }
+        transcaleX.value = { ratio, origin: layout.left / width.value }
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -192,7 +207,7 @@ function wheel(act, pos, delta) {
             ({ xmin, xmax } = coord2pos(coord))
         }
         if (Math.abs(layout.width - (xmax - xmin)) > 1) {
-            transcale.value = {
+            transcaleX.value = {
                 ratio: layout.width / (xmax - xmin),
                 origin: (layout.l + (xmin * layout.width) / (layout.width - xmax + xmin)) / width.value
             }
@@ -204,29 +219,29 @@ function wheel(act, pos, delta) {
         let boundary = coord2pos(act, { unlimited: true })
         let dxmax = boundary.xmin == null ? Infinity : - boundary.xmin,
             dxmin = boundary.xmax == null ? -Infinity : layout.width - boundary.xmax
-        translate.value = oob_squish(movement, dxmin, dxmax)
+        translateX.value = oob_squish(movement, dxmin, dxmax)
     }
 }
 function applyTransform(act, event) {
-    if (transcale.value == null && translate.value == 0) return
+    if (transcaleX.value == null && translateX.value == 0) return
     let xmin = 0, xmax = layout.width
-    if (transcale.value) {
-        let ratio = transcale.value.ratio,
-            origin = transcale.value.origin * width.value - layout.l
+    if (transcaleX.value) {
+        let ratio = transcaleX.value.ratio,
+            origin = transcaleX.value.origin * width.value - layout.l
         xmin = xmin / ratio + (1 - 1 / ratio) * origin
         xmax = xmax / ratio + (1 - 1 / ratio) * origin
     }
-    if (translate.value) {
-        xmin -= translate.value
-        xmax -= translate.value
+    if (translateX.value) {
+        xmin -= translateX.value
+        xmax -= translateX.value
     }
     emit(act.action, pos2coord({ xmin, xmax }), event)
-    translate.value = 0
-    transcale.value = null
+    translateX.value = 0
+    transcaleX.value = null
 }
 </script>
 <template>
-    <g>
+    <g :transform="transform">
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <text v-for="tick in tickTexts" v-bind="tick.bind">

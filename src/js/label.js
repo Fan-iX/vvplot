@@ -58,7 +58,7 @@ function format_number({
  * @param {*} options
  * @returns {function(number, index, array): string}
  */
-function format_timestamp({
+function format_datetime({
     format,
 } = {}) {
     let $fn = {
@@ -96,8 +96,8 @@ function format_timestamp({
 
 export default {
     number: format_number,
-    date: format_timestamp,
-    timestamp: format_timestamp,
+    datetime: format_datetime,
+    timestamp: format_datetime,
     default: function (opts) {
         return format_number({ scale_cut: number_cut.default, ...opts })
     },

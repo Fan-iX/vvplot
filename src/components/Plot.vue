@@ -231,17 +231,10 @@ const coordDisplay = computed(() => {
 })
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
-    let xaxis = {}, yaxis = {}
-    let flags = { x: false, y: false }
-    for (let c of vnodes.axis) {
+    let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
-        if (!(ax.type in flags)) {
-            console.warn(`Axis type ${ax.type} not found in axes prop`)
-            continue
-        }
-        flags[ax.type] = true
-        if (ax.position == 'none') continue
-        let axis = (({ title, extend, breaks, labels, 'minor-breaks': minorBreaks }) => ({ title, extend, breaks, labels, minorBreaks }))(ax)
+        if (ax.position == 'none') return
+        let axis = (({ type, title, extend, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, extend, position, offset, breaks, labels, minorBreaks, theme }))(ax)
         axis.showGrid = ax['show-grid'] !== false
         if (c.children) {
             axis.action = Object.keys(c.children)
@@ -267,12 +260,13 @@ const axes = computed(() => {
                     return res
                 })
         }
-        if (ax.type == 'x') xaxis[ax.position ?? 'bottom'] = axis
-        if (ax.type == 'y') yaxis[ax.position ?? 'left'] = axis
-    }
-    if (!flags.x) xaxis.bottom = { showGrid: true }
-    if (!flags.y) yaxis.left = { showGrid: true }
-    return { ...$props.axes, ...xaxis, ...yaxis }
+        return axis
+    })
+    if (allAxes.every(ax => ax?.type != 'x'))
+        allAxes.push({ type: 'x', position: 'bottom', showGrid: true })
+    if (allAxes.every(ax => ax?.type != 'y'))
+        allAxes.push({ type: 'y', position: 'left', showGrid: true })
+    return allAxes.filter(ax => ax != null)
 })
 const action = computed(() => {
     return vnodes.action.map(c => ({ ...c.type.$_props, ...c.props }))

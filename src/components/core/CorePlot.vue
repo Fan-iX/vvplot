@@ -13,7 +13,7 @@ const props = defineProps({
     schema: Object, layers: Array,
     coordScale: Object, coordDisplay: Object, coordLevels: Object,
     levels: Object, scales: Object,
-    axes: Object,
+    axes: { type: Array, default: () => [] },
     theme: Object,
     action: { type: Array, default: () => [] },
 })
@@ -23,7 +23,6 @@ const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove',
     'wheel', 'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange'
 ])
-const axes = reactiveComputed(() => props.axes ?? {})
 const theme = reactiveComputed(() => props.theme)
 
 const coordExpandAdd = ref(props.coordScale?.expandAdd || {})
@@ -69,10 +68,11 @@ const { width, height } = useElementSize(svgRef)
 const gplot = computed(() => new GPlot(props.schema, props.layers))
 
 const outerRect = reactiveComputed(() => {
-    let l = theme.plot.margin.left + (axes.left == null ? 0 : theme.plot.padding.left),
-        r = theme.plot.margin.right + (axes.right == null ? 0 : theme.plot.padding.right),
-        t = theme.plot.margin.top + (axes.top == null ? 0 : theme.plot.padding.top),
-        b = theme.plot.margin.bottom + (axes.bottom == null ? 0 : theme.plot.padding.bottom)
+    let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, props.axes.some(a => a.position == p) ? (theme.plot.padding[p] || 0) : 0]))
+    let l = theme.plot.margin.left + padding.left,
+        r = theme.plot.margin.right + padding.right,
+        t = theme.plot.margin.top + padding.top,
+        b = theme.plot.margin.bottom + padding.bottom
     if (t + b > height.value) {
         t = height.value * (t / (t + b))
         b = height.value - t
@@ -144,7 +144,7 @@ const vplot = computed(() => {
         .useCoordLevels(props.coordLevels)
         .render(
             range.value, expandAdd, expandMult,
-            axes, props.coordScale.minRange
+            props.axes, props.coordScale.minRange
         )
 })
 defineExpose({ vplot })
@@ -536,24 +536,40 @@ function setRange(coord, emition = 'rescale', event) {
     }
 }
 
-const axisTransform = computed(() => {
-    return {
-        right: `translate(${outerRect.width}, 0)`,
-        bottom: `translate(0, ${outerRect.height})`,
-    }
-})
 const gridBreaks = computed(() => {
-    let axes = vplot.value.axes
+    let xAxes = vplot.value.axes.filter(a => a.type == "x"),
+        yAxes = vplot.value.axes.filter(a => a.type == "y")
     return {
         x: {
-            majorBreaks: unique(Object.values(axes.x).flatMap(x => x.majorBreaks)),
-            minorBreaks: unique(Object.values(axes.x).flatMap(x => x.minorBreaks)),
+            majorBreaks: unique(xAxes.flatMap(x => x.majorBreaks)),
+            minorBreaks: unique(xAxes.flatMap(x => x.minorBreaks)),
         },
         y: {
-            majorBreaks: unique(Object.values(axes.y).flatMap(y => y.majorBreaks)),
-            minorBreaks: unique(Object.values(axes.y).flatMap(y => y.minorBreaks)),
+            majorBreaks: unique(yAxes.flatMap(y => y.majorBreaks)),
+            minorBreaks: unique(yAxes.flatMap(y => y.minorBreaks)),
         }
     }
+})
+const axes = computed(() => {
+    return vplot.value.axes.map(axis => {
+        let { type, position, title, ticks, action, theme: $theme } = axis
+        return {
+            type,
+            bind: {
+                title, ticks, action,
+                layout: innerRect,
+                theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[type] ?? {}, $theme),
+                position,
+                coord2pos, pos2coord
+            },
+            on: {
+                zoom: (e) => setRange(e, 'zoom'),
+                move: (e) => setRange(e, 'move'),
+                rescale: (e) => setRange(e, 'rescale'),
+                nudge: (e) => setRange(e, 'nudge'),
+            }
+        }
+    })
 })
 </script>
 <template>
@@ -586,16 +602,9 @@ const gridBreaks = computed(() => {
             </g>
         </g>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
-            <CoreAxis v-for="axis, pos in vplot.axes.x" :title="axis.title" :ticks="axis.ticks" :layout="innerRect"
-                :theme="theme.axis[pos]" :transform="axisTransform[pos]" :action="axis.action"
-                v-model:translate="translateX" v-model:transcale="transcaleX" :coord2pos="coord2pos"
-                :pos2coord="pos2coord" @zoom="(e) => setRange(e, 'zoom')" @move="(e) => setRange(e, 'move')"
-                @rescale="(e) => setRange(e, 'rescale')" @nudge="(e) => setRange(e, 'nudge')" />
-            <CoreAxis v-for="axis, pos in vplot.axes.y" :title="axis.title" :ticks="axis.ticks" :layout="innerRect"
-                :theme="theme.axis[pos]" :transform="axisTransform[pos]" :action="axis.action"
-                v-model:translate="translateY" v-model:transcale="transcaleY" :coord2pos="coord2pos"
-                :pos2coord="pos2coord" @zoom="(e) => setRange(e, 'zoom')" @move="(e) => setRange(e, 'move')"
-                @rescale="(e) => setRange(e, 'rescale')" @nudge="(e) => setRange(e, 'nudge')" />
+            <CoreAxis v-for="axis in axes.filter(a => a.type == 'x' || a.type == 'y')" v-bind="axis.bind" v-on="axis.on"
+                v-model:translateX="translateX" v-model:transcaleX="transcaleX" v-model:translateY="translateY"
+                v-model:transcaleY="transcaleY" />
         </g>
     </svg>
 </template>
