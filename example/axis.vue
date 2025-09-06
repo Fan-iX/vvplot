@@ -38,7 +38,7 @@ function parse_csv(text) {
                 title="unemployment rate">
                 <VVAction move rescale zoom />
             </VVAxisY>
-            <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date">
+            <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date" :extend="0.5">
                 <VVAction move rescale zoom />
             </VVAxisX>
             <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
@@ -46,11 +46,13 @@ function parse_csv(text) {
         <hr>
         <pre class="code">{{`<VVPlot :data="economics">
     <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
+    <VVAxisY position="left" primary />
     <VVAxisY position="right" />
     <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
 </VVPlot>`}}</pre>
         <VVPlot :data="economics">
             <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
+            <VVAxisY position="left" primary />
             <VVAxisY position="right" />
             <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
         </VVPlot>
@@ -71,7 +73,7 @@ function parse_csv(text) {
     <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })">
         <VVAction move rescale zoom />
     </VVAxisX>
-    <VVAxisY :position="0" :expand-mult="1">
+    <VVAxisY :position="0" :expand-mult="1" :extend="1">
         <VVAction move rescale zoom />
     </VVAxisY>
     <VVGeomPoint :x="d => d.x" :y="d => d.y" />
@@ -80,7 +82,7 @@ function parse_csv(text) {
             <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })">
                 <VVAction move rescale zoom />
             </VVAxisX>
-            <VVAxisY :position="0" :expand-mult="1">
+            <VVAxisY :position="0" :expand-mult="1" :extend="1">
                 <VVAction move rescale zoom />
             </VVAxisY>
             <VVGeomPoint :x="d => d.x" :y="d => d.y" />

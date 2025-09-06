@@ -111,9 +111,11 @@ const vBind = computed(() => {
 
 const primaryAxis = reactiveComputed(() => {
     let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props }))
+    let xAxes = allAxes.filter(c => c.type === 'x')
+    let yAxes = allAxes.filter(c => c.type === 'y')
     return {
-        x: allAxes.find(c => c.type === 'x' && !('secondary' in c)),
-        y: allAxes.find(c => c.type === 'y' && !('secondary' in c))
+        x: xAxes.find(c => c.primary || c.primary == '') ?? xAxes.find(c => !('secondary' in c)),
+        y: yAxes.find(c => c.primary || c.primary == '') ?? yAxes.find(c => !('secondary' in c))
     }
 })
 
@@ -127,12 +129,14 @@ const transcaleY = defineModel('transcaleY')
 
 /* schema:
     global data and data transformation of the plot.
-    schema<data, aes, scales>
+    schema<data, aes, extendX, extendY>
 */
 const schema = computed(() => {
     return {
         data: $props.data,
         aes: $props.aes,
+        extendX: primaryAxis?.x?.extend ?? $props.extend?.x ?? 0,
+        extendY: primaryAxis?.y?.extend ?? $props.extend?.y ?? 0
     }
 })
 /* layers
@@ -141,7 +145,7 @@ const schema = computed(() => {
 */
 const layers = computed(() => {
     return vnodes.layer.map(layer => {
-        let { geom, stat, scales, data, ...ect } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...ect } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let aes = {}, args = {}, attrs = {}
         let vBind = {}
@@ -162,7 +166,7 @@ const layers = computed(() => {
                     aes[key] = ect[key]
                 }
             } else {
-                if (["class", 'style', 'render', 'extend-x', 'extend-y'].includes(key)) {
+                if (["class", 'style', 'render'].includes(key)) {
                     vBind[key] = ect[key]
                 } else {
                     attrs[key] = ect[key]
@@ -170,7 +174,7 @@ const layers = computed(() => {
             }
         }
         return {
-            geom, stat, data, aes, attrs, scales, args, vBind
+            geom, stat, data, aes, attrs, scales, args, extendX, extendY, vBind
         }
     })
 })
@@ -234,8 +238,9 @@ const axes = computed(() => {
     let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
         if (ax.position == 'none') return
-        let axis = (({ type, title, extend, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, extend, position, offset, breaks, labels, minorBreaks, theme }))(ax)
+        let axis = (({ type, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
         axis.showGrid = ax['show-grid'] !== false
+        axis.extend = ax.extend ?? primaryAxis?.[axis.type]?.extend
         if (c.children) {
             axis.action = Object.keys(c.children)
                 .filter(s => typeof c.children[s] == "function")

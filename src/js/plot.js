@@ -151,13 +151,15 @@ class GLayer {
     constructor(layerSchema, plotSchema) {
         let {
             data: $data = [], aes: $aes,
+            extendX: $extendX, extendY: $extendY,
         } = plotSchema
         let {
             geom: $$geom, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
             attrs: $$attrs, args: $$args,
-            vBind: $$vBind
+            vBind: $$vBind,
+            extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
         if (!vvgeom[$$geom]) {
             console.error(`Invalid geom "${$$geom}"`, "in layer", layerSchema, ", plot", plotSchema)
@@ -169,7 +171,10 @@ class GLayer {
             return
         }
         this.geom = $$geom
-        this.vBind = $$vBind
+        this.vBind = Object.assign($$vBind, {
+            extendX: $$extendX ?? $extendX ?? 0,
+            extendY: $$extendY ?? $extendY ?? 0
+        })
         this.scales = {}
         // filter and prepare data by aesthetics
         if (typeof $$data == 'function') $$data = $$data($data)
