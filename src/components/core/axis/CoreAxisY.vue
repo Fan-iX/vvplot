@@ -201,11 +201,13 @@ function wheel(act, pos, delta) {
         if (lvl < 1) {
             let coord = pos2coord({ ymin, ymax })
             let dy = coord.ymax - coord.ymin, cy = (coord.ymax + coord.ymin) / 2
-            if (dy < mry) {
-                coord.ymin = cy - mry / 2
-                coord.ymax = cy + mry / 2
+            if (dy > 0) {
+                if (dy < mry) {
+                    coord.ymin = cy - mry / 2
+                    coord.ymax = cy + mry / 2
+                }
+                ({ ymin, ymax } = coord2pos(coord))
             }
-            ({ ymin, ymax } = coord2pos(coord))
         }
         if (Math.abs(layout.height - (ymax - ymin)) > 1) {
             transcaleY.value = {

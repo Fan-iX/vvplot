@@ -6,7 +6,8 @@
 function break_number({ extend = 0, step, minor = false } = {}) {
     return function ({ min, max } = {}) {
         let interval = max - min
-        if (!(interval > 0)) return []
+        if (interval < 0) return []
+        if (interval == 0) return [min]
         min -= interval * extend
         max += interval * extend
         let exp = 10 ** Math.floor(Math.log10(interval) - 1),
@@ -27,7 +28,8 @@ function break_number({ extend = 0, step, minor = false } = {}) {
 function break_datetime({ extend = 0 } = {}) {
     return function ({ min, max } = {}) {
         let interval = max - min
-        if (!(interval > 0)) return []
+        if (interval < 0) return []
+        if (interval == 0) return [new Date(min)]
         let s = new Date(min - interval * extend),
             e = new Date(max + interval * extend)
         let sYear = s.getUTCFullYear(),

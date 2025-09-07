@@ -111,14 +111,19 @@ const outerRect = reactiveComputed(() => {
  */
 
 const transformBind = computed(() => {
-    let tsl = `translate(${translateX.value + innerRect.left}, ${translateY.value + innerRect.top})`,
-        scl = "", origin = null
-    if (transcaleX.value?.ratio != null || transcaleY.value?.ratio != null) {
-        scl = `scale(${transcaleX.value?.ratio ?? 1}, ${transcaleY.value?.ratio ?? 1})`
+    let transform = [], origin = null
+    let tslX = translateX.value + innerRect.left,
+        tslY = translateY.value + innerRect.top
+    if (tslX != 0 || tslY != 0)
+        transform.push(`translate(${tslX}, ${tslY})`)
+    let sclX = transcaleX.value?.ratio ?? 1,
+        sclY = transcaleY.value?.ratio ?? 1
+    if (sclX != 1 || sclY != 1) {
+        transform.push(`scale(${sclX}, ${sclY})`)
         origin = `${(transcaleX.value?.origin ?? 0.5) * outerRect.width - innerRect.left} ${(transcaleY.value?.origin ?? 0.5) * outerRect.height - innerRect.top}`
     }
     return {
-        transform: `${tsl} ${scl}`,
+        transform: transform.join(' '),
         'transform-origin': origin
     }
 })
@@ -444,11 +449,13 @@ function wheel(act, pos, delta) {
             if (lvl < 1) {
                 let coord = pos2coord({ xmin, xmax })
                 let dx = coord.xmax - coord.xmin, cx = (coord.xmax + coord.xmin) / 2
-                if (dx < mrx) {
-                    coord.xmin = cx - mrx / 2
-                    coord.xmax = cx + mrx / 2
+                if (dx > 0) {
+                    if (dx < mrx) {
+                        coord.xmin = cx - mrx / 2
+                        coord.xmax = cx + mrx / 2
+                    }
+                    ({ xmin, xmax } = coord2pos(coord))
                 }
-                ({ xmin, xmax } = coord2pos(coord))
             }
             if (Math.abs(innerRect.width - (xmax - xmin)) > 1) {
                 transcaleX.value = {
@@ -463,11 +470,13 @@ function wheel(act, pos, delta) {
             if (lvl < 1) {
                 let coord = pos2coord({ ymin, ymax })
                 let dy = coord.ymax - coord.ymin, cy = (coord.ymax + coord.ymin) / 2
-                if (dy < mry) {
-                    coord.ymin = cy - mry / 2
-                    coord.ymax = cy + mry / 2
+                if (dy > 0) {
+                    if (dy < mry) {
+                        coord.ymin = cy - mry / 2
+                        coord.ymax = cy + mry / 2
+                    }
+                    ({ ymin, ymax } = coord2pos(coord))
                 }
-                ({ ymin, ymax } = coord2pos(coord))
             }
             if (Math.abs(innerRect.height - (ymax - ymin)) > 1) {
                 transcaleY.value = {

@@ -25,7 +25,7 @@ function parse_csv(text) {
 <template>
     <div class="plot-container">
         <pre class="code">{{`<VVPlot :data="economics">
-    <VVAxisY :labels="v => \`\${v * 100}%\`" :min-range="0" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
+    <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
         <VVAction move rescale zoom />
     </VVAxisY>
     <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date">
@@ -34,8 +34,7 @@ function parse_csv(text) {
     <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
 </VVPlot>`}}</pre>
         <VVPlot :data="economics">
-            <VVAxisY :labels="v => `${v * 100}%`" :min-range="0" :expand-mult="{ min: 0.2, max: 0.1 }"
-                title="unemployment rate">
+            <VVAxisY :labels="v => `${v * 100}%`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
                 <VVAction move rescale zoom />
             </VVAxisY>
             <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date" :extend="0.5">

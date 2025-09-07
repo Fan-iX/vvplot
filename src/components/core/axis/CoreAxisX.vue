@@ -200,11 +200,13 @@ function wheel(act, pos, delta) {
         if (lvl < 1) {
             let coord = pos2coord({ xmin, xmax })
             let dx = coord.xmax - coord.xmin, cx = (coord.xmax + coord.xmin) / 2
-            if (dx < mrx) {
-                coord.xmin = cx - mrx / 2
-                coord.xmax = cx + mrx / 2
+            if (dx > 0) {
+                if (dx < mrx) {
+                    coord.xmin = cx - mrx / 2
+                    coord.xmax = cx + mrx / 2
+                }
+                ({ xmin, xmax } = coord2pos(coord))
             }
-            ({ xmin, xmax } = coord2pos(coord))
         }
         if (Math.abs(layout.width - (xmax - xmin)) > 1) {
             transcaleX.value = {

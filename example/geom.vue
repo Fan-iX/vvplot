@@ -66,13 +66,13 @@ const render = ref('canvas')
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="economics">
-    <VVAxisX title="unemployment rate" :min-range="0" />
+    <VVAxisX title="unemployment rate" />
     <VVAxisY title="personal savings rate" />
     <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i"
         :scales="{ color: vvscale.color.hue() }" />
 </VVPlot>`}}</pre>
         <VVPlot :data="economics">
-            <VVAxisX title="unemployment rate" :min-range="0" />
+            <VVAxisX title="unemployment rate" />
             <VVAxisY title="personal savings rate" />
             <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i"
                 :scales="{ color: vvscale.color.hue() }" :render />

@@ -194,7 +194,7 @@ const coordLevels = computed(() => {
 const coordScale = computed(() => {
     let range = {}
     let expandAdd = { x: 0, y: 0 }
-    let minRange = { x: 1, y: 1 }
+    let minRange = { x: 0, y: 0 }
     for (let ori of ['x', 'y']) {
         if (primaryAxis[ori]) {
             let ax = primaryAxis[ori]
@@ -208,7 +208,7 @@ const coordScale = computed(() => {
                 range[ori + "max"] = (range[ori + "max"] ?? level.length ?? Math.max(Object.values(level))) - 0.5
             }
             expandAdd[ori] = ax['expand-add'] ?? 0
-            minRange[ori] = ax['min-range'] ?? 1
+            minRange[ori] = ax['min-range'] ?? 0
         }
     }
     return {
