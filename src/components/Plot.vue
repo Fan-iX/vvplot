@@ -237,7 +237,6 @@ const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
-        if (ax.position == 'none') return
         let axis = (({ type, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
         axis.showGrid = ax['show-grid'] !== false
         axis.extend = ax.extend ?? primaryAxis?.[axis.type]?.extend
@@ -277,25 +276,27 @@ const action = computed(() => {
     return vnodes.action.map(c => ({ ...c.type.$_props, ...c.props }))
         .flatMap(props => {
             let res = []
-            for (let act of ["select", "move", "nudge", "zoom"]) {
-                if (!props[act] && props[act] != "") continue
+            for (let a of ["select", "move", "nudge", "zoom"]) {
+                let act = props[a]
+                if (act == null || act === false) continue
+                let xy = act.x == null && act.y == null && props.x == null && props.y == null
                 res.push({
-                    action: act,
-                    once: props[act].once ?? props.once,
-                    dismissible: (props[act].dismissible ?? props.dismissible) !== false,
-                    x: Boolean(props[act].x ?? (props.x || props.x === "")),
-                    y: Boolean(props[act].y ?? (props.y || props.y === "")),
-                    xmin: props[act].xmin ?? props.xmin,
-                    xmax: props[act].xmax ?? props.xmax,
-                    ymin: props[act].ymin ?? props.ymin,
-                    ymax: props[act].ymax ?? props.ymax,
-                    "min-range-x": props[act]["min-range-x"] ?? props["min-range-x"],
-                    "min-range-y": props[act]["min-range-y"] ?? props["min-range-y"],
-                    ctrlKey: Boolean(props[act].ctrl ?? (props.ctrl || props.ctrl === "")),
-                    shiftKey: Boolean(props[act].shift ?? (props.shift || props.shift === "")),
-                    altKey: Boolean(props[act].alt ?? (props.alt || props.alt === "")),
-                    metaKey: Boolean(props[act].meta ?? (props.meta || props.meta === "")),
-                    buttons: props[act].buttons ?? buttonsMap[props[act].button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
+                    action: a,
+                    once: act.once ?? props.once,
+                    dismissible: (act.dismissible ?? props.dismissible) !== false,
+                    x: xy || Boolean(act.x ?? (props.x || props.x === "")),
+                    y: xy || Boolean(act.y ?? (props.y || props.y === "")),
+                    xmin: act.xmin ?? props.xmin,
+                    xmax: act.xmax ?? props.xmax,
+                    ymin: act.ymin ?? props.ymin,
+                    ymax: act.ymax ?? props.ymax,
+                    "min-range-x": act["min-range-x"] ?? props["min-range-x"],
+                    "min-range-y": act["min-range-y"] ?? props["min-range-y"],
+                    ctrlKey: Boolean(act.ctrl ?? (props.ctrl || props.ctrl === "")),
+                    shiftKey: Boolean(act.shift ?? (props.shift || props.shift === "")),
+                    altKey: Boolean(act.alt ?? (props.alt || props.alt === "")),
+                    metaKey: Boolean(act.meta ?? (props.meta || props.meta === "")),
+                    buttons: act.buttons ?? buttonsMap[act.button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
                 })
             }
             return res

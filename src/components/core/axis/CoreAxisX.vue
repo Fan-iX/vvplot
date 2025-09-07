@@ -248,12 +248,12 @@ function applyTransform(act, event) {
             <title>{{ tick.title }}</title>
             {{ tick.text }}
         </text>
-        <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="gb-interactive"
+        <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="vv-interactive"
             fill="transparent">
             <rect :width="width" :height="10" :y="-5" :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }"
                 @pointerdown="axisMovePointerdown" @wheel="axisWheel" />
         </g>
-        <g v-if="action.some?.(a => a.action == 'rescale')" class="gb-interactive" fill="transparent">
+        <g v-if="action.some?.(a => a.action == 'rescale')" class="vv-interactive" fill="transparent">
             <rect :width="20" :height="10" :y="-5" class="cursor-ew-resize" @pointerdown="axisRescaleLeftPointerdown" />
             <rect :width="20" :height="10" :y="-5" :x="width - 20" class="cursor-ew-resize"
                 @pointerdown="axisRescaleRightPointerdown" />
