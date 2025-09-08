@@ -1,5 +1,6 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue';
+import CoreText from '../CoreText.vue'
 const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,
@@ -28,16 +29,23 @@ const transform = computed(() => {
     return `translate(${translate}, 0)`
 })
 const axisTitle = computed(() => {
-    let isRight = theme.ticks_position == "right"
-    let x = (isRight ? 1 : -1) * (theme.title_offset ?? 0), y = height.value / 2
+    let pos = theme.title_position ?? theme.ticks_position, aln = pos,
+        anchorX = theme.title_anchor_x, anchorY = theme.title_anchor_y
+    if (typeof pos != "number") {
+        aln = { bottom: 0, left: 0.5, right: 0.5, top: 1 }[pos] ?? 0.5
+        anchorX = anchorX ?? { left: 1, right: 0 }[pos] ?? 0.5
+        anchorY = anchorY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+    }
+    let x = (1 - anchorX * 2) * (theme.title_offset ?? 0),
+        y = height.value * (1 - aln)
     return {
         x, y,
-        'text-anchor': 'middle',
-        'alignment-baseline': 'central',
-        'font-size': theme.title_size,
-        'color': theme.title_color,
-        'transform': theme.title_angle ? `rotate(${theme.title_angle})` : "",
-        'transform-origin': x + ' ' + y
+        angle: theme.title_angle,
+        anchorX, anchorY,
+        fontSize: theme.title_size,
+        text: title,
+        'fill': theme.title_color,
+        ...theme.title_style,
     }
 })
 const axisLine = computed(() => {
@@ -77,19 +85,18 @@ const tickTexts = computed(() => {
         if (position < 0 || position > height.value) continue
         let offset = (isRight ? 1 : -1) * ((tick.length ?? theme.ticks_length) + 3)
         result.push({
-            bind: {
-                y: position,
-                x: offset,
-                'text-anchor': isRight ? 'start' : 'end',
-                'alignment-baseline': 'central',
-                'font-size': tick.size ?? theme.label_size,
-                'color': tick.color ?? theme.label_color,
-            },
+            y: position,
+            x: offset,
+            angle: theme.text_angle,
+            anchorX: theme.ticks_anchor_x ?? (isRight ? 0 : 1),
+            anchorY: theme.ticks_anchor_y ?? 0.5,
             text: tick.label,
-            title: tick.title ?? tick.label
+            title: tick.title ?? tick.label,
+            fontSize: tick.size ?? theme.label_size,
+            'fill': tick.color ?? theme.label_color,
         })
     }
-    return result.filter(t => t.bind.color != null)
+    return result.filter(t => t.fill != null)
 })
 
 function oob_squish(value, min, max) {
@@ -246,10 +253,7 @@ function applyTransform(act, event) {
     <g :transform="transform">
         <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
-        <text v-for="tick in tickTexts" v-bind="tick.bind">
-            <title>{{ tick.title }}</title>
-            {{ tick.text }}
-        </text>
+        <CoreText v-for="tick in tickTexts" v-bind="tick" />
         <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="vv-interactive"
             fill="transparent">
             <rect :width="10" :height="height" :x="-5"
@@ -261,6 +265,6 @@ function applyTransform(act, event) {
             <rect :width="10" :height="20" :x="-5" :y="height - 20" class="cursor-ns-resize"
                 @pointerdown="axisResizeBottomPointerdown" />
         </g>
-        <text v-bind="axisTitle">{{ title }}</text>
+        <CoreText v-bind="axisTitle" />
     </g>
 </template>

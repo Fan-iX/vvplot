@@ -24,20 +24,26 @@ function parse_csv(text) {
 </script>
 <template>
     <div class="plot-container">
-        <pre class="code">{{`<VVPlot :data="economics">
-    <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
+        <pre class="code">{{`<VVPlot :data="economics" :theme="{ plot: { margin_right: 50 } }">
+    <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate"
+        :theme="{ title_color: 'gray' }">
         <VVAction move rescale zoom />
     </VVAxisY>
-    <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date">
+    <VVAxisX position="10%"
+        :theme="{ ticks_length: 3, title_position: 'right', title_size: 16, text_angle: 45, ticks_anchor_x: 0 }"
+        :show-grid="false" title="date" :extend="0.5">
         <VVAction move rescale zoom />
     </VVAxisX>
     <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
 </VVPlot>`}}</pre>
-        <VVPlot :data="economics">
-            <VVAxisY :labels="v => `${v * 100}%`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
+        <VVPlot :data="economics" :theme="{ plot: { margin_right: 50 } }">
+            <VVAxisY :labels="v => `${v * 100}%`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate"
+                :theme="{ title_color: 'gray' }">
                 <VVAction move rescale zoom />
             </VVAxisY>
-            <VVAxisX position="10%" :theme="{ ticks_length: 3 }" :show-grid="false" title="date" :extend="0.5">
+            <VVAxisX position="10%"
+                :theme="{ ticks_length: 3, title_position: 'right', title_size: 16, text_angle: 45, ticks_anchor_x: 0 }"
+                :show-grid="false" title="date" :extend="0.5">
                 <VVAction move rescale zoom />
             </VVAxisX>
             <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
@@ -89,11 +95,12 @@ function parse_csv(text) {
         <hr>
         <pre class="code">{{`<VVPlot :data="letters">
     <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
+    <VVAxisY position="center" :theme="{ ticks_anchor_y: 1 }" />
     <VVGeomBar :x="d => d" />
 </VVPlot>`}}</pre>
         <VVPlot :data="letters">
             <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
-            <VVAxisY position="center" />
+            <VVAxisY position="center" :theme="{ ticks_anchor_y: 1 }" />
             <VVGeomBar :x="d => d" />
         </VVPlot>
     </div>

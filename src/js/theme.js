@@ -12,7 +12,7 @@ export const theme_base = {
     },
     axis_y: {
         line_orientation: 'vertical',
-        title_offset: 50,
+        title_offset: 30,
         title_angle: 90,
     },
     axis_left: {
@@ -118,13 +118,16 @@ const theme_classic = {
         label_color: 'black',
         title_color: 'black',
     },
+    grid: null,
 }
 
 const theme_void = {
+    axis: null,
+    grid: null,
 }
 
 /**
- * merge objects in array, from left to right
+ * (non-deep) merge array of objects, from left to right
  * `undefined` will be ignored
  * `null` will reset the merge
  * @param {Array} arr
@@ -140,7 +143,11 @@ function obj_merge(arr) {
 export function themeMerge(...themes) {
     return themes.reduce((acc, t) => {
         for (let k in t) {
-            acc[k] = Object.assign(acc[k] || {}, t[k])
+            if (t[k] === null) {
+                acc[k] = null
+            } else {
+                acc[k] = Object.assign(acc[k] || {}, t[k])
+            }
         }
         return acc
     }, {})

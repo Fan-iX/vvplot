@@ -238,6 +238,9 @@ const axes = computed(() => {
     let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
         let axis = (({ type, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
+        if (axis.position == null) {
+            axis.position = { x: "bottom", y: "left" }[axis.type]
+        }
         axis.showGrid = ax['show-grid'] !== false
         axis.extend = ax.extend ?? primaryAxis?.[axis.type]?.extend
         if (c.children) {
@@ -302,7 +305,7 @@ const action = computed(() => {
             return res
         })
 })
-const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, $props.theme)), { deep: true })
+const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, theme_default, $props.theme)), { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
