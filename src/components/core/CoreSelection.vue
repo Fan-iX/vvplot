@@ -78,7 +78,7 @@ function selPointerdown(e, dir) {
 }
 </script>
 <template>
-    <g class="gb-interactive">
+    <g class="vv-interactive">
         <rect v-for="bind, k in borderBind" fill="transparent" v-bind="bind" @pointerdown="selPointerdown($event, k)" />
     </g>
 </template>

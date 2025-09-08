@@ -5,10 +5,10 @@ const page = ref('geom')
 
 import geom from './geom.vue';
 import theme from './theme.vue';
-import label from './label.vue';
+import axis from './axis.vue';
 import action from './action.vue';
 
-const pages = { geom, theme, label, action }
+const pages = { geom, theme, axis, action }
 </script>
 <template>
     <div class="content">
@@ -39,7 +39,7 @@ select {
 
 hr {
     margin: 1em 0;
-    border-top: 1px solid #ccc;
+    color: #ccc;
     width: 80%;
 }
 

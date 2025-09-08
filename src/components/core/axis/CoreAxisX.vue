@@ -1,32 +1,56 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue';
-const { ticks, title, coord2pos, pos2coord, layout, theme, action } = defineProps({
+import CoreText from '../CoreText.vue'
+const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
-    coord2pos: Function,
-    pos2coord: Function,
+    coord2pos: Function, pos2coord: Function,
     layout: Object,
     theme: { type: Object, default: () => ({}) },
-    action: { type: Object, default: () => ({}) }
+    action: { type: Object, default: () => ({}) },
+    position: null
 })
 const width = computed(() => layout.width + layout.l + layout.r)
+const height = computed(() => layout.height + layout.t + layout.b)
 
-const translate = defineModel('translate', { type: Number, default: 0 })
-const transcale = defineModel('transcale')
+const translateX = defineModel('translateX', { type: Number, default: 0 })
+const translateY = defineModel('translateY', { type: Number, default: 0 })
+const transcaleX = defineModel('transcaleX')
+const transcaleY = defineModel('transcaleY')
+const transform = computed(() => {
+    let translate = 0
+    let aln = { bottom: "0%", center: "50%", top: "100%" }[position] ?? position
+    if (typeof aln == "string" && aln.endsWith("%")) {
+        translate = height.value * (1 - aln.slice(0, -1) / 100)
+    } else {
+        translate = translateY.value + coord2pos({ y: +aln }).y + layout.top
+        if (transcaleY.value?.ratio != null)
+            translate = translate * transcaleY.value.ratio + (1 - transcaleY.value.ratio) * (transcaleY.value.origin ?? 0.5) * height.value
+    }
+    return `translate(0, ${translate})`
+})
 const axisTitle = computed(() => {
-    let isTop = theme.ticks_position == "top"
+    let pos = theme.title_position ?? theme.ticks_position, aln = pos,
+        anchorX = theme.title_anchor_x, anchorY = theme.title_anchor_y
+    if (typeof pos != "number") {
+        aln = { left: 0, bottom: 0.5, top: 0.5, right: 1 }[pos] ?? 0.5
+        anchorX = anchorX ?? { left: 1, right: 0 }[pos] ?? 0.5
+        anchorY = anchorY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+    }
+    let x = width.value * aln,
+        y = (anchorY * 2 - 1) * (theme.title_offset ?? 0)
     return {
-        x: width.value / 2,
-        y: (isTop ? -1 : 1) * (theme.title_offset ?? 0),
-        'text-anchor': 'middle',
-        'alignment-baseline': isTop ? 'baseline' : 'hanging',
-        'font-size': theme.title_size,
-        'color': theme.title_color ?? 'black',
-        'transform': theme.title_angle ? `rotate(${theme.title_angle})` : "",
+        x, y,
+        angle: theme.title_angle,
+        anchorX, anchorY,
+        fontSize: theme.title_size,
+        text: title,
+        'fill': theme.title_color,
+        ...theme.title_style,
     }
 })
 const axisLine = computed(() => {
     return {
-        'stroke': theme.line_color ?? 'black',
+        'stroke': theme.line_color,
         'stroke-width': theme.line_width,
         'stroke-dasharray': theme.line_dasharray,
         'style': theme.line_style
@@ -36,45 +60,43 @@ const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
-        let position = coord2pos({ x: tick.position }).x + layout.l + translate.value
-        if (transcale.value?.ratio != null)
-            position = position * transcale.value.ratio + (1 - transcale.value.ratio) * (transcale.value.origin ?? 0.5) * width.value
+        let position = coord2pos({ x: tick.position }).x + layout.l + translateX.value
+        if (transcaleX.value?.ratio != null)
+            position = position * transcaleX.value.ratio + (1 - transcaleX.value.ratio) * (transcaleX.value.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         let offset = (theme.ticks_position == "top" ? -1 : 1) * (tick.length ?? theme.ticks_length)
         result.push({
-            bind: {
-                y1: 0, y2: offset,
-                x1: position, x2: position,
-                'stroke': tick.color ?? theme.ticks_color ?? 'black',
-                'stroke-width': tick.width ?? theme.ticks_width,
-            }
+            y1: 0, y2: offset,
+            x1: position, x2: position,
+            'stroke': tick.color ?? theme.ticks_color,
+            'stroke-width': tick.width ?? theme.ticks_width,
         })
     }
-    return result
+    return result.filter(t => t.stroke != null)
 })
 const tickTexts = computed(() => {
     let isTop = theme.ticks_position == "top"
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick, label: tick }
-        let position = coord2pos({ x: tick.position }).x + layout.l + translate.value
-        if (transcale.value?.ratio != null)
-            position = position * transcale.value.ratio + (1 - transcale.value.ratio) * (transcale.value.origin ?? 0.5) * width.value
+        let position = coord2pos({ x: tick.position }).x + layout.l + translateX.value
+        if (transcaleX.value?.ratio != null)
+            position = position * transcaleX.value.ratio + (1 - transcaleX.value.ratio) * (transcaleX.value.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.ticks_length) + 3)
         result.push({
-            bind: {
-                y: offset,
-                x: position,
-                'text-anchor': 'middle',
-                'alignment-baseline': isTop ? 'baseline' : 'hanging',
-                'font-size': tick.size ?? theme.label_size,
-                'color': tick.color ?? theme.label_color ?? 'black',
-            },
-            text: tick.label
+            x: position,
+            y: offset,
+            angle: theme.text_angle,
+            anchorX: theme.ticks_anchor_x ?? 0.5,
+            anchorY: theme.ticks_anchor_y ?? (isTop ? 0 : 1),
+            text: tick.label,
+            title: tick.title ?? tick.label,
+            fontSize: tick.size ?? theme.label_size,
+            'fill': tick.color ?? theme.label_color,
         })
     }
-    return result
+    return result.filter(t => t.fill != null)
 })
 
 function oob_squish(value, min, max) {
@@ -86,9 +108,9 @@ const iRef = useTemplateRef("i")
 function getPos(event) {
     let rect = iRef.value.getBoundingClientRect()
     return {
-        x: event.pageX - rect.left - layout.left,
-        l: event.pageX - rect.left - layout.left,
-        r: rect.left + layout.left + layout.width - event.pageX,
+        x: event.clientX - rect.left - layout.left,
+        l: event.clientX - rect.left - layout.left,
+        r: rect.left + layout.left + layout.width - event.clientX,
     }
 }
 const emit = defineEmits(['move', 'zoom', 'rescale', 'nudge'])
@@ -103,7 +125,7 @@ function axisMovePointerdown(e) {
         dxmin = boundary.xmax == null ? -Infinity : layout.width - boundary.xmax
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        translate.value = oob_squish(translate.value + ev.movementX, dxmin, dxmax)
+        translateX.value = oob_squish(translateX.value + ev.movementX, dxmin, dxmax)
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -129,7 +151,7 @@ function axisRescaleLeftPointerdown(e) {
         let ratio = (layout.width - x - dx) / (layout.width - x)
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
-        transcale.value = { ratio, origin: (layout.left + layout.width) / width.value }
+        transcaleX.value = { ratio, origin: (layout.left + layout.width) / width.value }
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -154,7 +176,7 @@ function axisRescaleRightPointerdown(e) {
         let ratio = (x + dx) / x
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
-        transcale.value = { ratio, origin: layout.left / width.value }
+        transcaleX.value = { ratio, origin: layout.left / width.value }
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -186,14 +208,16 @@ function wheel(act, pos, delta) {
         if (lvl < 1) {
             let coord = pos2coord({ xmin, xmax })
             let dx = coord.xmax - coord.xmin, cx = (coord.xmax + coord.xmin) / 2
-            if (dx < mrx) {
-                coord.xmin = cx - mrx / 2
-                coord.xmax = cx + mrx / 2
+            if (dx > 0) {
+                if (dx < mrx) {
+                    coord.xmin = cx - mrx / 2
+                    coord.xmax = cx + mrx / 2
+                }
+                ({ xmin, xmax } = coord2pos(coord))
             }
-            ({ xmin, xmax } = coord2pos(coord))
         }
         if (Math.abs(layout.width - (xmax - xmin)) > 1) {
-            transcale.value = {
+            transcaleX.value = {
                 ratio: layout.width / (xmax - xmin),
                 origin: (layout.l + (xmin * layout.width) / (layout.width - xmax + xmin)) / width.value
             }
@@ -205,45 +229,42 @@ function wheel(act, pos, delta) {
         let boundary = coord2pos(act, { unlimited: true })
         let dxmax = boundary.xmin == null ? Infinity : - boundary.xmin,
             dxmin = boundary.xmax == null ? -Infinity : layout.width - boundary.xmax
-        translate.value = oob_squish(movement, dxmin, dxmax)
+        translateX.value = oob_squish(movement, dxmin, dxmax)
     }
 }
 function applyTransform(act, event) {
-    if (transcale.value == null && translate.value == 0) return
+    if (transcaleX.value == null && translateX.value == 0) return
     let xmin = 0, xmax = layout.width
-    if (transcale.value) {
-        let ratio = transcale.value.ratio,
-            origin = transcale.value.origin * width.value - layout.l
+    if (transcaleX.value) {
+        let ratio = transcaleX.value.ratio,
+            origin = transcaleX.value.origin * width.value - layout.l
         xmin = xmin / ratio + (1 - 1 / ratio) * origin
         xmax = xmax / ratio + (1 - 1 / ratio) * origin
     }
-    if (translate.value) {
-        xmin -= translate.value
-        xmax -= translate.value
+    if (translateX.value) {
+        xmin -= translateX.value
+        xmax -= translateX.value
     }
     emit(act.action, pos2coord({ xmin, xmax }), event)
-    translate.value = 0
-    transcale.value = null
+    translateX.value = 0
+    transcaleX.value = null
 }
 </script>
 <template>
-    <g>
+    <g :transform="transform">
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
-        <line v-for="tick in tickLines" v-bind="tick.bind" />
-        <text v-for="tick in tickTexts" v-bind="tick.bind">
-            <title>{{ tick.text }}</title>
-            {{ tick.text }}
-        </text>
-        <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="gb-interactive"
+        <line v-for="tick in tickLines" v-bind="tick" />
+        <CoreText v-for="tick in tickTexts" v-bind="tick" />
+        <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="vv-interactive"
             fill="transparent">
             <rect :width="width" :height="10" :y="-5" :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }"
                 @pointerdown="axisMovePointerdown" @wheel="axisWheel" />
         </g>
-        <g v-if="action.some?.(a => a.action == 'rescale')" class="gb-interactive" fill="transparent">
+        <g v-if="action.some?.(a => a.action == 'rescale')" class="vv-interactive" fill="transparent">
             <rect :width="20" :height="10" :y="-5" class="cursor-ew-resize" @pointerdown="axisRescaleLeftPointerdown" />
             <rect :width="20" :height="10" :y="-5" :x="width - 20" class="cursor-ew-resize"
                 @pointerdown="axisRescaleRightPointerdown" />
         </g>
-        <text v-bind="axisTitle">{{ title }}</text>
+        <CoreText v-bind="axisTitle" />
     </g>
 </template>

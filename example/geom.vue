@@ -54,16 +54,11 @@ const render = ref('canvas')
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="UCBAdmissions">
-    <VVAxisX title="type" />
-    <VVAxisY position="right" title="class" />
     <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :fill="d => d.Freq" :width="0.8"
-        :height="0.8" :scales="{ fill: vvscale.color.gradient2({ midpoint: null }) }" :render />
-    <VVGeomText :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :color="d => d.Freq" :label="d => d.Freq"
-        :render />
+        :height="0.8" :scales="{ fill: vvscale.color.gradient2({ midpoint: null }) }" />
+    <VVGeomText :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :color="d => d.Freq" :label="d => d.Freq" />
 </VVPlot>`}}</pre>
         <VVPlot :data="UCBAdmissions">
-            <VVAxisX title="type" />
-            <VVAxisY position="right" title="class" />
             <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :fill="d => d.Freq" :width="0.8"
                 :height="0.8" :scales="{ fill: vvscale.color.gradient2({ midpoint: null }) }" :render />
             <VVGeomText :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :color="d => d.Freq" :label="d => d.Freq"
@@ -71,13 +66,13 @@ const render = ref('canvas')
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="economics">
-    <VVAxisX title="unemployment rate" :min-range="0" />
+    <VVAxisX title="unemployment rate" />
     <VVAxisY title="personal savings rate" />
     <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i"
         :scales="{ color: vvscale.color.hue() }" />
 </VVPlot>`}}</pre>
         <VVPlot :data="economics">
-            <VVAxisX title="unemployment rate" :min-range="0" />
+            <VVAxisX title="unemployment rate" />
             <VVAxisY title="personal savings rate" />
             <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i"
                 :scales="{ color: vvscale.color.hue() }" :render />
@@ -97,8 +92,8 @@ const render = ref('canvas')
     <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :alpha="0.5" :scales="{ color: vvscale.color.hue({ l: 45 }) }" />
 </VVPlot>`}}</pre>
         <VVPlot :data="iris">
-            <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :render :alpha="0.5"
-                :scales="{ color: vvscale.color.hue({ l: 45 }) }" />
+            <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :alpha="0.5"
+                :scales="{ color: vvscale.color.hue({ l: 45 }) }" :render />
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="pigments">
@@ -107,8 +102,9 @@ const render = ref('canvas')
 </VVPlot>`}}</pre>
         <VVPlot :data="pigments">
             <VVGeomLine :x="d => d.wave_length" :y="d => d.molar_extinction" :color="d => d.pigment"
-                :group="d => d.pigment" :render
-                :scales="{ color: vvscale.color.manual({ values: { beta_carotene: 'orangered', chlorophyll_a: 'limegreen', chlorophyll_b: 'royalblue' } }) }" />
+                :group="d => d.pigment"
+                :scales="{ color: vvscale.color.manual({ values: { beta_carotene: 'orangered', chlorophyll_a: 'limegreen', chlorophyll_b: 'royalblue' } }) }"
+                :render />
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="iris">
@@ -117,7 +113,7 @@ const render = ref('canvas')
         { x: d.Petal_Width, y: d.Sepal_Length - 0.1 },
         { x: d.Petal_Width + 0.1, y: d.Sepal_Length },
         { x: d.Petal_Width, y: d.Sepal_Length + 0.1 },
-    ]" :color="d => d.Species" :fill="d => d.Species" :render />
+    ]" :color="d => d.Species" :fill="d => d.Species" />
 </VVPlot>`}}</pre>
         <VVPlot :data="iris">
             <VVGeomPolygon :points="d => [

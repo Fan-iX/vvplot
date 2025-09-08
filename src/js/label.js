@@ -16,23 +16,6 @@ export const number_cut = {
 }
 
 /**
- * format number with minimum distinguishable precision
- * @param {*} options
- * @returns {function(number, index, array): string}
- */
-function format_auto() {
-    return function (x, i, arr) {
-        let a = Array.from(arr).sort((a, b) => a - b)
-        let minInterval = a.slice(1).map((v, j) => v - a[j])
-            .reduce((a, b) => a < b ? a : b)
-        let digit = Math.round(-Math.log10(minInterval)) + 1
-        if (digit < 0) digit = 0
-        if (digit > 20) digit = 20
-        return String(+x.toFixed(digit))
-    }
-}
-
-/**
  * format number with fixed scale
  * @param {*} options
  * @returns {function(number, index, array): string}
@@ -75,17 +58,46 @@ function format_number({
  * @param {*} options
  * @returns {function(number, index, array): string}
  */
-function format_timestamp() {
-    return function (x, i, arr) {
-        let date = new Date(x)
-        return date.toISOString().replace('T', ' ').replace('Z', '')
+function format_datetime({
+    format,
+} = {}) {
+    let $fn = {
+        y: d => d.getUTCFullYear(),
+        M: d => d.getUTCMonth() + 1,
+        d: d => d.getUTCDate(),
+        h: d => d.getUTCHours(),
+        m: d => d.getUTCMinutes(),
+        s: d => d.getUTCSeconds()
+    }
+    let $cut = { y: 31536000, M: 2678400, d: 86400, h: 3600, m: 60, s: 1 }
+    function $format(date, fmt) {
+        return fmt.replace(/(y|M|d|h|m|s)\1*/g, (m, f) => {
+            let s = String($fn[f](date)), l = m.length
+            if (f == 'y') return s.slice(-l)
+            return s.padStart(l, '0')
+        })
+    }
+    let offset_left = { y: 0, M: 5, d: 8, h: 11, m: 14, s: 17 }
+    let offset_right = { y: 4, M: 7, d: 10, h: 13, m: 16, s: 19 }
+    return function (x, i, arr = [x]) {
+        if (arr.length <= 1) return $format(new Date(x), format ?? 'yyyy-MM-dd hh:mm:ss')
+        if (format == null) {
+            let a = Array.from(arr).sort((a, b) => a - b)
+            let minInterval = a.slice(1).map((v, j) => v - a[j])
+                .reduce((a, b) => a < b ? a : b) / 1000,
+                maxInterval = (a[a.length - 1] - a[0]) / 1000
+            let minCut = ["y", "M", "d", "m", "s"].find(k => $cut[k] <= minInterval)
+            let maxCut = maxInterval > 2678400 ? "y" : maxInterval > 86400 ? "M" : "h"
+            format = 'yyyy-MM-dd hh:mm:ss'.slice(offset_left[maxCut], offset_right[minCut])
+        }
+        return $format(new Date(x), format)
     }
 }
 
 export default {
     number: format_number,
-    auto: format_auto,
-    timestamp: format_timestamp,
+    datetime: format_datetime,
+    timestamp: format_datetime,
     default: function (opts) {
         return format_number({ scale_cut: number_cut.default, ...opts })
     },

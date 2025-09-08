@@ -19,6 +19,7 @@
     ".": "./dist/index.js",
     "./components": "./dist/components.js",
     "./scale": "./dist/scale.js",
+    "./break": "./dist/break.js",
     "./theme": "./dist/theme.js",
     "./label": "./dist/label.js",
     "./style.css": "./dist/style.css"

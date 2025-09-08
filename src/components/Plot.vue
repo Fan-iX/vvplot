@@ -2,7 +2,7 @@
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue';
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
-import { theme_base, theme_default, themeMerge } from '../js/theme'
+import { theme_base, theme_default, themeBuild, themeMerge } from '../js/theme'
 import { str_c } from '../js/utils'
 import CorePlot from './core/CorePlot.vue'
 import CoreLegend from './core/CoreLegend.vue'
@@ -111,9 +111,11 @@ const vBind = computed(() => {
 
 const primaryAxis = reactiveComputed(() => {
     let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props }))
+    let xAxes = allAxes.filter(c => c.type === 'x')
+    let yAxes = allAxes.filter(c => c.type === 'y')
     return {
-        x: allAxes.find(c => c.type === 'x' && !('secondary' in c)),
-        y: allAxes.find(c => c.type === 'y' && !('secondary' in c))
+        x: xAxes.find(c => c.primary || c.primary == '') ?? xAxes.find(c => !('secondary' in c)),
+        y: yAxes.find(c => c.primary || c.primary == '') ?? yAxes.find(c => !('secondary' in c))
     }
 })
 
@@ -127,12 +129,14 @@ const transcaleY = defineModel('transcaleY')
 
 /* schema:
     global data and data transformation of the plot.
-    schema<data, aes, scales>
+    schema<data, aes, extendX, extendY>
 */
 const schema = computed(() => {
     return {
         data: $props.data,
         aes: $props.aes,
+        extendX: primaryAxis?.x?.extend ?? $props.extend?.x ?? 0,
+        extendY: primaryAxis?.y?.extend ?? $props.extend?.y ?? 0
     }
 })
 /* layers
@@ -141,7 +145,7 @@ const schema = computed(() => {
 */
 const layers = computed(() => {
     return vnodes.layer.map(layer => {
-        let { geom, stat, scales, data, ...ect } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...ect } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let aes = {}, args = {}, attrs = {}
         let vBind = {}
@@ -162,7 +166,7 @@ const layers = computed(() => {
                     aes[key] = ect[key]
                 }
             } else {
-                if (["class", 'style', 'render', 'extend-x', 'extend-y'].includes(key)) {
+                if (["class", 'style', 'render'].includes(key)) {
                     vBind[key] = ect[key]
                 } else {
                     attrs[key] = ect[key]
@@ -170,7 +174,7 @@ const layers = computed(() => {
             }
         }
         return {
-            geom, stat, data, aes, attrs, scales, args, vBind
+            geom, stat, data, aes, attrs, scales, args, extendX, extendY, vBind
         }
     })
 })
@@ -190,7 +194,7 @@ const coordLevels = computed(() => {
 const coordScale = computed(() => {
     let range = {}
     let expandAdd = { x: 0, y: 0 }
-    let minRange = { x: 1, y: 1 }
+    let minRange = { x: 0, y: 0 }
     for (let ori of ['x', 'y']) {
         if (primaryAxis[ori]) {
             let ax = primaryAxis[ori]
@@ -204,7 +208,7 @@ const coordScale = computed(() => {
                 range[ori + "max"] = (range[ori + "max"] ?? level.length ?? Math.max(Object.values(level))) - 0.5
             }
             expandAdd[ori] = ax['expand-add'] ?? 0
-            minRange[ori] = ax['min-range'] ?? 1
+            minRange[ori] = ax['min-range'] ?? 0
         }
     }
     return {
@@ -231,18 +235,14 @@ const coordDisplay = computed(() => {
 })
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
-    let xaxis = {}, yaxis = {}
-    let flags = { x: false, y: false }
-    for (let c of vnodes.axis) {
+    let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
-        if (!(ax.type in flags)) {
-            console.warn(`Axis type ${ax.type} not found in axes prop`)
-            continue
+        let axis = (({ type, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
+        if (axis.position == null) {
+            axis.position = { x: "bottom", y: "left" }[axis.type]
         }
-        flags[ax.type] = true
-        if (ax.position == 'none') continue
-        let axis = (({ title, breaks, labels, 'minor-breaks': minorBreaks }) => ({ title, breaks, labels, minorBreaks }))(ax)
         axis.showGrid = ax['show-grid'] !== false
+        axis.extend = ax.extend ?? primaryAxis?.[axis.type]?.extend
         if (c.children) {
             axis.action = Object.keys(c.children)
                 .filter(s => typeof c.children[s] == "function")
@@ -267,42 +267,45 @@ const axes = computed(() => {
                     return res
                 })
         }
-        if (ax.type == 'x') xaxis[ax.position ?? 'bottom'] = axis
-        if (ax.type == 'y') yaxis[ax.position ?? 'left'] = axis
-    }
-    if (!flags.x) xaxis.bottom = { showGrid: true }
-    if (!flags.y) yaxis.left = { showGrid: true }
-    return { ...$props.axes, ...xaxis, ...yaxis }
+        return axis
+    })
+    if (allAxes.every(ax => ax?.type != 'x'))
+        allAxes.push({ type: 'x', position: 'bottom', showGrid: true })
+    if (allAxes.every(ax => ax?.type != 'y'))
+        allAxes.push({ type: 'y', position: 'left', showGrid: true })
+    return allAxes.filter(ax => ax != null)
 })
 const action = computed(() => {
     return vnodes.action.map(c => ({ ...c.type.$_props, ...c.props }))
         .flatMap(props => {
             let res = []
-            for (let act of ["select", "move", "nudge", "zoom"]) {
-                if (!props[act] && props[act] != "") continue
+            for (let a of ["select", "move", "nudge", "zoom"]) {
+                let act = props[a]
+                if (act == null || act === false) continue
+                let xy = act.x == null && act.y == null && props.x == null && props.y == null
                 res.push({
-                    action: act,
-                    once: props[act].once ?? props.once,
-                    dismissible: (props[act].dismissible ?? props.dismissible) !== false,
-                    x: Boolean(props[act].x ?? (props.x || props.x === "")),
-                    y: Boolean(props[act].y ?? (props.y || props.y === "")),
-                    xmin: props[act].xmin ?? props.xmin,
-                    xmax: props[act].xmax ?? props.xmax,
-                    ymin: props[act].ymin ?? props.ymin,
-                    ymax: props[act].ymax ?? props.ymax,
-                    "min-range-x": props[act]["min-range-x"] ?? props["min-range-x"],
-                    "min-range-y": props[act]["min-range-y"] ?? props["min-range-y"],
-                    ctrlKey: Boolean(props[act].ctrl ?? (props.ctrl || props.ctrl === "")),
-                    shiftKey: Boolean(props[act].shift ?? (props.shift || props.shift === "")),
-                    altKey: Boolean(props[act].alt ?? (props.alt || props.alt === "")),
-                    metaKey: Boolean(props[act].meta ?? (props.meta || props.meta === "")),
-                    buttons: props[act].buttons ?? buttonsMap[props[act].button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
+                    action: a,
+                    once: act.once ?? props.once,
+                    dismissible: (act.dismissible ?? props.dismissible) !== false,
+                    x: xy || Boolean(act.x ?? (props.x || props.x === "")),
+                    y: xy || Boolean(act.y ?? (props.y || props.y === "")),
+                    xmin: act.xmin ?? props.xmin,
+                    xmax: act.xmax ?? props.xmax,
+                    ymin: act.ymin ?? props.ymin,
+                    ymax: act.ymax ?? props.ymax,
+                    "min-range-x": act["min-range-x"] ?? props["min-range-x"],
+                    "min-range-y": act["min-range-y"] ?? props["min-range-y"],
+                    ctrlKey: Boolean(act.ctrl ?? (props.ctrl || props.ctrl === "")),
+                    shiftKey: Boolean(act.shift ?? (props.shift || props.shift === "")),
+                    altKey: Boolean(act.alt ?? (props.alt || props.alt === "")),
+                    metaKey: Boolean(act.meta ?? (props.meta || props.meta === "")),
+                    buttons: act.buttons ?? buttonsMap[act.button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
                 })
             }
             return res
         })
 })
-const theme = reactiveComputed(() => themeMerge(theme_base, $props.theme), { deep: true })
+const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, theme_default, $props.theme)), { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')

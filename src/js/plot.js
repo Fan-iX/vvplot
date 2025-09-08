@@ -1,6 +1,8 @@
 import vvgeom from './geom'
 import vvstat from './stat'
 import vvscale from './scale'
+import vvbreak from './break'
+import vvlabel from './label'
 import { numutils } from './utils'
 
 function compare(a, b) {
@@ -149,13 +151,15 @@ class GLayer {
     constructor(layerSchema, plotSchema) {
         let {
             data: $data = [], aes: $aes,
+            extendX: $extendX, extendY: $extendY,
         } = plotSchema
         let {
             geom: $$geom, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
             attrs: $$attrs, args: $$args,
-            vBind: $$vBind
+            vBind: $$vBind,
+            extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
         if (!vvgeom[$$geom]) {
             console.error(`Invalid geom "${$$geom}"`, "in layer", layerSchema, ", plot", plotSchema)
@@ -167,7 +171,10 @@ class GLayer {
             return
         }
         this.geom = $$geom
-        this.vBind = $$vBind
+        this.vBind = Object.assign($$vBind, {
+            extendX: $$extendX ?? $extendX ?? 0,
+            extendY: $$extendY ?? $extendY ?? 0
+        })
         this.scales = {}
         // filter and prepare data by aesthetics
         if (typeof $$data == 'function') $$data = $$data($data)
@@ -375,8 +382,9 @@ export class GPlot {
                 max = +(range?.xmax ?? this.levels.x.length - 0.5) + (add.x?.max ?? 0)
             result.x = new DiscreteCoordScale(this.levels.x, { min, max })
         } else {
-            let min = (range?.xmin ?? this.extents.x?.min ?? 0) - (add.x?.min ?? 0),
-                max = (range?.xmax ?? this.extents.x?.max ?? 0) + (add.x?.max ?? 0)
+            let $min = range?.xmin ?? this.extents.x?.min ?? 0,
+                $max = range?.xmax ?? this.extents.x?.max ?? 0
+            let min = +$min - (add.x?.min ?? 0), max = +$max + (add.x?.max ?? 0)
             let dmin = minRange?.x ?? 1
             if (max - min < dmin) {
                 if (range?.xmax == null && range?.xmin != null) {
@@ -388,7 +396,11 @@ export class GPlot {
                     min = max - dmin
                 }
             }
-            result.x = new ContinuousCoordScale({ min, max })
+            if ($min instanceof Date || $max instanceof Date) {
+                result.x = new DatetimeCoordScale({ min, max })
+            } else {
+                result.x = new ContinuousCoordScale({ min, max })
+            }
         }
 
         if (this.levels.y) {
@@ -396,8 +408,9 @@ export class GPlot {
                 max = +(range?.ymax ?? this.levels.y.length - 0.5) + (add.y?.max ?? 0)
             result.y = new DiscreteCoordScale(this.levels.y, { min, max })
         } else {
-            let min = (range?.ymin ?? this.extents.y?.min ?? 0) - (add.y?.min ?? 0),
-                max = (range?.ymax ?? this.extents.y?.max ?? 0) + (add.y?.max ?? 0)
+            let $min = range?.ymin ?? this.extents.y?.min ?? 0,
+                $max = range?.ymax ?? this.extents.y?.max ?? 0
+            let min = +$min - (add.y?.min ?? 0), max = +$max + (add.y?.max ?? 0)
             let dmin = minRange?.y ?? 1
             if (max - min < dmin) {
                 if (range?.ymax == null && range?.ymin != null) {
@@ -409,25 +422,24 @@ export class GPlot {
                     min = max - dmin
                 }
             }
-            result.y = new ContinuousCoordScale({ min, max })
+            if ($min instanceof Date || $max instanceof Date) {
+                result.y = new DatetimeCoordScale({ min, max })
+            } else {
+                result.y = new ContinuousCoordScale({ min, max })
+            }
         }
         return result
     }
 
-    getAxes(coordScales, expandMult, $axes = { left: true, bottom: true }) {
+    getAxes(coordScales, expandMult, axes = []) {
         coordScales = {
             x: coordScales.x.expand(expandMult?.x),
             y: coordScales.y.expand(expandMult?.y)
         }
-        let axes = { x: {}, y: {} }
-        if ($axes.left) axes.y.left = new GAxis($axes.left, coordScales.y)
-        if ($axes.bottom) axes.x.bottom = new GAxis($axes.bottom, coordScales.x)
-        if ($axes.right) axes.y.right = new GAxis($axes.right, coordScales.y)
-        if ($axes.top) axes.x.top = new GAxis($axes.top, coordScales.x)
-        return axes
+        return axes.filter(a => a.type in coordScales).map(ax => new GAxis(ax, coordScales[ax.type]))
     }
 
-    render(range, expandAdd, expandMult, axes = { left: true, bottom: true }, minRange) {
+    render(range, expandAdd, expandMult, axes, minRange) {
         let coordScales = this.getCoordScales(range, expandAdd, minRange)
         return {
             layers: this.getComputedLayers(),
@@ -517,73 +529,82 @@ class ContinuousCoordScale extends Function {
         return scale
     }
 }
-
-function getContinuousBreaks({ min, max } = {}) {
-    let interval = max - min
-    if (!(interval > 0)) return []
-    let e = 10 ** Math.floor(Math.log10(interval) - 1)
-    let step = (interval > 50 * e ? 20 : interval > 25 * e ? 10 : 5) * e
-    let nMin = Math.ceil((min - interval) / step)
-    let nMax = Math.floor((max + interval) / step)
-    return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
-}
-
-function getContinuousMinorBreaks({ min, max } = {}) {
-    let interval = max - min
-    if (!(interval > 0)) return []
-    let e = 10 ** Math.floor(Math.log10(interval) - 1)
-    let step = (interval > 50 * e ? 10 : interval > 25 * e ? 5 : 2.5) * e
-    let nMin = Math.ceil((min - interval) / step)
-    let nMax = Math.floor((max + interval) / step)
-    return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
+class DatetimeCoordScale extends ContinuousCoordScale {
+    constructor(domain) {
+        let scale = super(domain)
+        let { min, max } = scale.limits
+        scale.invert = w => new Date(w * (max - min) + min)
+        Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
+        return scale
+    }
+    expand({ min: mmin = 0, max: mmax = 0 } = {}) {
+        let scale = super.expand({ min: mmin, max: mmax })
+        let { min, max } = scale.limits
+        scale.invert = w => new Date(w * (max - min) + min)
+        Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
+        return scale
+    }
 }
 
 class GAxis {
     constructor(config = {}, scale) {
-        Object.assign(this, (({ breaks, labels, minorBreaks, showGrid, ...etc }) => etc)(config))
+        let { breaks, extend, labels, minorBreaks, showGrid, ...etc } = config
+        Object.assign(this, etc)
         if (scale.level) {
             let level = scale.level.level.sort((a, b) => a - b)
-            let breaks = level.map(x => +x)
-            let labels
-            if (typeof config.labels === 'function') {
-                labels = level.map(config.labels)
-            } else if (Array.isArray(config.labels)) {
-                if (config.labels.length != breaks.length) {
+            breaks = breaks ?? level.map(x => +x) ?? []
+            if (typeof breaks == 'function') breaks = breaks(level)
+            if (Array.isArray(labels)) {
+                if (labels.length != breaks.length) {
                     throw new Error('Length of labels must be the same as breaks')
                 }
-                labels = config.labels
+            } else if (typeof labels === 'function') {
+                labels = level.map(labels)
             } else {
-                labels = level.map(x => x.toString())
+                labels = level.map(x => String(x))
             }
-            this.ticks = breaks.map((position, i) => { return { position, label: labels[i] } })
-            this.majorBreaks = config.showGrid ? breaks : []
+            this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
+            this.majorBreaks = showGrid ? breaks : []
+            this.minorBreaks = []
+        } else if (scale instanceof DatetimeCoordScale) {
+            breaks = breaks ?? vvbreak.datetime({ extend }) ?? []
+            if (typeof breaks == 'function') breaks = breaks(scale.limits)
+            labels = labels ?? vvlabel.datetime()
+            if (!Array.isArray(breaks)) breaks = []
+            if (Array.isArray(labels)) {
+                if (labels.length != breaks.length) {
+                    throw new Error('Length of labels must be the same as breaks')
+                }
+            } else if (typeof labels === 'function') {
+                labels = breaks.map(labels)
+            } else {
+                labels = breaks.map(b => String(b))
+            }
+            let titles = breaks.map(b => new Date(b).toISOString())
+            this.ticks = breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
+                .sort((a, b) => a.position - b.position)
+            this.majorBreaks = showGrid ? breaks.sort() : []
             this.minorBreaks = []
         } else {
-            let breaks = config.breaks ?? getContinuousBreaks(scale.limits)
-            let minorBreaks = config.minorBreaks ?? getContinuousMinorBreaks(scale.limits)
-            let labels
-            if (typeof config.labels === 'function') {
-                labels = breaks.map(config.labels)
-            } else if (Array.isArray(config.labels)) {
-                if (config.labels.length != breaks.length) {
+            breaks = breaks ?? vvbreak.number({ extend }) ?? []
+            if (typeof breaks == 'function') breaks = breaks(scale.limits)
+            minorBreaks = minorBreaks ?? vvbreak.number({ extend, minor: true }) ?? []
+            if (typeof minorBreaks == 'function') minorBreaks = minorBreaks(scale.limits)
+            labels = labels ?? vvlabel.number()
+            if (!Array.isArray(breaks)) breaks = []
+            if (Array.isArray(labels)) {
+                if (labels.length != breaks.length) {
                     throw new Error('Length of labels must be the same as breaks')
                 }
-                labels = config.labels
-            } else if (Array.isArray(breaks) && breaks.length > 2) {
-                breaks = Array.from(breaks).sort((a, b) => a - b)
-                let minInterval = breaks.slice(1).map((v, i) => v - breaks[i])
-                    .reduce((a, b) => a < b ? a : b)
-                let digit = Math.round(-Math.log10(minInterval)) + 1
-                if (digit < 0) digit = 0
-                if (digit > 20) digit = 20
-                labels = breaks.map(b => +b.toFixed(digit))
+            } else if (typeof labels === 'function') {
+                labels = breaks.map(labels)
             } else {
-                if (!Array.isArray(breaks)) breaks = []
-                labels = breaks
+                labels = breaks.map(b => String(b))
             }
-            this.ticks = breaks.map((position, i) => { return { position, label: labels[i] } }).sort((a, b) => a.position - b.position)
-            this.majorBreaks = config.showGrid ? breaks.sort() : []
-            this.minorBreaks = config.showGrid ? minorBreaks.sort() : []
+            this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
+                .sort((a, b) => a.position - b.position)
+            this.majorBreaks = showGrid ? breaks.sort() : []
+            this.minorBreaks = showGrid ? minorBreaks.sort() : []
         }
     }
 }
