@@ -42,20 +42,20 @@ const render = ref('canvas')
     <div class="plot-container">
         <pre class="code">{{`<VVPlot :data="mtcars">
     <VVGeomPoint :x="d => d.wt" :y="d => d.mpg" shape="triangle" />
-    <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" />
+    <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15" :anchor-x="0" :anchor-y="0.5" :translate-x="6" :translate-y="-2" />
     <VVGeomSegment :x="d => d.x1" :y="d => d.y1" :xend="d => d.x2" :yend="d => d.y2"
         :data="[{ x1: 2.62, x2: 3.57, y1: 21, y2: 15 }]" color="red" />
 </VVPlot>`}}</pre>
         <VVPlot :data="mtcars">
             <VVGeomPoint :x="d => d.wt" :y="d => d.mpg" shape="triangle" :render />
-            <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :render />
+            <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15" :anchor-x="0"
+                :anchor-y="0.5" :translate-x="6" :translate-y="-2" :render />
             <VVGeomSegment :x="d => d.x1" :y="d => d.y1" :xend="d => d.x2" :yend="d => d.y2"
                 :data="[{ x1: 2.62, x2: 3.57, y1: 21, y2: 15 }]" color="red" :render />
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="UCBAdmissions">
-    <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :fill="d => d.Freq" :width="0.8"
-        :height="0.8" :scales="{ fill: vvscale.color.gradient2({ midpoint: null }) }" />
+    <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :fill="d => d.Freq" :width="0.8" :height="0.8" :scales="{ fill: vvscale.color.gradient2({ midpoint: null }) }" />
     <VVGeomText :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :color="d => d.Freq" :label="d => d.Freq" />
 </VVPlot>`}}</pre>
         <VVPlot :data="UCBAdmissions">

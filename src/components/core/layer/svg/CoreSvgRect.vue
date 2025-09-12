@@ -15,7 +15,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         xmin, xmax, ymin, ymax,
         fill = 'black', color, linewidth, linetype, alpha,
-        xtranslate = 0, ytranslate = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         ({ xmin, xmax, ymin, ymax } = coord2pos({ xmin, xmax, ymin, ymax }))
         if (
@@ -31,7 +31,7 @@ const binds = computed(() => {
             'stroke-dasharray': parseLineType(linetype),
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),

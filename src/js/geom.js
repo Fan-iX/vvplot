@@ -3,7 +3,7 @@ let psum = vecutils.sum
 
 export default {
     point: {
-        attrs: ['color', 'size', 'stroke', 'alpha', 'xtranslate', 'ytranslate'],
+        attrs: ['color', 'size', 'stroke', 'alpha', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -21,7 +21,7 @@ export default {
         }
     },
     line: {
-        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'xtranslate', 'ytranslate'],
+        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -41,7 +41,7 @@ export default {
         }
     },
     stick: {
-        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'xtranslate', 'ytranslate'],
+        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -61,7 +61,7 @@ export default {
         }
     },
     tile: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'xtranslate', 'ytranslate'],
+        attrs: ['fill', 'color', 'linewidth', 'alpha', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -95,7 +95,7 @@ export default {
         }
     },
     rect: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'xtranslate', 'ytranslate'],
+        attrs: ['fill', 'color', 'linewidth', 'alpha', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -115,7 +115,7 @@ export default {
         }
     },
     polygon: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'points', 'xtranslate', 'ytranslate'],
+        attrs: ['fill', 'color', 'linewidth', 'alpha', 'points', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge?.map(v => +v),
                 ynudge = ds.ynudge?.map(v => +v),
@@ -139,7 +139,7 @@ export default {
         }
     },
     text: {
-        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'xtranslate', 'ytranslate'],
+        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'translate-x', 'translate-y', 'title', 'anchor-x', 'anchor-y', 'dock-x', 'dock-y', 'angle'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -157,7 +157,7 @@ export default {
         }
     },
     textsegment: {
-        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'xtranslate', 'ytranslate'],
+        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'translate-x', 'translate-y'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,

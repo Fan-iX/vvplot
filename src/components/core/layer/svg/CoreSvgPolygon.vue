@@ -14,7 +14,7 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         points, fill, color, linewidth, alpha,
-        xtranslate = 0, ytranslate = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         points = points.map(p => coord2pos(p))
         if (
@@ -28,7 +28,7 @@ const binds = computed(() => {
             'stroke-width': linewidth,
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),

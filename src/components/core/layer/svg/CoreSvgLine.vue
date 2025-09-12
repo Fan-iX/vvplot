@@ -15,7 +15,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         x, y, xend, yend,
         color = 'black', linewidth, alpha, linetype,
-        xtranslate = 0, ytranslate = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         let { x: x1, y: y1 } = coord2pos({ x: x, y: y })
         let { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
@@ -29,7 +29,7 @@ const binds = computed(() => {
             'stroke-width': linewidth,
             'stroke-opacity': alpha,
             'stroke-dasharray': parseLineType(linetype),
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),

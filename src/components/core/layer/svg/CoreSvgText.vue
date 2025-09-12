@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import CoreText from '../../CoreText.vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -14,36 +15,38 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         x, y,
-        color, size = 4, label, stroke, linewidth, linetype, alpha,
-        xtranslate = 0, ytranslate = 0, $raw
+        color, size = 4, label, title, stroke, linewidth, linetype, alpha,
+        'anchor-x': anchorX, 'anchor-y': anchorY,
+        'dock-x': dockX, 'dock-y': dockY,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
     }) => {
         let { x: tx, y: ty } = coord2pos({ x, y })
         if (tx < xlim_min || tx > xlim_max || ty < ylim_min || ty > ylim_max) return null
-        let result = {
-            x: tx, y: ty,
-            fill: color,
-            label: label,
-            'font-size': size * 4,
-            stroke: stroke,
-            'stroke-width': linewidth,
-            'stroke-dasharray': parseLineType(linetype),
-            'fill-opacity': alpha,
-            'stroke-opacity': alpha,
-            'text-anchor': 'middle',
-            'alignment-baseline': 'central',
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
-            onClick: (e) => emit('click', e, $raw),
-            onContextmenu: (e) => emit('contextmenu', e, $raw),
-            onPointerover: (e) => emit('pointerover', e, $raw),
-            onPointerout: (e) => emit('pointerout', e, $raw),
-            onPointerenter: (e) => emit('pointerenter', e, $raw),
-            onPointerleave: (e) => emit('pointerleave', e, $raw),
-            onPointerdown: (e) => emit('pointerdown', e, $raw),
-            onPointerup: (e) => emit('pointerup', e, $raw),
-            onPointermove: (e) => emit('pointermove', e, $raw),
+        return {
+            bind: {
+                x: tx, y: ty,
+                fill: color,
+                text: String(label), title,
+                fontSize: size * 4,
+                angle, anchorX, anchorY, dockX, dockY,
+                stroke,
+                'stroke-width': linewidth,
+                'stroke-dasharray': parseLineType(linetype),
+                'fill-opacity': alpha,
+                'stroke-opacity': alpha,
+                onClick: (e) => emit('click', e, $raw),
+                onContextmenu: (e) => emit('contextmenu', e, $raw),
+                onPointerover: (e) => emit('pointerover', e, $raw),
+                onPointerout: (e) => emit('pointerout', e, $raw),
+                onPointerenter: (e) => emit('pointerenter', e, $raw),
+                onPointerleave: (e) => emit('pointerleave', e, $raw),
+                onPointerdown: (e) => emit('pointerdown', e, $raw),
+                onPointerup: (e) => emit('pointerup', e, $raw),
+                onPointermove: (e) => emit('pointermove', e, $raw),
+            },
+            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
         }
-        return result
-    }).filter(x => x != null))
+    }).filter(x => x.bind?.text != null))
 })
 function parseLineType(linetype) {
     if (linetype == null) return null
@@ -61,7 +64,10 @@ function parseLineType(linetype) {
     <g>
         <g v-for="group in binds">
             <template v-for="item in group">
-                <text v-bind="item" v-if="item.label">{{ item.label }}</text>
+                <g v-if="item.transform" :transform="item.transform">
+                    <CoreText v-bind="item.bind" />
+                </g>
+                <CoreText v-else v-bind="item.bind" />
             </template>
         </g>
     </g>

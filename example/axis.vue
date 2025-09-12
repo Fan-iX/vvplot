@@ -75,19 +75,21 @@ function parse_csv(text) {
         </VVPlot>
         <hr>
         <pre class="code">{{`<VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
-    <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })">
-        <VVAction move rescale zoom />
+    <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x" :theme="{ title_position: 'right', title_size: 16 }">
+                <VVAction move rescale zoom />
     </VVAxisX>
-    <VVAxisY :position="0" :expand-mult="1" :extend="1">
+    <VVAxisY :position="0" :expand-mult="1" :extend="1" title="y" :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
         <VVAction move rescale zoom />
     </VVAxisY>
     <VVGeomPoint :x="d => d.x" :y="d => d.y" />
 </VVPlot>`}}</pre>
         <VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
-            <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })">
+            <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x"
+                :theme="{ title_position: 'right', title_size: 16 }">
                 <VVAction move rescale zoom />
             </VVAxisX>
-            <VVAxisY :position="0" :expand-mult="1" :extend="1">
+            <VVAxisY :position="0" :expand-mult="1" :extend="1" title="y"
+                :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
                 <VVAction move rescale zoom />
             </VVAxisY>
             <VVGeomPoint :x="d => d.x" :y="d => d.y" />

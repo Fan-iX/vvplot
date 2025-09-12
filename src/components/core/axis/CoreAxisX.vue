@@ -30,18 +30,17 @@ const transform = computed(() => {
 })
 const axisTitle = computed(() => {
     let pos = theme.title_position ?? theme.ticks_position, aln = pos,
-        anchorX = theme.title_anchor_x, anchorY = theme.title_anchor_y
+        dockX = theme.title_dock_x, dockY = theme.title_dock_y, offset = 0
     if (typeof pos != "number") {
         aln = { left: 0, bottom: 0.5, top: 0.5, right: 1 }[pos] ?? 0.5
-        anchorX = anchorX ?? { left: 1, right: 0 }[pos] ?? 0.5
-        anchorY = anchorY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+        dockX = dockX ?? { left: 1, right: 0 }[pos] ?? 0.5
+        dockY = dockY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+        offset = ({ top: -1, bottom: 1 }[pos] ?? 0) * (theme.title_offset ?? 0)
     }
-    let x = width.value * aln,
-        y = (anchorY * 2 - 1) * (theme.title_offset ?? 0)
     return {
-        x, y,
+        x: width.value * aln, y: offset,
         angle: theme.title_angle,
-        anchorX, anchorY,
+        dockX, dockY,
         fontSize: theme.title_size,
         text: title,
         'fill': theme.title_color,
@@ -84,12 +83,19 @@ const tickTexts = computed(() => {
             position = position * transcaleX.value.ratio + (1 - transcaleX.value.ratio) * (transcaleX.value.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.ticks_length) + 3)
+        let anchorX, anchorY, dockX, dockY
+        if (theme.ticks_anchor_x != null || theme.ticks_anchor_y != null) {
+            anchorX = theme.ticks_anchor_x ?? 0.5
+            anchorY = theme.ticks_anchor_y ?? (isTop ? 0 : 1)
+        } else {
+            dockX = theme.ticks_dock_x ?? 0.5
+            dockY = theme.ticks_dock_y ?? (isTop ? 0 : 1)
+        }
         result.push({
             x: position,
             y: offset,
             angle: theme.text_angle,
-            anchorX: theme.ticks_anchor_x ?? 0.5,
-            anchorY: theme.ticks_anchor_y ?? (isTop ? 0 : 1),
+            anchorX, anchorY, dockX, dockY,
             text: tick.label,
             title: tick.title ?? tick.label,
             fontSize: tick.size ?? theme.label_size,

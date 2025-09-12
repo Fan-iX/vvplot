@@ -33,22 +33,22 @@ const layerCanvas = computed(() => {
         for (let {
             x, y, size = 6,
             shape, color, stroke, linewidth, alpha,
-            xtranslate = 0, ytranslate = 0, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             const { x: cx, y: cy } = coord2pos({ x: x, y: y })
             const path2d = new Path2D()
             if (String(shape).startsWith("path:")) {
                 path2d.addPath(
                     new Path2D(shape.slice(5)),
-                    new DOMMatrix().translateSelf(cx + xtranslate, cy + ytranslate)
+                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY)
                 )
             } else if (shape in paths) {
                 path2d.addPath(
                     new Path2D(paths[shape](size)),
-                    new DOMMatrix().translate(cx + xtranslate, cy + ytranslate)
+                    new DOMMatrix().translate(cx + translateX, cy + translateY)
                 )
             } else {
-                path2d.arc(cx + xtranslate, cy + ytranslate, size / 2, 0, Math.PI * 2)
+                path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)
             }
             path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth

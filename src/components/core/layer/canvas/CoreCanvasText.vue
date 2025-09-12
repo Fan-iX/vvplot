@@ -26,9 +26,12 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             x, y,
-            color, size = 4, label, stroke, linewidth, linetype, alpha,
-            xtranslate = 0, ytranslate = 0, $raw
+            color, size = 4, label, title, stroke, linewidth, linetype, alpha,
+            'anchor-x': anchorX, 'anchor-y': anchorY,
+            'dock-x': dockX, 'dock-y': dockY,
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
         } of group) {
+            ctx.save()
             const { x: tx, y: ty } = coord2pos({ x, y })
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
@@ -36,14 +39,36 @@ const layerCanvas = computed(() => {
             ctx.globalAlpha = alpha
             ctx.font = `${size * 4}px sans-serif`
             ctx.setLineDash(parseLineType(linetype))
+            let { width, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
+                height = a + d
+            ctx.translate(tx + translateX, ty + translateY)
+            if (anchorX != null || anchorY != null) {
+                let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+                    alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+                if (isNaN(alnX)) alnX = 0.5
+                if (isNaN(alnY)) alnY = 0.5
+                let w = width, h = height
+                ctx.rotate(angle * Math.PI / 180)
+                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+            } else if (dockX != null || dockY != null) {
+                let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
+                    alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
+                if (isNaN(alnX)) alnX = 0.5
+                if (isNaN(alnY)) alnY = 0.5
+                let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
+                    h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180))
+                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+                ctx.rotate(angle * Math.PI / 180)
+            }
             if (color !== 'none') {
                 ctx.fillStyle = color
-                ctx.fillText(label, tx + xtranslate, ty + ytranslate)
+                ctx.fillText(label, 0, 0)
             }
             if (stroke != null) {
                 ctx.strokeStyle = stroke
-                ctx.strokeText(label, tx + xtranslate, ty + ytranslate)
+                ctx.strokeText(label, 0, 0)
             }
+            ctx.restore()
         }
     }
     canvas.onclick = function (e) {

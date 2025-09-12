@@ -21,7 +21,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         x, y, size = 6,
         shape, color, stroke, linewidth, alpha,
-        xtranslate = 0, ytranslate = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         let { x: cx, y: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
@@ -31,7 +31,7 @@ const binds = computed(() => {
             'stroke-width': linewidth,
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),
