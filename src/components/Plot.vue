@@ -1,11 +1,10 @@
 <script setup>
-import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue';
+import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge } from '../js/theme'
 import { str_c } from '../js/utils'
 import CorePlot from './core/CorePlot.vue'
-import CoreLegend from './core/CoreLegend.vue'
 import VVAction from './Action.vue'
 import * as geom_components from './geom'
 import * as axis_components from './axis'
@@ -339,15 +338,10 @@ const wrapperClass = computed(() => {
             :coord-levels="coordLevels" :levels="levels" :scales="$props.scales" :axes="axes" :theme="theme"
             v-model:selection="selection" v-model:active-selection="activeSelection" v-model:transcale-x="transcaleX"
             v-model:transcale-y="transcaleY" v-model:translate-x="translateX" v-model:translate-y="translateY"
-            v-bind="vBind.plot" :action="action" />
+            v-bind="vBind.plot" :action="action" :legendTeleport="$props.legendTeleport" />
         <div class="absolute right-4 top-4 flex flex-row">
             <slot name="toolbar"></slot>
         </div>
         <slot name="tooltip"></slot>
-        <Teleport v-if="legendTeleport" :to="legendTeleport">
-            <div class="flex flex-col" :style="{ gap: theme.legend.spacing + 'px' }">
-                <CoreLegend :geom="Array.from(geom)" :scale="scale" v-for="[scale, geom] in plotRef?.vplot?.scales" />
-            </div>
-        </Teleport>
     </div>
 </template>

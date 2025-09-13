@@ -1,4 +1,5 @@
 <script setup>
+defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
 import { unique, extractModifier } from '#base/js/utils'
@@ -8,6 +9,7 @@ import CoreGridX from './grid/CoreGridX.vue'
 import CoreGridY from './grid/CoreGridY.vue'
 import CoreLayer from './layer/CoreLayer.vue'
 import CoreSelection from './CoreSelection.vue'
+import CoreGuide from './CoreGuide.vue'
 const vid = useId()
 const props = defineProps({
     schema: Object, layers: Array,
@@ -16,6 +18,7 @@ const props = defineProps({
     axes: { type: Array, default: () => [] },
     theme: Object,
     action: { type: Array, default: () => [] },
+    legendTeleport: null,
 })
 const range = defineModel('range')
 const selection = defineModel('selection')
@@ -585,7 +588,7 @@ const axes = computed(() => {
     <svg ref="svg" width="100%" height="100%" @wheel="svgWheel" @pointerdown="svgPointerdown" @pointerup="svgPointerup"
         @pointerover="svgPointerover" @pointerout="svgPointerout" @pointerenter="svgPointerenter"
         @pointerleave="svgPointerleave" @dblclick="svgDblclick" @click="svgClick" @dragstart.prevent
-        @contextmenu.prevent>
+        @contextmenu.prevent v-bind="$attrs">
         <defs>
             <clipPath :id="`${vid}-plot-clip`">
                 <rect x="0" y="0" :width="outerRect.width" :height="outerRect.height" />
@@ -615,5 +618,12 @@ const axes = computed(() => {
                 v-model:translateX="translateX" v-model:transcaleX="transcaleX" v-model:translateY="translateY"
                 v-model:transcaleY="transcaleY" />
         </g>
+        <foreignObject v-if="props.legendTeleport">
+            <Teleport defer :to="props.legendTeleport">
+                <div class="flex flex-col" :style="{ gap: theme.legend.spacing + 'px' }">
+                    <CoreGuide :theme="theme" :geoms="geoms" :scale="scale" v-for="[scale, geoms] in vplot?.scales" />
+                </div>
+            </Teleport>
+        </foreignObject>
     </svg>
 </template>

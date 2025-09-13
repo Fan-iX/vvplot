@@ -12,18 +12,22 @@ import iris from './data/iris.json'
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
     </VVAxisX>
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species" />
 </VVPlot>`}}</pre>
-        <VVPlot :data="iris" resize>
-            <VVAxisY :position="0" :extend="1">
-                <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
-            </VVAxisY>
-            <VVAxisX position="center" :extend="1">
-                <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
-                <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
-            </VVAxisX>
-            <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-        </VVPlot>
+        <div class="flex flex-row">
+            <VVPlot :data="iris" resize legend-teleport="#legend-1">
+                <VVAxisY :position="0" :extend="1">
+                    <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
+                </VVAxisY>
+                <VVAxisX position="center" :extend="1">
+                    <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
+                    <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
+                </VVAxisX>
+                <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                    :shape="d => d.Species" />
+            </VVPlot>
+            <div id="legend-1"></div>
+        </div>
         <hr>
         <pre class="code">{{`<VVPlot :data="iris" resize>
     <VVAxisX position="0%" :min="0" :max="8" :expand-add="1" :extend="2" />

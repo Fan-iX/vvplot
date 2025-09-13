@@ -197,13 +197,13 @@ class GLayer {
         }
         for (const aes in $$attrs) {
             if (!coord_aes.includes(aes)) continue
-            if (!Array.isArray($$attrs[aes])) {
-                if ($$attrs[aes] == null) continue
-                data[aes] = new Array(length).fill($$attrs[aes])
-            } else {
+            if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
                 data[aes] = $$attrs[aes]
+            } else {
+                if ($$attrs[aes] == null) continue
+                data[aes] = new Array(length).fill($$attrs[aes])
             }
         }
 
@@ -227,13 +227,13 @@ class GLayer {
         ])
         this.aes = new Set([
             ...this.localScales,
-            ...vvgeom[$$geom]?.attrs ?? []
+            ...vvgeom[$$geom]?.scale_attrs ?? []
         ])
 
         this.$data = data
         this.data = { ...data }
         for (const aes in data) {
-            if ($$scales[aes] != null || vvgeom[$$geom]?.attrs?.includes?.(aes)) {
+            if ($$scales[aes] != null || vvgeom[$$geom]?.scale_attrs?.includes?.(aes)) {
                 let scale = new Scale($$scales[aes] ?? vvscale[aes].default())
                 scale.aesthetics = aes
                 if (scale.title === undefined) {
@@ -252,16 +252,18 @@ class GLayer {
             }
         }
 
+        this.attrs = {}
         for (const aes in $$attrs) {
             if (coord_aes.includes(aes)) continue
-            if (!Array.isArray($$attrs[aes])) {
-                if ($$attrs[aes] != null) {
-                    this.data[aes] = new Array(length).fill($$attrs[aes])
-                }
-            } else {
+            if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
                 this.data[aes] = $$attrs[aes]
+            } else {
+                this.attrs[aes] = $$attrs[aes]
+                if ($$attrs[aes] != null) {
+                    this.data[aes] = new Array(length).fill($$attrs[aes])
+                }
             }
         }
     }
@@ -322,6 +324,7 @@ export class GPlot {
                 } else if (!scale.asis) {
                     scale.extent = numutils.extent(values)
                 }
+                scale.title = this.layers.map(layer => layer.scales?.[aes]?.title).find(s => s != null)
                 for (const layer of this.layers) {
                     if (!layer.localScales.has(aes)) {
                         layer.applyScale(aes, scale)
@@ -333,9 +336,15 @@ export class GPlot {
                 if (scale == null) continue
                 if (!scale.asis) {
                     if (!this.scales.has(scale)) {
-                        this.scales.set(scale, new Set())
+                        this.scales.set(scale, {})
                     }
-                    this.scales.get(scale).add(layer.geom)
+                    let geoms = this.scales.get(scale)
+                    if (geoms[layer.geom] == null) geoms[layer.geom] = {}
+                    for (let attr of vvgeom[layer.geom]?.scale_attrs) {
+                        if (layer.attrs[attr] != null) {
+                            geoms[layer.geom][attr] = layer.attrs[attr]
+                        }
+                    }
                 }
             }
         }

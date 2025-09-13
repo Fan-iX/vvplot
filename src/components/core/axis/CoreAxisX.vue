@@ -1,6 +1,6 @@
 <script setup>
-import { computed, useTemplateRef } from 'vue';
-import CoreText from '../CoreText.vue'
+import { computed, useTemplateRef } from 'vue'
+import CoreText from '../element/CoreText.vue'
 const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,

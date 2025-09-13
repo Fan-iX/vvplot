@@ -1,5 +1,5 @@
 <script setup>
-import { computed, useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue'
 const { data, layout, coord2pos, geom, render, extendX, extendY, class: cls } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -7,8 +7,8 @@ const { data, layout, coord2pos, geom, render, extendX, extendY, class: cls } = 
     geom: String, render: { type: String, default: "auto" },
     class: { type: String, default: '' }
 })
-import * as canvas from '../layer/canvas';
-import * as svg from '../layer/svg';
+import * as canvas from './canvas'
+import * as svg from './svg'
 import { twMerge } from 'tailwind-merge'
 const geoms = { svg, canvas }
 const rend = computed(() => {

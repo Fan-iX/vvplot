@@ -1,12 +1,12 @@
 <script setup>
 import '#base/style.css'
-import { ref } from 'vue';
+import { ref } from 'vue'
 const page = ref('geom')
 
-import geom from './geom.vue';
-import theme from './theme.vue';
-import axis from './axis.vue';
-import action from './action.vue';
+import geom from './geom.vue'
+import theme from './theme.vue'
+import axis from './axis.vue'
+import action from './action.vue'
 
 const pages = { geom, theme, axis, action }
 </script>

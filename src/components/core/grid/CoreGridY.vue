@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
 const { majorBreaks, minorBreaks, coord2pos, layout, theme, translate, transcale } = defineProps({
     majorBreaks: { type: Array, default: () => [] },
     minorBreaks: { type: Array, default: () => [] },

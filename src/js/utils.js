@@ -56,6 +56,20 @@ export const vecutils = {
     }
 }
 
+/**
+ * (shallow) merge array of objects, from left to right
+ * `undefined` will be ignored
+ * `null` will reset the merge
+ * @param {Array} arr
+ * @returns {Object|null}
+ */
+export function obj_merge(arr) {
+    arr = arr.filter(x => x !== undefined)
+    arr = arr.slice(arr.findIndex(x => x == null) + 1)
+    if (arr.length == 0) return null
+    return arr.reduce((a, c) => Object.assign(a, c), {})
+}
+
 export function str_c() {
     let args = Array.from(arguments)
     if (args.some(x => x === undefined)) return undefined

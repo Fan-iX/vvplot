@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
 import { extractModifier } from '#base/js/utils'
 const selection = defineModel("selection")
 const { coord2pos, pos2coord, layout, action } = defineProps({

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, useTemplateRef } from 'vue';
+import { computed, watch, useTemplateRef } from 'vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },

@@ -205,6 +205,14 @@ function continuous_scale({
     return Object.assign(fn, { title })
 }
 
+function shape_scale_discrete({ title } = {}) {
+    let shapes = ["circle", "square", "triangle", "diamond", "plus"]
+    let fn = function (arr) {
+        return arr.map(v => shapes[+v])
+    }
+    return Object.assign(fn, { title })
+}
+
 function linetype_scale_discrete({ title } = {}) {
     let linetypes = ["solid", "22", "42", "44", "13", "1343", "73", "2262", "12223242",
         "F282", "F4448444", "224282F2", "F1"]
@@ -238,9 +246,11 @@ export default {
         discrete: linetype_scale_discrete,
         default: linetype_scale_discrete,
     },
-    label: { default: scale_identity_asis, },
-    group: { default: scale_identity_asis, },
-    points: { default: scale_identity_asis, },
+    shape: {
+        identity: scale_identity_string,
+        shape: shape_scale_discrete,
+        default: shape_scale_discrete,
+    },
     transform: {
         manual: scale_manual,
         default: scale_identity_string,
