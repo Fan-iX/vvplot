@@ -9,7 +9,7 @@ import CoreGridX from './grid/CoreGridX.vue'
 import CoreGridY from './grid/CoreGridY.vue'
 import CoreLayer from './layer/CoreLayer.vue'
 import CoreSelection from './CoreSelection.vue'
-import CoreGuide from './CoreGuide.vue'
+import CoreLegend from './CoreLegend.vue'
 const vid = useId()
 const props = defineProps({
     schema: Object, layers: Array,
@@ -620,9 +620,7 @@ const axes = computed(() => {
         </g>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
-                <div class="flex flex-col" :style="{ gap: theme.legend.spacing + 'px' }">
-                    <CoreGuide :theme="theme" :geoms="geoms" :scale="scale" v-for="[scale, geoms] in vplot?.scales" />
-                </div>
+                <CoreLegend :scales="vplot?.scales" :theme="theme.legend" />
             </Teleport>
         </foreignObject>
     </svg>

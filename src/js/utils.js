@@ -103,10 +103,48 @@ export function extractModifier(event) {
     }
 }
 
+function deepEqual(a, b) {
+    if (a === b) return true
+    if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false
+    let aKeys = Object.keys(a), bKeys = Object.keys(b)
+    if (aKeys.length !== bKeys.length) return false
+    for (let key of aKeys) {
+        if (!deepEqual(a[key], b[key])) return false
+    }
+    return true
+}
+
+/**
+ * Create a shallow categorical representation for a list of object.
+ * @param  {object[]} array
+ * @returns {number[]}
+ */
+export function categorize(array) {
+    if (!Array.isArray(array)) throw new Error('Argument must be an array')
+    let categories = [], result = []
+    for (let i = 0; i < array.length; i++) {
+        let obj = array[i]
+        let idx = categories.findIndex(cat => deepEqual(cat, obj))
+        if (idx === -1) {
+            categories.push(obj)
+            idx = categories.length - 1
+        }
+        result.push(idx)
+    }
+    result.categories = categories
+    return result
+}
+
+
+/**
+ * Create a categorical representation for lists of data.
+ * @param  {...any} values
+ * @returns {number[]} result
+ * @returns {Array[]} result.categories
+ */
 export function interaction(...values) {
     if (values.length == 0) return null
-    let arrs = values.filter(x => Array.isArray(x))
-    let length = arrs.reduce((l, val) => {
+    let length = values.filter(x => Array.isArray(x)).reduce((l, val) => {
         if (Array.isArray(val)) {
             if (l == null) return val.length
             if (l != val.length) throw new Error('Arrays must have the same length')
@@ -117,6 +155,36 @@ export function interaction(...values) {
     for (let i = 0; i < length; i++) {
         let val = values.map(x => Array.isArray(x) ? x[i] : x)
         let idx = categories.findIndex(x => x.every((v, j) => v === val[j]))
+        if (idx === -1) {
+            categories.push(val)
+            idx = categories.length - 1
+        }
+        result.push(idx)
+    }
+    result.categories = categories
+    return result
+}
+
+/**
+ * Create a categorical representation for lists of data.
+ * @param {object} values
+ * @returns {number[]} result
+ * @returns {object[]} result.categories
+ */
+export function intraaction(values) {
+    if (Object.keys(values).length == 0) return null
+    let length = Object.values(values).filter(x => Array.isArray(x)).reduce((l, val) => {
+        if (Array.isArray(val)) {
+            if (l == null) return val.length
+            if (l != val.length) throw new Error('Arrays must have the same length')
+        }
+        return l
+    }, null) ?? 0
+    let keys = Object.keys(values)
+    let categories = [], result = []
+    for (let i = 0; i < length; i++) {
+        let val = Object.fromEntries(keys.map(k => [k, Array.isArray(values[k]) ? values[k][i] : values[k]]))
+        let idx = categories.findIndex(x => keys.every(k => x[k] === val[k]))
         if (idx === -1) {
             categories.push(val)
             idx = categories.length - 1

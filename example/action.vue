@@ -1,5 +1,7 @@
 <script setup>
 import { VVPlot, VVAxisX, VVAxisY, VVGeomPoint, VVAction } from '#base/components'
+import vvscale from '#base/js/scale'
+
 import iris from './data/iris.json'
 </script>
 <template>
@@ -12,7 +14,8 @@ import iris from './data/iris.json'
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
     </VVAxisX>
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species" />
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species"
+         :scales="{ color: vvscale.color.default({ key: 'Species' }), shape: vvscale.shape.default({ key: 'Species' }) }" />
 </VVPlot>`}}</pre>
         <div class="flex flex-row">
             <VVPlot :data="iris" resize legend-teleport="#legend-1">
@@ -24,7 +27,8 @@ import iris from './data/iris.json'
                     <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
                 </VVAxisX>
                 <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-                    :shape="d => d.Species" />
+                    :shape="d => d.Species"
+                    :scales="{ color: vvscale.color.default({ key: 'Species' }), shape: vvscale.shape.default({ key: 'Species' }) }" />
             </VVPlot>
             <div id="legend-1"></div>
         </div>

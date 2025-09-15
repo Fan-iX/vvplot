@@ -1,4 +1,4 @@
-import { numutils, interaction } from './utils'
+import { numutils, interaction, intraaction } from './utils'
 /**
  * stat functions
  * input: data object with arrays of aesthetics
@@ -142,23 +142,23 @@ export default {
         }
         bins = breaks.length - 1
         let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
-        let group = interaction(...keys.map(k => data[k]))
-        let inter = interaction(
-            group ?? 0,
-            values.map(v => breaks.findLast(b => b <= v) ?? breaks[0]),
-            values.map(v => breaks.find(b => b > v) ?? breaks[bins])
-        )
-        let $raw = [], groups = Object.groupBy(data.$raw, (v, i) => inter?.[i])
-        for (let i in groups) $raw[i] = groups[i]
+        let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
+        let inter = intraaction({
+            group: group ?? 0,
+            upper: values.map(v => breaks.findLast(b => b <= v) ?? breaks[0]),
+            lower: values.map(v => breaks.find(b => b > v) ?? breaks[bins])
+        })
+        let groups = Map.groupBy(data.$raw, (_, i) => inter.categories[inter[i]])
+        let $raw = Array.from(groups.values()), cates = Array.from(groups.keys())
         let result = {
             $raw: $raw,
             count: $raw.map(x => x.length),
-            $group: $raw.map((_, i) => inter.categories[i][0]),
-            upper: $raw.map((_, i) => inter.categories[i][1]),
-            lower: $raw.map((_, i) => inter.categories[i][2])
+            $group: cates.map(x => x.group),
+            upper: cates.map(x => x.upper),
+            lower: cates.map(x => x.lower),
         }
-        for (let idx in keys) {
-            result[keys[idx]] = $raw.map((_, i) => group.categories[inter.categories[i][0]][idx])
+        for (let key of keys) {
+            result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
         }
         if (data.x) {
             return (({
@@ -181,18 +181,18 @@ export default {
         if (values.some(x => typeof x === 'number'))
             throw new Error(`"stat.bar" requires a discrete aesthetic`)
         let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
-        let group = interaction(...keys.map(k => data[k]))
-        let inter = interaction(group ?? 0, values)
-        let $raw = [], groups = Object.groupBy(data.$raw, (v, i) => inter?.[i])
-        for (let i in groups) $raw[i] = groups[i]
+        let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
+        let inter = intraaction({ group: group ?? 0, value: values })
+        let groups = Map.groupBy(data.$raw, (_, i) => inter.categories[inter[i]])
+        let $raw = Array.from(groups.values()), cates = Array.from(groups.keys())
         let result = {
             $raw: $raw,
             count: $raw.map(x => x.length),
-            $group: $raw.map((_, i) => inter.categories[i][0]),
-            value: $raw.map((_, i) => inter.categories[i][1]),
+            $group: cates.map(x => x.group),
+            value: cates.map(x => x.value),
         }
-        for (let idx in keys) {
-            result[keys[idx]] = $raw.map((_, i) => group.categories[inter.categories[i][0]][idx])
+        for (let key of keys) {
+            result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
         }
         if (data.x) {
             return (({ value, count, ...etc }) => ({ x: value, y: count.map(x => x / 2), height: count, ...etc }))(result)
