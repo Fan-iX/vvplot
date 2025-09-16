@@ -1,4 +1,4 @@
-import { numutils, interaction, intraaction } from './utils'
+import { numutils, intraaction } from './utils'
 /**
  * stat functions
  * input: data object with arrays of aesthetics
@@ -28,7 +28,7 @@ export default {
         result.xend = order2.map(i => data.x[i])
         result.yend = order2.map(i => data.y[i])
         return result
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
     linerange: Object.assign(function (data) {
         if (data.x != null) {
             let missingAes = ['x', 'ymin', 'ymax'].filter(a => data[a] == null)
@@ -43,7 +43,7 @@ export default {
         } else {
             throw new Error(`Missing aesthetics for GeomLinerange: x,ymin,ymax or y,xmin,xmax`)
         }
-    }, { coord_attrs: ['x', 'y', 'xmin', 'xmax', 'ymin', 'ymax', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xmin', 'xmax', 'ymin', 'ymax', 'xnudge', 'ynudge'] }),
     path: Object.assign(function (data) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
@@ -64,15 +64,15 @@ export default {
         result.xend = order2.map(i => data.x[i])
         result.yend = order2.map(i => data.y[i])
         return result
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
     segment: Object.assign(function (data) {
         if (data.xend == null) data.xend = data.x
         if (data.yend == null) data.yend = data.y
         let missingAes = ['x', 'y', 'xend', 'yend'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomLine: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomSegment: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge'] }),
     stick: Object.assign(function (data) {
         if (data.dx == null) data.dx = Array(data.x.length).fill(0)
         if (data.dy == null) data.dy = Array(data.y.length).fill(0)
@@ -80,25 +80,25 @@ export default {
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomStick: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'dx', 'dy', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'dx', 'dy', 'xnudge', 'ynudge'] }),
     point: Object.assign(function (data) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomPoint: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
     polygon: Object.assign(function (data) {
         let missingAes = ['points'].filter(a => data[a] == null)
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomPolygon: ${missingAes}`)
         return data
-    }, { coord_attrs: ['points', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['points', 'xnudge', 'ynudge'] }),
     rect: Object.assign(function (data) {
         let missingAes = ['xmin', 'xmax', 'ymin', 'ymax'].filter(a => data[a] == null)
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomRect: ${missingAes}`)
         return data
-    }, { coord_attrs: ['xmin', 'xmax', 'ymin', 'ymax', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['xmin', 'xmax', 'ymin', 'ymax', 'xnudge', 'ynudge'] }),
     tile: Object.assign(function (data) {
         if (data.width == null && data.x.some(x => typeof x === 'string')) {
             data.width = Array(data.x.length).fill(1)
@@ -110,13 +110,13 @@ export default {
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomTile: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'width', 'height', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'width', 'height', 'xnudge', 'ynudge'] }),
     text: Object.assign(function (data) {
         let missingAes = ['x', 'y', 'label'].filter(a => data[a] == null)
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomText: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label'] }),
     textsegment: Object.assign(function (data) {
         if (data.xend == null) data.xend = data.x
         if (data.yend == null) data.yend = data.y
@@ -124,7 +124,7 @@ export default {
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomTextsegment: ${missingAes}`)
         return data
-    }, { coord_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge', 'label'] }),
     histogram: Object.assign(function (data, { bins = 30, binwidth, breaks } = {}) {
         if (data.x != null && data.y != null)
             throw new Error(`Histogram only supports x or y, not both`)
@@ -171,7 +171,7 @@ export default {
                 count: xmax, xmin = $raw.map(() => 0), ...etc
             }) => ({ xmin, xmax, ymin, ymax, ...etc }))(result)
         }
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
     bar: Object.assign(function (data) {
         if (data.x != null && data.y != null)
             throw new Error(`Bar only supports x or y, not both`)
@@ -199,5 +199,5 @@ export default {
         } else {
             return (({ value, count, ...etc }) => ({ y: value, x: count.map(x => x / 2), width: count, ...etc }))(result)
         }
-    }, { coord_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
 }

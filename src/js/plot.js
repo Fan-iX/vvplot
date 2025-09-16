@@ -188,15 +188,15 @@ class GLayer {
         }
         data.$raw = $$data
 
-        // apply coordinate attributes
-        let coord_aes = stat?.coord_attrs ?? ['x', 'y', 'xnudge', 'ynudge']
+        // apply core attributes (attributes required in stat function)
+        let core_aes = stat?.core_attrs ?? ['x', 'y', 'xnudge', 'ynudge']
         let length = $$data.length
         if (length == 0) {
-            length = coord_aes.map(aes => $$attrs[aes]).filter(x => x != null)
+            length = core_aes.map(aes => $$attrs[aes]).filter(x => x != null)
                 .reduce((acc, cur) => Math.max(Array.isArray(cur) ? cur.length : 1, acc), 0)
         }
         for (const aes in $$attrs) {
-            if (!coord_aes.includes(aes)) continue
+            if (!core_aes.includes(aes)) continue
             if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
@@ -255,7 +255,7 @@ class GLayer {
 
         this.attrs = {}
         for (const aes in $$attrs) {
-            if (coord_aes.includes(aes)) continue
+            if (core_aes.includes(aes)) continue
             if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
