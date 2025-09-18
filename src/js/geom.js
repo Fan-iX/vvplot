@@ -47,13 +47,13 @@ export default {
                 ynudge = ds.ynudge ?? 0,
                 x = psum(levels.x?.apply?.(ds.x) ?? ds.x, xnudge),
                 y = psum(levels.y?.apply?.(ds.y) ?? ds.y, ynudge),
-                xend = psum(x, ds.dx, xnudge),
-                yend = psum(y, ds.dy, ynudge)
+                xend = psum(x, ds.dx),
+                yend = psum(y, ds.dy)
             return { x, y, xend, yend }
         },
         get_range(ds, orientation) {
-            if (orientation == 'x') return (ds.x ?? []).concat(ds.xend ?? [])
-            if (orientation == 'y') return (ds.y ?? []).concat(ds.yend ?? [])
+            if (orientation == 'x') return (ds.x ?? []).concat(psum(ds.x ?? [], ds.dx ?? 0) ?? [])
+            if (orientation == 'y') return (ds.y ?? []).concat(psum(ds.y ?? [], ds.dy ?? 0) ?? [])
         },
         validate(d) {
             if (isNaN(+d.x) || isNaN(+d.y) || isNaN(+d.xend) || isNaN(+d.yend)) return null

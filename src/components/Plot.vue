@@ -14,9 +14,12 @@ const components = {
     VVAction,
 }
 
+function _isFalse(v) {
+    return v == null || v === false
+}
+
 const emit = defineEmits(['resize'])
 const $props = defineProps({
-    width: Number, height: Number,
     data: Array, scales: Object, aes: Object,
     axes: Object, expandAdd: Object, expandMult: Object, levels: Object, range: Object,
     theme: { type: Object, default: () => theme_default },
@@ -113,8 +116,8 @@ const primaryAxis = reactiveComputed(() => {
     let xAxes = allAxes.filter(c => c.type === 'x')
     let yAxes = allAxes.filter(c => c.type === 'y')
     return {
-        x: xAxes.find(c => c.primary || c.primary == '') ?? xAxes.find(c => !('secondary' in c)),
-        y: yAxes.find(c => c.primary || c.primary == '') ?? yAxes.find(c => !('secondary' in c))
+        x: xAxes.find(c => !_isFalse(c.primary)) ?? xAxes.find(c => c.primary !== false && _isFalse(c.secondary)),
+        y: yAxes.find(c => !_isFalse(c.primary)) ?? yAxes.find(c => c.primary !== false && _isFalse(c.secondary))
     }
 })
 
@@ -144,31 +147,31 @@ const schema = computed(() => {
 */
 const layers = computed(() => {
     return vnodes.layer.map(layer => {
-        let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...ect } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let aes = {}, args = {}, attrs = {}
         let vBind = {}
-        for (let key in ect) {
+        for (let key in etc) {
             if (key == "key") continue
             if (argnames.includes(key)) {
-                args[key] = ect[key]
-            } else if (typeof ect[key] === 'function') {
+                args[key] = etc[key]
+            } else if (typeof etc[key] === 'function') {
                 if (key.startsWith('on')) {
                     if (vBind[key] == null) {
-                        vBind[key] = ect[key]
+                        vBind[key] = etc[key]
                     } else if (Array.isArray(vBind[key])) {
                         vBind[key].push(args[key])
                     } else {
                         vBind[key] = [vBind[key], args[key]]
                     }
                 } else {
-                    aes[key] = ect[key]
+                    aes[key] = etc[key]
                 }
             } else {
                 if (["class", 'style', 'render'].includes(key)) {
-                    vBind[key] = ect[key]
+                    vBind[key] = etc[key]
                 } else {
-                    attrs[key] = ect[key]
+                    attrs[key] = etc[key]
                 }
             }
         }
@@ -308,16 +311,23 @@ const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, theme_def
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
+const width = defineModel('width')
+const height = defineModel('height')
 onMounted(() => {
-    watch(() => $props.width, (v) => {
+    watch(width, (v) => {
         wrapperRef.value.style.width = str_c(v, 'px')
     }, { immediate: true })
-    watch(() => $props.height, (v) => {
+    watch(height, (v) => {
         wrapperRef.value.style.height = str_c(v, 'px')
     }, { immediate: true })
 })
 const { width: w, height: h } = useElementSize(plotRef)
-watch([w, h], ([width, height]) => { if (width > 0 && height > 0) emit('resize', { width, height }) })
+watch([w, h], ([w, h]) => {
+    if (w < 0 || h < 0) return
+    width.value = w
+    height.value = h
+    emit('resize', { width: w, height: h })
+})
 
 const wrapperClass = computed(() => {
     if ($props.resize == "x") {

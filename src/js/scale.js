@@ -252,10 +252,6 @@ export default {
         shape: shape_scale_discrete,
         default: shape_scale_discrete,
     },
-    transform: {
-        manual: manual_scale,
-        default: scale_identity_string,
-    },
     custom(func, { title, ...etc } = {}) {
         return Object.assign(function (arr) { return arr.map(func) }, { title }, etc)
     },

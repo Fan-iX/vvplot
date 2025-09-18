@@ -13,6 +13,11 @@ export default defineConfig({
     dts({ rollupTypes: true }),
     tailwindcss()
   ],
+  resolve: {
+    alias: {
+      vue: 'vue/dist/vue.esm-bundler.js'
+    }
+  },
   build: {
     lib: {
       entry: {

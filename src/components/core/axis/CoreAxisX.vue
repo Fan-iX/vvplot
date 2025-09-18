@@ -261,7 +261,7 @@ function applyTransform(act, event) {
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <CoreText v-for="tick in tickTexts" v-bind="tick" />
-        <g v-if="action.some?.(a => a.action == 'move' || a.action == 'zoom')" class="vv-interactive"
+        <g v-if="action.some?.(a => ['move', 'zoom', 'nudge'].includes(a.action))" class="vv-interactive"
             fill="transparent">
             <rect :width="width" :height="10" :y="-5" :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }"
                 @pointerdown="axisMovePointerdown" @wheel="axisWheel" />
