@@ -1,5 +1,6 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
+import CoreTile from '../../element/CoreTile.vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -15,7 +16,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         xmin, xmax, ymin, ymax,
         fill = 'black', color, linewidth, linetype, alpha,
-        xtranslate = 0, ytranslate = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         ({ xmin, xmax, ymin, ymax } = coord2pos({ xmin, xmax, ymin, ymax }))
         if (
@@ -23,15 +24,10 @@ const binds = computed(() => {
             ymin < ylim_min && ymax < ylim_min || ymin > ylim_max && ymax > ylim_max
         ) return null
         let result = {
-            x: xmin, width: xmax - xmin,
-            y: ymin, height: ymax - ymin,
-            fill: fill,
-            stroke: color,
-            'stroke-width': linewidth,
-            'stroke-dasharray': parseLineType(linetype),
-            'fill-opacity': alpha,
-            'stroke-opacity': alpha,
-            transform: xtranslate || ytranslate ? `translate(${xtranslate}, ${ytranslate})` : null,
+            x: (xmin + xmax) / 2, width: xmax - xmin,
+            y: (ymin + ymax) / 2, height: ymax - ymin,
+            fill, color, linetype, linewidth, alpha,
+            translateX, translateY,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),
@@ -45,23 +41,12 @@ const binds = computed(() => {
         return result
     }).filter(x => x != null))
 })
-function parseLineType(linetype) {
-    if (linetype == null) return null
-    if (linetype === 'solid') return null
-    if (linetype === 'dashed') return '4 4'
-    if (linetype === 'dotted') return '1 3'
-    if (linetype === 'dotdash') return '1 3 4 3'
-    if (linetype === 'longdash') return '8 4'
-    if (linetype === 'twodash') return '2 2 6 2'
-    if (linetype.includes(' ')) return linetype
-    return linetype.split('').map(v => +('0x' + v)).join(' ')
-}
 </script>
 <template>
     <g>
         <g v-for="group in binds">
             <template v-for="item in group">
-                <rect v-bind="item" />
+                <CoreTile v-bind="item" />
             </template>
         </g>
     </g>

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, useTemplateRef } from 'vue';
+import { computed, watch, useTemplateRef } from 'vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -26,14 +26,14 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             points, fill, color, linewidth, linetype, alpha,
-            xtranslate = 0, ytranslate = 0, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             points = points.map(p => coord2pos(p)).filter(p => p.x != null && p.y != null)
             if (points.length === 0) continue
             const path2d = new Path2D()
-            path2d.moveTo(points[0].x + xtranslate, points[0].y + ytranslate)
+            path2d.moveTo(points[0].x + translateX, points[0].y + translateY)
             for (let i = 1; i < points.length; i++) {
-                path2d.lineTo(points[i].x + xtranslate, points[i].y + ytranslate)
+                path2d.lineTo(points[i].x + translateX, points[i].y + translateY)
             }
             path2d.closePath()
             path_data.set(path2d, $raw)

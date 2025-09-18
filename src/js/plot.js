@@ -157,7 +157,7 @@ class GLayer {
             geom: $$geom, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
-            attrs: $$attrs, args: $$args,
+            values: $$values, attrs: $$attrs, args: $$args,
             vBind: $$vBind,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
@@ -188,22 +188,22 @@ class GLayer {
         }
         data.$raw = $$data
 
-        // apply coordinate attributes
-        let coord_aes = stat?.coord_attrs ?? ['x', 'y', 'xnudge', 'ynudge']
+        // apply core attributes (attributes required in stat function)
+        let core_aes = stat?.core_attrs ?? ['x', 'y', 'xnudge', 'ynudge']
         let length = $$data.length
         if (length == 0) {
-            length = coord_aes.map(aes => $$attrs[aes]).filter(x => x != null)
+            length = core_aes.map(aes => $$attrs[aes]).filter(x => x != null)
                 .reduce((acc, cur) => Math.max(Array.isArray(cur) ? cur.length : 1, acc), 0)
         }
         for (const aes in $$attrs) {
-            if (!coord_aes.includes(aes)) continue
-            if (!Array.isArray($$attrs[aes])) {
-                if ($$attrs[aes] == null) continue
-                data[aes] = new Array(length).fill($$attrs[aes])
-            } else {
+            if (!core_aes.includes(aes)) continue
+            if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
                 data[aes] = $$attrs[aes]
+            } else {
+                if ($$attrs[aes] == null) continue
+                data[aes] = new Array(length).fill($$attrs[aes])
             }
         }
 
@@ -227,14 +227,15 @@ class GLayer {
         ])
         this.aes = new Set([
             ...this.localScales,
-            ...vvgeom[$$geom]?.attrs ?? []
+            ...vvgeom[$$geom]?.scale_attrs ?? []
         ])
 
         this.$data = data
+        this.$fns = fns
         this.data = { ...data }
         for (const aes in data) {
-            if ($$scales[aes] != null || vvgeom[$$geom]?.attrs?.includes?.(aes)) {
-                let scale = new Scale($$scales[aes] ?? vvscale[aes].default())
+            if ($$scales[aes] != null) {
+                let scale = new Scale($$scales[aes])
                 scale.aesthetics = aes
                 if (scale.title === undefined) {
                     scale.title = fns[aes]
@@ -252,16 +253,18 @@ class GLayer {
             }
         }
 
+        this.attrs = {}
         for (const aes in $$attrs) {
-            if (coord_aes.includes(aes)) continue
-            if (!Array.isArray($$attrs[aes])) {
-                if ($$attrs[aes] != null) {
-                    this.data[aes] = new Array(length).fill($$attrs[aes])
-                }
-            } else {
+            if (core_aes.includes(aes)) continue
+            if (Array.isArray($$attrs[aes])) {
                 if ($$attrs[aes].length != length)
                     throw new Error(`Attribute "${aes}" must have the same length as data (${length})`)
                 this.data[aes] = $$attrs[aes]
+            } else {
+                this.attrs[aes] = $$attrs[aes]
+                if ($$attrs[aes] != null) {
+                    this.data[aes] = new Array(length).fill($$attrs[aes])
+                }
             }
         }
     }
@@ -273,10 +276,9 @@ class GLayer {
         if (values == null) return
         if (scale.level != null) {
             values = scale.level.apply(values)
-            values.extent = scale.extent
-        } else {
-            values.extent = scale.extent
         }
+        values.extent = scale.limits
+        scale.aes = aes
         this.data[aes] = scale(values)
         this.scales[aes] = scale
     }
@@ -322,6 +324,9 @@ export class GPlot {
                 } else if (!scale.asis) {
                     scale.extent = numutils.extent(values)
                 }
+                if (scale.title == null) {
+                    scale.title = this.layers.map(layer => layer.$fns?.[aes]).find(s => s != null)
+                }
                 for (const layer of this.layers) {
                     if (!layer.localScales.has(aes)) {
                         layer.applyScale(aes, scale)
@@ -333,9 +338,15 @@ export class GPlot {
                 if (scale == null) continue
                 if (!scale.asis) {
                     if (!this.scales.has(scale)) {
-                        this.scales.set(scale, new Set())
+                        this.scales.set(scale, {})
                     }
-                    this.scales.get(scale).add(layer.geom)
+                    let geoms = this.scales.get(scale)
+                    if (geoms[layer.geom] == null) geoms[layer.geom] = {}
+                    for (let attr of vvgeom[layer.geom]?.scale_attrs) {
+                        if (layer.attrs[attr] != null) {
+                            geoms[layer.geom][attr] = layer.attrs[attr]
+                        }
+                    }
                 }
             }
         }
@@ -450,22 +461,34 @@ export class GPlot {
     }
 }
 
-class Scale extends Function {
+export class Scale extends Function {
     constructor(func) {
-        let scale = Object.assign(func.bind(), func)
+        let _func = func._fn ?? func
+        function scale() {
+            return _func.apply(scale, arguments)
+        }
         Object.setPrototypeOf(scale, Scale.prototype)
+        Object.assign(scale, func)
+        scale._fn = _func
         return scale
     }
-    set extent(value) {
-        this._extent = value
+    set extent({ min, max, 0: rmin, 1: rmax } = {}) {
+        min = min ?? rmin
+        max = max ?? rmax
+        this._limits = { 0: min, 1: max, length: 2, min, max }
     }
     get extent() {
-        if (this.level) return {
-            0: 0, 1: this.level.length, length: 2,
-            min: 0, max: this.level.length
-        }
-        if (this._extent) return this._extent
-        return undefined
+        return this.limits
+    }
+    set limits({ min, max, 0: rmin, 1: rmax } = {}) {
+        min = min ?? rmin
+        max = max ?? rmax
+        this.$limits = { 0: min, 1: max, length: 2, min, max }
+    }
+    get limits() {
+        let min = this.$limits?.min ?? (this.level ? 0 : this._limits?.min),
+            max = this.$limits?.max ?? this.level?.length ?? this._limits?.max
+        return { 0: min, 1: max, length: 2, min, max }
     }
 }
 
@@ -475,7 +498,6 @@ class DiscreteCoordScale extends Function {
         scale.range = { min, max }
         scale.level = level
         scale.invert = w => w * (max - min) + min
-        scale.padding = { min: 0, max: 0 }
         Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
         return scale
     }
@@ -484,15 +506,10 @@ class DiscreteCoordScale extends Function {
         let min = $min - mmin * $interval,
             max = $max + mmax * $interval
         const scale = min == max ? x => 0 : x => (+x - min) / (max - min)
-        scale.invert = x => w => w * (max - min) + min
+        scale.invert = w => w * (max - min) + min
         scale.range = this.range
         scale.level = this.level
         scale.title = this.title
-        let interval = max - min
-        scale.padding = {
-            min: interval == 0 ? 0 : ($min - min) / interval,
-            max: interval == 0 ? 0 : (max - $max) / interval,
-        }
         Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
         return scale
     }
@@ -504,8 +521,6 @@ class ContinuousCoordScale extends Function {
         const scale = min == max ? x => 0.5 : x => (+x - min) / (max - min)
         scale.range = { min, max }
         scale.limits = { min, max }
-        scale.invert = w => w * (max - min) + min
-        scale.padding = { min: 0, max: 0 }
         Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
         return scale
     }
@@ -514,35 +529,33 @@ class ContinuousCoordScale extends Function {
         let $interval = $max - $min
         let min = $min - mmin * $interval,
             max = $max + mmax * $interval
-        let interval = max - min
         const scale = min == max ? x => 0.5 : x => (+x - min) / (max - min)
-        scale.invert = w => w * (max - min) + min
         scale.range = this.range
         scale.level = this.level
         scale.title = this.title
         scale.limits = { min, max }
-        scale.padding = {
-            min: interval == 0 ? 0 : ($min - min) / interval,
-            max: interval == 0 ? 0 : (max - $max) / interval,
-        }
         Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
         return scale
+    }
+    invert(w) {
+        let { min, max } = this.limits
+        return w * (max - min) + min
     }
 }
 class DatetimeCoordScale extends ContinuousCoordScale {
     constructor(domain) {
         let scale = super(domain)
-        let { min, max } = scale.limits
-        scale.invert = w => new Date(w * (max - min) + min)
         Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
         return scale
     }
     expand({ min: mmin = 0, max: mmax = 0 } = {}) {
         let scale = super.expand({ min: mmin, max: mmax })
-        let { min, max } = scale.limits
-        scale.invert = w => new Date(w * (max - min) + min)
         Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
         return scale
+    }
+    invert(w) {
+        let { min, max } = this.limits
+        return new Date(w * (max - min) + min)
     }
 }
 

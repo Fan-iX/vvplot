@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, useTemplateRef } from 'vue';
+import { computed, watch, useTemplateRef } from 'vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -27,14 +27,14 @@ const layerCanvas = computed(() => {
         for (let {
             x, y, xend, yend,
             color, linewidth, alpha, linetype,
-            xtranslate = 0, ytranslate = 0, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             if (color === 'transparent') continue
             const { x: x1, y: y1 } = coord2pos({ x: x, y: y })
             const { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
             const path2d = new Path2D()
-            path2d.moveTo(x1 + xtranslate, y1 + ytranslate)
-            path2d.lineTo(x2 + xtranslate, y2 + ytranslate)
+            path2d.moveTo(x1 + translateX, y1 + translateY)
+            path2d.lineTo(x2 + translateX, y2 + translateY)
             path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha

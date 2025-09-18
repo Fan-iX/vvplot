@@ -48,7 +48,7 @@ function format_number({
         let pre = prefix + (num > 0 ? pos_mark : num < 0 ? neg_mark : "")
         if (num < 0 && style_negative == "parens") suf = ")" + suf
         num = Math.abs(num).toFixed(digit).replace(/(?<!\..*)(\d)(?=(?:\d{3})+(?:\.|$))/g, '$1' + big_mark)
-        return pre + num + suf;
+        return pre + num + suf
     }
 }
 

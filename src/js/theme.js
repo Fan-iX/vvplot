@@ -1,3 +1,5 @@
+import { obj_merge } from './utils.js'
+
 export const theme_base = {
     axis: {
         line_width: 1,
@@ -124,20 +126,6 @@ const theme_classic = {
 const theme_void = {
     axis: null,
     grid: null,
-}
-
-/**
- * (non-deep) merge array of objects, from left to right
- * `undefined` will be ignored
- * `null` will reset the merge
- * @param {Array} arr
- * @returns {Object|null}
- */
-function obj_merge(arr) {
-    arr = arr.filter(x => x !== undefined)
-    arr = arr.slice(arr.findIndex(x => x == null) + 1)
-    if (arr.length == 0) return null
-    return arr.reduce((a, c) => Object.assign(a, c), {})
 }
 
 export function themeMerge(...themes) {

@@ -8,6 +8,11 @@ export default defineConfig({
     tailwindcss()
   ],
   base: '/vvplot/',
+  resolve: {
+    alias: {
+      vue: 'vue/dist/vue.esm-bundler.js'
+    }
+  },
   build: {
     rollupOptions: {
       output: {

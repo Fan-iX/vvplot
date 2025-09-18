@@ -4,15 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>VVPlot</title>
+    <link rel="stylesheet" href="web-docs/style/style.css">
 </head>
 
 <body>
     <div id="app"></div>
     <script type="module">
         import { createApp } from 'vue'
-        import App from './example/index.vue'
-        createApp(App).mount('#app')
+        import App from './web-docs/index.vue'
+        import * as components from '#base/components'
+        let app = createApp(App)
+        for (let c in components) {
+            app.component(c, components[c])
+        }
+        app.mount('#app')
     </script>
 </body>
 

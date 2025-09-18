@@ -3,7 +3,7 @@ let psum = vecutils.sum
 
 export default {
     point: {
-        attrs: ['color', 'size', 'stroke', 'alpha', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['shape', 'size', 'color', 'stroke', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -21,7 +21,7 @@ export default {
         }
     },
     line: {
-        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['color', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -41,19 +41,19 @@ export default {
         }
     },
     stick: {
-        attrs: ['color', 'linewidth', 'linetype', 'alpha', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['color', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
                 x = psum(levels.x?.apply?.(ds.x) ?? ds.x, xnudge),
                 y = psum(levels.y?.apply?.(ds.y) ?? ds.y, ynudge),
-                xend = psum(x, ds.dx, xnudge),
-                yend = psum(y, ds.dy, ynudge)
+                xend = psum(x, ds.dx),
+                yend = psum(y, ds.dy)
             return { x, y, xend, yend }
         },
         get_range(ds, orientation) {
-            if (orientation == 'x') return (ds.x ?? []).concat(ds.xend ?? [])
-            if (orientation == 'y') return (ds.y ?? []).concat(ds.yend ?? [])
+            if (orientation == 'x') return (ds.x ?? []).concat(psum(ds.x ?? [], ds.dx ?? 0) ?? [])
+            if (orientation == 'y') return (ds.y ?? []).concat(psum(ds.y ?? [], ds.dy ?? 0) ?? [])
         },
         validate(d) {
             if (isNaN(+d.x) || isNaN(+d.y) || isNaN(+d.xend) || isNaN(+d.yend)) return null
@@ -61,7 +61,7 @@ export default {
         }
     },
     tile: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -95,7 +95,7 @@ export default {
         }
     },
     rect: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -115,7 +115,7 @@ export default {
         }
     },
     polygon: {
-        attrs: ['fill', 'color', 'linewidth', 'alpha', 'points', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge?.map(v => +v),
                 ynudge = ds.ynudge?.map(v => +v),
@@ -139,7 +139,7 @@ export default {
         }
     },
     text: {
-        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['size', 'color', 'stroke', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
@@ -157,7 +157,7 @@ export default {
         }
     },
     textsegment: {
-        attrs: ['color', 'size', 'stroke', 'linewidth', 'alpha', 'label', 'xtranslate', 'ytranslate'],
+        scale_attrs: ['size', 'color', 'stroke', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
             let xnudge = ds.xnudge ?? 0,
                 ynudge = ds.ynudge ?? 0,
