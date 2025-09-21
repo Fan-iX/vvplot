@@ -41,15 +41,18 @@ const demo_polygon = [
                             </td>
                         </tr>
                         <tr>
-                            <td><code>&lt;VVGeomCurve /&gt;</code></td>
-                            <td><code>x</code> <br> <code>y</code></td>
-                            <td>curve</td>
-                            <td>none</td>
-                            <td>
+                            <td rowspan="2"><code>&lt;VVGeomCurve /&gt;</code></td>
+                            <td><code>points</code></td>
+                            <td rowspan="2">curve</td>
+                            <td rowspan="2">none</td>
+                            <td rowspan="2">
                                 <VVPlot :data="demo_point">
-                                    <VVGeomCurve :x="d => d.x" :y="d => d.y" :width="1" :height="1" />
+                                    <VVGeomCurve :x="d => d.x" :y="d => d.y" />
                                 </VVPlot>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><code>x</code> <br> <code>y</code></td>
                         </tr>
                         <tr>
                             <td><code>&lt;VVGeomDensity /&gt;</code></td>
@@ -85,22 +88,19 @@ const demo_polygon = [
                             </td>
                         </tr>
                         <tr>
-                            <td><code>&lt;VVGeomLinerange /&gt;</code></td>
-                            <td>
-                                <code>x</code> | <code>y</code>
-                                <br>
-                                <code>ymin</code> | <code>xmin</code>
-                                <br>
-                                <code>ymax</code> | <code>xmax</code>
-                            </td>
-                            <td>line</td>
-                            <td>none</td>
-                            <td>
+                            <td rowspan="2"><code>&lt;VVGeomLinerange /&gt;</code></td>
+                            <td><code>x</code> <br> <code>ymin</code> <br> <code>ymax</code></td>
+                            <td rowspan="2">line</td>
+                            <td rowspan="2">none</td>
+                            <td rowspan="2">
                                 <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]"
                                     :width="200" :height="120">
                                     <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" />
                                 </VVPlot>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><code>y</code> <br> <code>xmin</code> <br> <code>xmax</code></td>
                         </tr>
                         <tr>
                             <td><code>&lt;VVGeomPath /&gt;</code></td>
@@ -125,15 +125,18 @@ const demo_polygon = [
                             </td>
                         </tr>
                         <tr>
-                            <td><code>&lt;VVGeomPolygon /&gt;</code></td>
+                            <td rowspan="2"><code>&lt;VVGeomPolygon /&gt;</code></td>
                             <td><code>points</code></td>
-                            <td>polygon</td>
-                            <td>none</td>
-                            <td>
+                            <td rowspan="2">polygon</td>
+                            <td rowspan="2">none</td>
+                            <td rowspan="2">
                                 <VVPlot :data="demo_polygon">
                                     <VVGeomPolygon :points="d => d.points" />
                                 </VVPlot>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><code>x</code> <br> <code>y</code></td>
                         </tr>
                         <tr>
                             <td><code>&lt;VVGeomRect /&gt;</code></td>

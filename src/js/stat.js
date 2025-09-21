@@ -9,7 +9,7 @@ export default {
     line: Object.assign(function (data, { orientation = 'x' } = {}) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomLine: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomLine: "${missingAes.join('", "')}"`)
         let group = data.group ?? new Array(data.x.length).fill(null)
         let groups = Object.values(group.reduce((acc, cur, i) => {
             if (acc[cur] == undefined) acc[cur] = []
@@ -33,12 +33,12 @@ export default {
         if (data.x != null) {
             let missingAes = ['x', 'ymin', 'ymax'].filter(a => data[a] == null)
             if (missingAes.length > 0)
-                throw new Error(`Missing aesthetics for GeomLinerange: ${missingAes}`)
+                throw new Error(`Missing aesthetics for GeomLinerange: "${missingAes.join('", "')}"`)
             return (({ x, ymin, ymax, ...etc }) => ({ x, xend: x, y: ymin, yend: ymax, ...etc }))(data)
         } else if (data.y != null) {
             let missingAes = ['y', 'xmin', 'xmax'].filter(a => data[a] == null)
             if (missingAes.length > 0)
-                throw new Error(`Missing aesthetics for GeomLinerange: ${missingAes}`)
+                throw new Error(`Missing aesthetics for GeomLinerange: "${missingAes.join('", "')}"`)
             return (({ y, xmin, xmax, ...etc }) => ({ y, yend: y, x: xmin, xend: xmax, ...etc }))(data)
         } else {
             throw new Error(`Missing aesthetics for GeomLinerange: x,ymin,ymax or y,xmin,xmax`)
@@ -47,7 +47,7 @@ export default {
     path: Object.assign(function (data) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomPath: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomPath: "${missingAes.join('", "')}"`)
         let group = data.group ?? new Array(data.x.length).fill(null)
         let groups = Object.values(group.reduce((acc, cur, i) => {
             if (acc[cur] == undefined) acc[cur] = []
@@ -70,7 +70,7 @@ export default {
         if (data.yend == null) data.yend = data.y
         let missingAes = ['x', 'y', 'xend', 'yend'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomSegment: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomSegment: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge'] }),
     stick: Object.assign(function (data) {
@@ -78,13 +78,14 @@ export default {
         if (data.dy == null) data.dy = Array(data.y.length).fill(0)
         let missingAes = ['x', 'y', 'dx', 'dy'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomStick: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomStick: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'dx', 'dy', 'xnudge', 'ynudge'] }),
     curve: Object.assign(function (data) {
+        if (data.points != null) return data
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomCurve: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomCurve: "${missingAes.join('", "')}" or "points"`)
         let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
         let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
         let cut = intraaction({
@@ -105,19 +106,35 @@ export default {
     point: Object.assign(function (data) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomPoint: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomPoint: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] }),
     polygon: Object.assign(function (data) {
-        let missingAes = ['points'].filter(a => data[a] == null)
+        if (data.points != null) return data
+        let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomPolygon: ${missingAes}`)
-        return data
+            throw new Error(`Missing aesthetics for GeomCurve: "${missingAes.join('", "')}" or "points"`)
+        let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
+        let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
+        let cut = intraaction({
+            group: group ?? new Array(data.x.length).fill(0),
+        }).map((v, _, a) => a.categories[v])
+        let map = Map.groupBy(data.$raw, (_, i) => cut[i])
+        let $raw = Array.from(map.values()), cates = Array.from(map.keys())
+        let points = Array.from(Map.groupBy(intrazip({ x: data.x, y: data.y }), (_, i) => cut[i]).values())
+        let result = {
+            $raw: $raw,
+            points,
+        }
+        for (let key of keys) {
+            result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
+        }
+        return result
     }, { core_attrs: ['points', 'xnudge', 'ynudge'] }),
     rect: Object.assign(function (data) {
         let missingAes = ['xmin', 'xmax', 'ymin', 'ymax'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomRect: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomRect: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['xmin', 'xmax', 'ymin', 'ymax', 'xnudge', 'ynudge'] }),
     tile: Object.assign(function (data) {
@@ -129,13 +146,13 @@ export default {
         }
         let missingAes = ['x', 'y', 'width', 'height'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomTile: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomTile: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'width', 'height', 'xnudge', 'ynudge'] }),
     text: Object.assign(function (data) {
         let missingAes = ['x', 'y', 'label'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomText: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomText: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label'] }),
     textsegment: Object.assign(function (data) {
@@ -143,7 +160,7 @@ export default {
         if (data.yend == null) data.yend = data.y
         let missingAes = ['x', 'y', 'xend', 'yend', 'label'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomTextsegment: ${missingAes}`)
+            throw new Error(`Missing aesthetics for GeomTextsegment: "${missingAes.join('", "')}"`)
         return data
     }, { core_attrs: ['x', 'y', 'xend', 'yend', 'xnudge', 'ynudge', 'label'] }),
     histogram: Object.assign(function (data, { bins = 30, binwidth, breaks } = {}) {
