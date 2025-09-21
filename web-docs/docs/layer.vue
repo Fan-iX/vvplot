@@ -19,149 +19,211 @@ const demo_polygon = [
                 <table class="w-full" id="doc-layer-table">
                     <thead>
                         <tr>
-                            <th>Tag Name</th>
-                            <th>Geometric Element</th>
-                            <th>Statistical Transformation</th>
+                            <th>Layer</th>
+                            <th title="Aesthetic Mappings">Aesthetics</th>
+                            <th title="Geometric Element">Geom</th>
+                            <th title="Statistical Transformation">Stat</th>
                             <th>Example</th>
                         </tr>
                     </thead>
-                    <tr>
-                        <td><code>&lt;VVGeomBar /&gt;</code></td>
-                        <td>rectangle</td>
-                        <td>count</td>
-                        <td>
-                            <VVPlot :data="['a', 'b', 'b', 'c', 'a', 'b']">
-                                <VVGeomBar :x="d => d" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomHistogram /&gt;</code></td>
-                        <td>rectangle</td>
-                        <td>histogram</td>
-                        <td>
-                            <VVPlot :data="iris">
-                                <VVGeomHistogram :x="d => d.Sepal_Width" :bins="5" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomLine /&gt;</code></td>
-                        <td>line</td>
-                        <td>sort by one variable</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomLine :x="d => d.x" :y="d => d.y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomLinerange /&gt;</code></td>
-                        <td>line</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]" :width="200"
-                                :height="120">
-                                <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomPath /&gt;</code></td>
-                        <td>line</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomPath :x="d => d.x" :y="d => d.y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomPoint /&gt;</code></td>
-                        <td>point</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomPoint :x="d => d.x" :y="d => d.y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomPolygon /&gt;</code></td>
-                        <td>polygon</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_polygon">
-                                <VVGeomPolygon :points="d => d.points" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomRect /&gt;</code></td>
-                        <td>rectangle</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_polygon">
-                                <VVGeomRect :xmin="d => d.points[0].x" :xmax="d => d.points[1].x"
-                                    :ymin="d => d.points[0].y" :ymax="d => d.points[1].y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomSegment /&gt;</code></td>
-                        <td>line</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_polygon">
-                                <VVGeomSegment :x="d => d.points[0].x" :y="d => d.points[0].y"
-                                    :xend="d => d.points[1].x" :yend="d => d.points[1].y" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomStick /&gt;</code></td>
-                        <td>line</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomStick :x="d => d.x" :y="d => d.y" :dx="0.5" :dy="0.5" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomText /&gt;</code></td>
-                        <td>text</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomText :x="d => d.x" :y="d => d.y" :label="(_, i) => i + 1" />
-                                <VVAxisX :expand-mult="0.2" />
-                                <VVAxisY :expand-mult="0.2" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomTextsegment /&gt;</code></td>
-                        <td>text</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomTextsegment :x="1" :xend="2" :y="2" :yend="1" label="VVPlot" />
-                                <VVAxisX :expand-mult="0.2" />
-                                <VVAxisY :expand-mult="0.2" />
-                            </VVPlot>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><code>&lt;VVGeomTile /&gt;</code></td>
-                        <td>text</td>
-                        <td>none</td>
-                        <td>
-                            <VVPlot :data="demo_point">
-                                <VVGeomTile :x="d => d.x" :y="d => d.y" :width="1" :height="1" />
-                            </VVPlot>
-                        </td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td><code>&lt;VVGeomBar /&gt;</code></td>
+                            <td>
+                                <code>x</code> | <code>y</code>
+                            </td>
+                            <td>rectangle</td>
+                            <td>count</td>
+                            <td>
+                                <VVPlot :data="['a', 'b', 'b', 'c', 'a', 'b']">
+                                    <VVGeomBar :x="d => d" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomCurve /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code></td>
+                            <td>curve</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomCurve :x="d => d.x" :y="d => d.y" :width="1" :height="1" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomDensity /&gt;</code></td>
+                            <td><code>x</code> | <code>y</code></td>
+                            <td>curve</td>
+                            <td>density</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomDensity :x="d => d.Petal_Width" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomHistogram /&gt;</code></td>
+                            <td><code>x</code> | <code>y</code></td>
+                            <td>rectangle</td>
+                            <td>histogram</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomHistogram :x="d => d.Petal_Width" :bins="5" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomLine /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code></td>
+                            <td>line</td>
+                            <td>sort</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomLine :x="d => d.x" :y="d => d.y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomLinerange /&gt;</code></td>
+                            <td>
+                                <code>x</code> | <code>y</code>
+                                <br>
+                                <code>ymin</code> | <code>xmin</code>
+                                <br>
+                                <code>ymax</code> | <code>xmax</code>
+                            </td>
+                            <td>line</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]"
+                                    :width="200" :height="120">
+                                    <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomPath /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code></td>
+                            <td>line</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomPath :x="d => d.x" :y="d => d.y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomPoint /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code> <br> <code>shape</code></td>
+                            <td>point</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomPoint :x="d => d.x" :y="d => d.y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomPolygon /&gt;</code></td>
+                            <td><code>points</code></td>
+                            <td>polygon</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_polygon">
+                                    <VVGeomPolygon :points="d => d.points" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomRect /&gt;</code></td>
+                            <td>
+                                <code>xmin</code> <br> <code>xmax</code> <br>
+                                <code>ymin</code> <br> <code>ymax</code>
+                            </td>
+                            <td>rectangle</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_polygon">
+                                    <VVGeomRect :xmin="d => d.points[0].x" :xmax="d => d.points[1].x"
+                                        :ymin="d => d.points[0].y" :ymax="d => d.points[1].y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomSegment /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br>
+                                <code>xend</code> <br> <code>yend</code>
+                            </td>
+                            <td>line</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_polygon">
+                                    <VVGeomSegment :x="d => d.points[0].x" :y="d => d.points[0].y"
+                                        :xend="d => d.points[1].x" :yend="d => d.points[1].y" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomStick /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br>
+                                <code>dx</code> <br> <code>dy</code>
+                            </td>
+                            <td>line</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomStick :x="d => d.x" :y="d => d.y" :dx="0.5" :dy="0.5" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomText /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code> <br> <code>label</code></td>
+                            <td>text</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomText :x="d => d.x" :y="d => d.y" :label="(_, i) => i + 1" />
+                                    <VVAxisX :expand-mult="0.2" />
+                                    <VVAxisY :expand-mult="0.2" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomTextsegment /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br>
+                                <code>xend</code> <br> <code>yend</code> <br>
+                                <code>label</code>
+                            </td>
+                            <td>text</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomTextsegment :x="1" :xend="2" :y="2" :yend="1" label="VVPlot" />
+                                    <VVAxisX :expand-mult="0.2" />
+                                    <VVAxisY :expand-mult="0.2" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomTile /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br>
+                                <code>width</code> <br> <code>height</code>
+                            </td>
+                            <td>text</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomTile :x="d => d.x" :y="d => d.y" :width="1" :height="1" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </section>

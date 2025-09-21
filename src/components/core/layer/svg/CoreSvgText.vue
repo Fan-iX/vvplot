@@ -44,9 +44,7 @@ const binds = computed(() => {
 <template>
     <g>
         <g v-for="group in binds">
-            <template v-for="item in group">
-                <CoreText v-bind="item" />
-            </template>
+            <CoreText v-bind="item" v-for="item in group" />
         </g>
     </g>
 </template>

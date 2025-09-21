@@ -75,6 +75,8 @@ const vBind = {
             <pre class="code">{{templates[5] = `<VVPlot :data="iris" legend-teleport="#legend-5">
     <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :alpha="0.5" 
         :scales="{ color: vvscale.color.hue({ l: 45, key: 'Species' }), fill: vvscale.fill.default({ key: 'Species' }) }" />
+    <VVGeomDensity :x="d => d.Petal_Width" :color="d => d.Species"
+        :scales="{ color: vvscale.fill.default({ key: 'Species' }) }" />
 </VVPlot>`}}</pre>
             <div class="flex flex-row">
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />

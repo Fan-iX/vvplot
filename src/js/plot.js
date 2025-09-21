@@ -157,7 +157,7 @@ class GLayer {
             geom: $$geom, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
-            values: $$values, attrs: $$attrs, args: $$args,
+            attrs: $$attrs, args: $$args,
             vBind: $$vBind,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema

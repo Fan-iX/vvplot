@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import CorePolygon from '../../element/CorePolygon.vue'
+import CoreCurve from '../../element/CoreCurve.vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -14,7 +14,7 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        points, fill, color, linewidth, linetype, alpha,
+        points, fill = "none", color = 'black', linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         points = points.map(p => coord2pos(p))
@@ -23,7 +23,7 @@ const binds = computed(() => {
             points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)
         ) return null
         let result = {
-            points, fill, color, linewidth, linetype, alpha,
+            points, fill, color, linetype, linewidth, alpha,
             translateX, translateY,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
@@ -42,7 +42,9 @@ const binds = computed(() => {
 <template>
     <g>
         <g v-for="group in binds">
-            <CorePolygon v-bind="item" v-for="item in group" />
+            <template v-for="item in group">
+                <CoreCurve v-bind="item" />
+            </template>
         </g>
     </g>
 </template>

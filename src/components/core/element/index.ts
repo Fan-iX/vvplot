@@ -1,3 +1,4 @@
+export { default as curve } from './CoreCurve.vue';
 export { default as line } from './CoreLine.vue';
 export { default as point } from './CorePoint.vue';
 export { default as polygon } from './CorePolygon.vue';

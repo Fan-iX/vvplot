@@ -34,7 +34,7 @@ const binds = computed(() => {
     if (type == "legendkey") {
         result.appearances = {
             text: obj_merge(scales.flatMap(([s, a]) => [a.text])),
-            line: obj_merge(scales.flatMap(([s, a]) => [a.line, a.linerange])),
+            line: obj_merge(scales.flatMap(([s, a]) => [a.line, a.linerange, a.curve])),
             point: obj_merge(scales.flatMap(([s, a]) => [a.point])),
             tile: obj_merge(scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon])),
         }
