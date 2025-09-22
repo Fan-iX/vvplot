@@ -447,7 +447,7 @@ export class GPlot {
             x: coordScales.x.expand(expandMult?.x),
             y: coordScales.y.expand(expandMult?.y)
         }
-        return axes.filter(a => a.type in coordScales).map(ax => new GAxis(ax, coordScales[ax.type]))
+        return axes.filter(a => a.coord in coordScales).map(ax => new GAxis(ax, coordScales[ax.coord]))
     }
 
     render(range, expandAdd, expandMult, axes, minRange) {

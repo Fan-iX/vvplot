@@ -18,7 +18,7 @@ const binds = computed(() => {
         color, stroke, linetype, linewidth, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
     }) => {
-        let { x: cx, y: cy } = coord2pos({ x, y })
+        const { h: cx, v: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
         let result = {
             x: cx, y: cy, shape, size, color, stroke, linetype, linewidth, alpha,

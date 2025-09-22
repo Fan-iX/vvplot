@@ -35,7 +35,7 @@ const layerCanvas = computed(() => {
             shape, color, stroke, linewidth, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
-            const { x: cx, y: cy } = coord2pos({ x: x, y: y })
+            const { h: cx, v: cy } = coord2pos({ x, y })
             const path2d = new Path2D()
             if (String(shape).startsWith("path:")) {
                 path2d.addPath(

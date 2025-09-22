@@ -30,7 +30,7 @@ const layerCanvas = computed(() => {
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
             interpolate
         } of group) {
-            points = points.map(p => coord2pos(p)).filter(p => p.x != null && p.y != null)
+            points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
             if (points.length === 0) continue
             const path2d = new Path2D()
             let interpolatorFn = interpolators[interpolate] ?? d3.curveNatural

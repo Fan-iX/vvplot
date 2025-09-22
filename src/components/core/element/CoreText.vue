@@ -5,7 +5,7 @@ const {
     angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontSize
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
-    text: String, title: String, size: Number, color: String,
+    text: null, title: null, size: Number, color: String,
     stroke: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 },
     angle: { type: Number, default: 0 },

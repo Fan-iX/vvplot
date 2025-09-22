@@ -17,7 +17,7 @@ const binds = computed(() => {
         points, fill, color, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        points = points.map(p => coord2pos(p))
+        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
         if (
             points.every(p => p.x < xlim_min) || points.every(p => p.x > xlim_max) ||
             points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)

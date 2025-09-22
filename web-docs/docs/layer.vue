@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import iris from '../data/iris.json'
 const demo_point = [
     { x: 1, y: 1 },
@@ -10,11 +11,16 @@ const demo_polygon = [
     { points: [{ x: 1.5, y: 1 }, { x: 2, y: 3 }, { x: 2.5, y: 2.5 }] },
     { points: [{ x: 3, y: 3.5 }, { x: 4, y: 4 }, { x: 2.5, y: 4 }, { x: 3, y: 2 }] },
 ]
+const render = ref('svg')
 </script>
 <template>
     <article>
         <section>
             <h3>List of available geom layers</h3>
+            render mode: <select v-model="render">
+                <option value="svg">SVG</option>
+                <option value="canvas">Canvas</option>
+            </select>
             <div class="w-full overflow-auto">
                 <table class="w-full" id="doc-layer-table">
                     <thead>
@@ -36,7 +42,7 @@ const demo_polygon = [
                             <td>count</td>
                             <td>
                                 <VVPlot :data="['a', 'b', 'b', 'c', 'a', 'b']">
-                                    <VVGeomBar :x="d => d" />
+                                    <VVGeomBar :x="d => d" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -47,7 +53,7 @@ const demo_polygon = [
                             <td rowspan="2">none</td>
                             <td rowspan="2">
                                 <VVPlot :data="demo_point">
-                                    <VVGeomCurve :x="d => d.x" :y="d => d.y" />
+                                    <VVGeomCurve :x="d => d.x" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -61,7 +67,7 @@ const demo_polygon = [
                             <td>density</td>
                             <td>
                                 <VVPlot :data="iris">
-                                    <VVGeomDensity :x="d => d.Petal_Width" />
+                                    <VVGeomDensity :x="d => d.Petal_Width" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -72,7 +78,7 @@ const demo_polygon = [
                             <td>histogram</td>
                             <td>
                                 <VVPlot :data="iris">
-                                    <VVGeomHistogram :x="d => d.Petal_Width" :bins="5" />
+                                    <VVGeomHistogram :x="d => d.Petal_Width" :bins="5" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -83,7 +89,7 @@ const demo_polygon = [
                             <td>sort</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomLine :x="d => d.x" :y="d => d.y" />
+                                    <VVGeomLine :x="d => d.x" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -95,7 +101,7 @@ const demo_polygon = [
                             <td rowspan="2">
                                 <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]"
                                     :width="200" :height="120">
-                                    <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" />
+                                    <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -109,7 +115,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomPath :x="d => d.x" :y="d => d.y" />
+                                    <VVGeomPath :x="d => d.x" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -120,7 +126,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomPoint :x="d => d.x" :y="d => d.y" />
+                                    <VVGeomPoint :x="d => d.x" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -131,7 +137,7 @@ const demo_polygon = [
                             <td rowspan="2">none</td>
                             <td rowspan="2">
                                 <VVPlot :data="demo_polygon">
-                                    <VVGeomPolygon :points="d => d.points" />
+                                    <VVGeomPolygon :points="d => d.points" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -149,7 +155,7 @@ const demo_polygon = [
                             <td>
                                 <VVPlot :data="demo_polygon">
                                     <VVGeomRect :xmin="d => d.points[0].x" :xmax="d => d.points[1].x"
-                                        :ymin="d => d.points[0].y" :ymax="d => d.points[1].y" />
+                                        :ymin="d => d.points[0].y" :ymax="d => d.points[1].y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -164,7 +170,7 @@ const demo_polygon = [
                             <td>
                                 <VVPlot :data="demo_polygon">
                                     <VVGeomSegment :x="d => d.points[0].x" :y="d => d.points[0].y"
-                                        :xend="d => d.points[1].x" :yend="d => d.points[1].y" />
+                                        :xend="d => d.points[1].x" :yend="d => d.points[1].y" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -178,7 +184,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomStick :x="d => d.x" :y="d => d.y" :dx="0.5" :dy="0.5" />
+                                    <VVGeomStick :x="d => d.x" :y="d => d.y" :dx="0.5" :dy="0.5" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -189,7 +195,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomText :x="d => d.x" :y="d => d.y" :label="(_, i) => i + 1" />
+                                    <VVGeomText :x="d => d.x" :y="d => d.y" :label="(_, i) => i + 1" :render />
                                     <VVAxisX :expand-mult="0.2" />
                                     <VVAxisY :expand-mult="0.2" />
                                 </VVPlot>
@@ -206,7 +212,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomTextsegment :x="1" :xend="2" :y="2" :yend="1" label="VVPlot" />
+                                    <VVGeomTextsegment :x="1" :xend="2" :y="2" :yend="1" label="VVPlot" :render />
                                     <VVAxisX :expand-mult="0.2" />
                                     <VVAxisY :expand-mult="0.2" />
                                 </VVPlot>
@@ -222,7 +228,7 @@ const demo_polygon = [
                             <td>none</td>
                             <td>
                                 <VVPlot :data="demo_point">
-                                    <VVGeomTile :x="d => d.x" :y="d => d.y" :width="1" :height="1" />
+                                    <VVGeomTile :x="d => d.x" :y="d => d.y" :width="1" :height="1" :render />
                                 </VVPlot>
                             </td>
                         </tr>

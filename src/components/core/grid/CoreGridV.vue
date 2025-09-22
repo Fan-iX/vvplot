@@ -18,7 +18,7 @@ const majorLines = computed(() => {
     let result = []
     for (let line of majorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ x: line.position }).x + layout.l + translate
+        let position = coord2pos({ h: line.position }).h + layout.l + translate
         if (transcale?.ratio != null)
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
@@ -35,7 +35,7 @@ const minorLines = computed(() => {
     let result = []
     for (let line of minorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ x: line.position }).x + layout.l + translate
+        let position = coord2pos({ h: line.position }).h + layout.l + translate
         if (transcale?.ratio != null)
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue

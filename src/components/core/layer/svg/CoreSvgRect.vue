@@ -18,14 +18,14 @@ const binds = computed(() => {
         fill = 'black', color, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        ({ xmin, xmax, ymin, ymax } = coord2pos({ xmin, xmax, ymin, ymax }))
+        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
         if (
-            xmin < xlim_min && xmax < xlim_min || xmin > xlim_max && xmax > xlim_max ||
-            ymin < ylim_min && ymax < ylim_min || ymin > ylim_max && ymax > ylim_max
+            x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
+            y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
         let result = {
-            x: (xmin + xmax) / 2, width: xmax - xmin,
-            y: (ymin + ymax) / 2, height: ymax - ymin,
+            x: (x1 + x2) / 2, width: x2 - x1,
+            y: (y1 + y2) / 2, height: y2 - y1,
             fill, color, linetype, linewidth, alpha,
             translateX, translateY,
             onClick: (e) => emit('click', e, $raw),

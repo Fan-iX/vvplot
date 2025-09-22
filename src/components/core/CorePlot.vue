@@ -2,11 +2,11 @@
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
-import { unique, extractModifier } from '#base/js/utils'
+import { unique, extractModifier, oob_squish, oob_squish_infinite } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
-import CoreGridX from './grid/CoreGridX.vue'
-import CoreGridY from './grid/CoreGridY.vue'
+import CoreGridH from './grid/CoreGridH.vue'
+import CoreGridV from './grid/CoreGridV.vue'
 import CoreLayer from './layer/CoreLayer.vue'
 import CoreSelection from './CoreSelection.vue'
 import CoreLegend from './CoreLegend.vue'
@@ -34,10 +34,10 @@ watch(() => props.coordScale, (v) => {
     coordExpandAdd.value = v.expandAdd
 }, { immediate: true })
 const activeSelection = defineModel('activeSelection')
-const translateX = defineModel('translateX', { type: Number, default: 0 })
-const translateY = defineModel('translateY', { type: Number, default: 0 })
-const transcaleX = defineModel('transcaleX')
-const transcaleY = defineModel('transcaleY')
+const translateH = defineModel('translateH', { type: Number, default: 0 })
+const translateV = defineModel('translateV', { type: Number, default: 0 })
+const transcaleH = defineModel('transcaleH')
+const transcaleV = defineModel('transcaleV')
 
 const expandAdd = reactiveComputed(() => {
     let x = coordExpandAdd.value.x ?? 0
@@ -63,6 +63,7 @@ const reverse = reactiveComputed(() => {
         y: props.coordDisplay?.reverse?.y ?? false,
     }
 })
+const flip = computed(() => props.coordDisplay?.flip ?? false)
 const action = reactiveComputed(() => props.action)
 
 const svgRef = useTemplateRef('svg')
@@ -115,15 +116,15 @@ const outerRect = reactiveComputed(() => {
 
 const transformBind = computed(() => {
     let transform = [], origin = null
-    let tslX = translateX.value + innerRect.left,
-        tslY = translateY.value + innerRect.top
+    let tslX = translateH.value + innerRect.left,
+        tslY = translateV.value + innerRect.top
     if (tslX != 0 || tslY != 0)
         transform.push(`translate(${tslX}, ${tslY})`)
-    let sclX = transcaleX.value?.ratio ?? 1,
-        sclY = transcaleY.value?.ratio ?? 1
+    let sclX = transcaleH.value?.ratio ?? 1,
+        sclY = transcaleV.value?.ratio ?? 1
     if (sclX != 1 || sclY != 1) {
         transform.push(`scale(${sclX}, ${sclY})`)
-        origin = `${(transcaleX.value?.origin ?? 0.5) * outerRect.width - innerRect.left} ${(transcaleY.value?.origin ?? 0.5) * outerRect.height - innerRect.top}`
+        origin = `${(transcaleH.value?.origin ?? 0.5) * outerRect.width - innerRect.left} ${(transcaleV.value?.origin ?? 0.5) * outerRect.height - innerRect.top}`
     }
     return {
         transform: transform.join(' '),
@@ -157,60 +158,128 @@ const vplot = computed(() => {
 })
 defineExpose({ vplot })
 
-function pos2coord({ x, y, xmin, xmax, ymin, ymax } = {}) {
-    let scales = vplot.value.coordScales
-    let { width, height } = innerRect
+function _pos2coord(
+    { value, min, max },
+    scale, rev, length
+) {
     let result = {}
-    if (x != null) result.x = scales.x.invert(reverse.x ? 1 - x / width : x / width)
-    if (y != null) result.y = scales.y.invert(reverse.y ? y / height : 1 - y / height)
-    if (reverse.x) {
-        if (xmax != null) result.xmin = scales.x.invert(1 - xmax / width)
-        if (xmin != null) result.xmax = scales.x.invert(1 - xmin / width)
+    if (value != null) result.value = scale.invert(rev ? 1 - value / length : value / length)
+    if (rev) {
+        if (max != null) result.min = scale.invert(1 - max / length)
+        if (min != null) result.max = scale.invert(1 - min / length)
     } else {
-        if (xmin != null) result.xmin = scales.x.invert(xmin / width)
-        if (xmax != null) result.xmax = scales.x.invert(xmax / width)
-    }
-    if (reverse.y) {
-        if (ymax != null) result.ymax = scales.y.invert(ymax / height)
-        if (ymin != null) result.ymin = scales.y.invert(ymin / height)
-    } else {
-        if (ymin != null) result.ymax = scales.y.invert(1 - ymin / height)
-        if (ymax != null) result.ymin = scales.y.invert(1 - ymax / height)
+        if (min != null) result.min = scale.invert(min / length)
+        if (max != null) result.max = scale.invert(max / length)
     }
     return result
 }
-function coord2pos({ x, y, xmin, xmax, ymin, ymax } = {}, { unlimited = false, oob = oob_squish_infinite } = {}) {
+
+function pos2coord({
+    h, hmin, hmax, v, vmin, vmax,
+} = {}) {
     let scales = vplot.value.coordScales
-    let { l, r, t, b, width, height } = innerRect
+    let { width, height } = innerRect
     let result = {}
-    let rangeX = { min: -l, max: width + r },
-        rangeY = { min: -t, max: height + b }
-    if (x != null) {
-        result.x = oob(width * (reverse.x ? 1 - scales.x(x) : scales.x(x)), rangeX)
+    let [x, xmin, xmax] = flip.value ? [v, vmin, vmax] : [h, hmin, hmax]
+    let [y, ymin, ymax] = flip.value ? [h, hmin, hmax] : [v, vmin, vmax]
+    if (x != null || xmin != null || xmax != null) {
+        let { value, min, max } = _pos2coord(
+            { value: x, min: xmin, max: xmax },
+            scales.x, flip.value != reverse.x, flip.value ? height : width
+        )
+        Object.assign(result, dropNull({ x: value, xmin: min, xmax: max }))
+        if (flip.value) {
+            Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
+        } else {
+            Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
+        }
     }
-    if (y != null) {
-        result.y = oob(height * (reverse.y ? scales.y(y) : 1 - scales.y(y)), rangeY)
+    if (y != null || ymin != null || ymax != null) {
+        let { value, min, max } = _pos2coord(
+            { value: y, min: ymin, max: ymax },
+            scales.y, flip.value == reverse.y, flip.value ? width : height
+        )
+        Object.assign(result, dropNull({ y: value, ymin: min, ymax: max }))
+        if (flip.value) {
+            Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
+        } else {
+            Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
+        }
     }
-    if ([xmin, xmax, ymin, ymax].every(v => v == null)) return result
-    if (reverse.x) {
-        if (xmax != null) result.xmin = oob(width * (1 - scales.x(xmax)), rangeX)
-        if (xmin != null) result.xmax = oob(width * (1 - scales.x(xmin)), rangeX)
+    return result
+}
+function dropNull(obj) {
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
+}
+function _coord2pos(
+    { value, min, max } = {},
+    { oob = oob_squish_infinite } = {},
+    scale, rev, length, range
+) {
+    let result = {}
+    if (value != null) {
+        result.value = oob(length * (rev ? 1 - scale(value) : scale(value)), range)
+    }
+    if (min == null && max == null) return result
+    if (rev) {
+        if (max != null) result.min = oob(length * (1 - scale(max)), range)
+        if (min != null) result.max = oob(length * (1 - scale(min)), range)
     } else {
-        if (xmin != null) result.xmin = oob(width * scales.x(xmin), rangeX)
-        if (xmax != null) result.xmax = oob(width * scales.x(xmax), rangeX)
+        if (min != null) result.min = oob(length * scale(min), range)
+        if (max != null) result.max = oob(length * scale(max), range)
     }
-    if (reverse.y) {
-        if (ymin != null) result.ymin = oob(height * scales.y(ymin), rangeY)
-        if (ymax != null) result.ymax = oob(height * scales.y(ymax), rangeY)
-    } else {
-        if (ymax != null) result.ymin = oob(height * (1 - scales.y(ymax)), rangeY)
-        if (ymin != null) result.ymax = oob(height * (1 - scales.y(ymin)), rangeY)
+    return result
+}
+function coord2pos({
+    h, hmin, hmax, v, vmin, vmax,
+    x, xmin, xmax, y, ymin, ymax,
+} = {},
+    { limited = false, oob = oob_squish_infinite } = {}
+) {
+    let { width, height, l, r, t, b } = innerRect
+    let result = {}
+    let scales = vplot.value.coordScales
+    let rangeH = { min: -l, max: width + r },
+        rangeV = { min: -t, max: height + b }
+    if (x != null || xmin != null || xmax != null) {
+        if (flip.value) {
+            [v, vmin, vmax] = [x, xmin, xmax]
+        } else {
+            [h, hmin, hmax] = [x, xmin, xmax]
+        }
     }
-    if (!unlimited) {
-        if (result.xmin == null) result.xmin = -l
-        if (result.xmax == null) result.xmax = width + r
-        if (result.ymin == null) result.ymin = -t
-        if (result.ymax == null) result.ymax = height + b
+    if (y != null || ymin != null || ymax != null) {
+        if (flip.value) {
+            [h, hmin, hmax] = [y, ymin, ymax]
+        } else {
+            [v, vmin, vmax] = [y, ymin, ymax]
+        }
+    }
+    if (h != null || hmin != null || hmax != null) {
+        let { value, min, max } = _coord2pos(
+            { value: h, min: hmin, max: hmax },
+            { oob },
+            scales[flip.value ? 'y' : 'x'],
+            reverse[flip.value ? 'y' : 'x'],
+            width, rangeH
+        )
+        Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
+    }
+    if (v != null || vmin != null || vmax != null) {
+        let { value, min, max } = _coord2pos(
+            { value: v, min: vmin, max: vmax },
+            { oob },
+            scales[flip.value ? 'x' : 'y'],
+            !reverse[flip.value ? 'x' : 'y'],
+            height, rangeV
+        )
+        Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
+    }
+    if (limited) {
+        if (result.hmin == null) result.hmin = rangeH.min
+        if (result.hmax == null) result.hmax = rangeH.max
+        if (result.vmin == null) result.vmin = rangeV.min
+        if (result.vmax == null) result.vmax = rangeV.max
     }
     return result
 }
@@ -229,8 +298,9 @@ function getPadding({ min: $min, max: $max } = {}, { min: mmin = 0, max: mmax = 
 const innerRect = reactiveComputed(() => {
     let scales = vplot.value.coordScales
     let mult = expandMult
-    let { min: pl, max: pr } = getPadding(scales.x.range, mult.x)
-    let { min: pb, max: pt } = getPadding(scales.y.range, mult.y)
+    let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
+    let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
+    let [pl, pr, pb, pt] = flip.value ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
     let { width: w, height: h } = outerRect
     return {
         left: w * pl || 0,
@@ -250,8 +320,8 @@ function getCoord(event, target) {
     target = target || event.currentTarget
     let rect = target.getBoundingClientRect()
     return pos2coord({
-        x: event.clientX - (rect.left + outerRect.left + innerRect.left),
-        y: event.clientY - (rect.top + outerRect.top + innerRect.top),
+        h: event.clientX - (rect.left + outerRect.left + innerRect.left),
+        v: event.clientY - (rect.top + outerRect.top + innerRect.top),
     })
 }
 function getInnerPos(event, target) {
@@ -280,16 +350,6 @@ function isInPlot(event) {
         event.clientY < rect.bottom - outerRect.b
 }
 
-function oob_squish(value, { min, max }) {
-    if (value < min) return min
-    if (value > max) return max
-    return value
-}
-function oob_squish_infinite(value, { min, max }) {
-    if (value == -Infinity) return min
-    if (value == Infinity) return max
-    return value
-}
 let moveTimer
 function svgPointerdown(e) {
     if (!isInPlot(e)) return
@@ -370,18 +430,19 @@ function svgPointerdown(e) {
     } else if (act.action == "move") {
         moveTimer = clearTimeout(moveTimer)
         let boundary = coord2pos(act, { unlimited: true })
-        let rangeX = {
-            min: boundary.xmax == null ? -Infinity : innerRect.width - boundary.xmax,
-            max: boundary.xmin == null ? Infinity : - boundary.xmin,
+        let rangeH = {
+            min: boundary.hmax == null ? -Infinity : innerRect.width - boundary.hmax,
+            max: boundary.hmin == null ? Infinity : - boundary.hmin,
         },
-            rangeY = {
-                min: boundary.ymax == null ? -Infinity : innerRect.height - boundary.ymax,
-                max: boundary.ymin == null ? Infinity : - boundary.ymin,
+            rangeV = {
+                min: boundary.vmax == null ? -Infinity : innerRect.height - boundary.vmax,
+                max: boundary.vmin == null ? Infinity : - boundary.vmin,
             }
         e.target.onpointermove = (ev) => {
             let { x = false, y = false } = act
-            if (x) translateX.value = oob_squish(translateX.value + ev.movementX, rangeX)
-            if (y) translateY.value = oob_squish(translateY.value + ev.movementY, rangeY)
+            let [h, v] = flip.value ? [y, x] : [x, y]
+            if (h) translateH.value = oob_squish(translateH.value + ev.movementX, rangeH)
+            if (v) translateV.value = oob_squish(translateV.value + ev.movementY, rangeV)
         }
         e.target.onpointerup = (ev) => {
             ev.currentTarget.onpointerup = null
@@ -391,39 +452,41 @@ function svgPointerdown(e) {
     }
 }
 function applyTransform(act, event) {
-    if (transcaleX.value != null || translateX.value != 0 ||
-        transcaleY.value != null || transcaleY.value != 0) {
-        let xmin, ymin, xmax, ymax
-        if (act.x) {
-            xmin = 0, xmax = innerRect.width
-            if (transcaleX.value) {
-                let ratio = transcaleX.value.ratio,
-                    origin = transcaleX.value.origin * outerRect.width - innerRect.l
-                xmin = xmin / ratio + (1 - 1 / ratio) * origin
-                xmax = xmax / ratio + (1 - 1 / ratio) * origin
+    let { x = false, y = false } = act
+    let [h, v] = flip.value ? [y, x] : [x, y]
+    if (transcaleH.value != null || translateH.value != 0 ||
+        transcaleV.value != null || transcaleV.value != 0) {
+        let hmin, hmax, vmin, vmax
+        if (h) {
+            hmin = 0, hmax = innerRect.width
+            if (transcaleH.value) {
+                let ratio = transcaleH.value.ratio,
+                    origin = transcaleH.value.origin * outerRect.width - innerRect.l
+                hmin = hmin / ratio + (1 - 1 / ratio) * origin
+                hmax = hmax / ratio + (1 - 1 / ratio) * origin
             }
-            if (translateX.value) {
-                xmin -= translateX.value
-                xmax -= translateX.value
-            }
-        }
-        if (act.y) {
-            ymin = 0, ymax = innerRect.height
-            if (transcaleY.value) {
-                let ratio = transcaleY.value.ratio,
-                    origin = transcaleY.value.origin * outerRect.height - innerRect.t
-                ymin = ymin / ratio + (1 - 1 / ratio) * origin
-                ymax = ymax / ratio + (1 - 1 / ratio) * origin
-            }
-            if (translateY.value) {
-                ymin -= translateY.value
-                ymax -= translateY.value
+            if (translateH.value) {
+                hmin -= translateH.value
+                hmax -= translateH.value
             }
         }
-        setRange(pos2coord({ xmin, xmax, ymin, ymax }), act.action, event)
+        if (v) {
+            vmin = 0, vmax = innerRect.height
+            if (transcaleV.value) {
+                let ratio = transcaleV.value.ratio,
+                    origin = transcaleV.value.origin * outerRect.height - innerRect.t
+                vmin = vmin / ratio + (1 - 1 / ratio) * origin
+                vmax = vmax / ratio + (1 - 1 / ratio) * origin
+            }
+            if (translateV.value) {
+                vmin -= translateV.value
+                vmax -= translateV.value
+            }
+        }
+        setRange(pos2coord({ hmin, hmax, vmin, vmax }), act.action, event)
     }
-    translateX.value = translateY.value = 0
-    transcaleX.value = transcaleY.value = null
+    translateH.value = translateV.value = 0
+    transcaleH.value = transcaleV.value = null
 }
 let wheelDelta = 0, wheelTimer
 function svgWheel(e) {
@@ -442,71 +505,69 @@ function svgWheel(e) {
 }
 function wheel(act, pos, delta) {
     if (act.action == "zoom") {
-        let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0, sensitivity: lvl = 1.25 } = act
-        lvl = lvl ** (wheelDelta / 100)
+        let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0, sensitivity = 1.25 } = act
+        let lvl = sensitivity ** (wheelDelta / 100)
+        let [h, v, mrh, mrv] = flip.value ? [y, x, mry, mrx] : [x, y, mrx, mry]
         let maxpos = coord2pos(act, { unlimited: true })
-        let xmin, xmax, ymin, ymax
-        if (x) {
-            xmin = Math.max(pos.l - pos.l * lvl, maxpos.xmin ?? -Infinity)
-            xmax = Math.min(pos.l + pos.r * lvl, maxpos.xmax ?? Infinity)
+        let hmin, hmax, vmin, vmax
+        if (h) {
+            hmin = Math.max(pos.l - pos.l * lvl, maxpos.hmin ?? -Infinity)
+            hmax = Math.min(pos.l + pos.r * lvl, maxpos.hmax ?? Infinity)
             if (lvl < 1) {
-                let coord = pos2coord({ xmin, xmax })
-                let dx = coord.xmax - coord.xmin, cx = (coord.xmax + coord.xmin) / 2
-                if (dx > 0) {
-                    if (dx < mrx) {
-                        coord.xmin = cx - mrx / 2
-                        coord.xmax = cx + mrx / 2
-                    }
-                    ({ xmin, xmax } = coord2pos(coord))
+                let { hmin: min, hmax: max } = pos2coord({ hmin, hmax })
+                let c = (max + min) / 2
+                if (max - min < mrh) {
+                    min = c - mrh / 2
+                    max = c + mrh / 2
                 }
+                ({ hmin, hmax } = coord2pos({ hmin: min, hmax: max }))
             }
-            if (Math.abs(innerRect.width - (xmax - xmin)) > 1) {
-                transcaleX.value = {
-                    ratio: innerRect.width / (xmax - xmin),
-                    origin: (innerRect.l + (xmin * innerRect.width) / (innerRect.width - xmax + xmin)) / outerRect.width
+            if (hmax - hmin > 0 && Math.abs(innerRect.width - (hmax - hmin)) > 1) {
+                transcaleH.value = {
+                    ratio: innerRect.width / (hmax - hmin),
+                    origin: (innerRect.l + (hmin * innerRect.width) / (innerRect.width - hmax + hmin)) / outerRect.width
                 }
             }
         }
-        if (y) {
-            ymin = Math.max(pos.t - pos.t * lvl, maxpos.ymin ?? -Infinity)
-            ymax = Math.min(pos.t + pos.b * lvl, maxpos.ymax ?? Infinity)
+        if (v) {
+            vmin = Math.max(pos.t - pos.t * lvl, maxpos.vmin ?? -Infinity)
+            vmax = Math.min(pos.t + pos.b * lvl, maxpos.vmax ?? Infinity)
             if (lvl < 1) {
-                let coord = pos2coord({ ymin, ymax })
-                let dy = coord.ymax - coord.ymin, cy = (coord.ymax + coord.ymin) / 2
-                if (dy > 0) {
-                    if (dy < mry) {
-                        coord.ymin = cy - mry / 2
-                        coord.ymax = cy + mry / 2
-                    }
-                    ({ ymin, ymax } = coord2pos(coord))
+                let { vmin: min, vmax: max } = pos2coord({ vmin, vmax })
+                let c = (max + min) / 2
+                if (max - min < mrv) {
+                    min = c - mrv / 2
+                    max = c + mrv / 2
                 }
+                ({ vmin, vmax } = coord2pos({ vmin: min, vmax: max }))
             }
-            if (Math.abs(innerRect.height - (ymax - ymin)) > 1) {
-                transcaleY.value = {
-                    ratio: innerRect.height / (ymax - ymin),
-                    origin: (innerRect.t + (ymin * innerRect.height) / (innerRect.height - ymax + ymin)) / outerRect.height
+            if (vmax - vmin > 0 && Math.abs(innerRect.height - (vmax - vmin)) > 1) {
+                transcaleV.value = {
+                    ratio: innerRect.height / (vmax - vmin),
+                    origin: (innerRect.t + (vmin * innerRect.height) / (innerRect.height - vmax + vmin)) / outerRect.height
                 }
             }
         }
     }
     if (act.action == "nudge") {
         let { x = false, y = false, sensitivity = 0.1 } = act
+        let [h, v] = flip.value ? [y, x] : [x, y]
         let boundary = coord2pos(act, { unlimited: true })
-        if (x) {
+        if (h) {
             let movement = sensitivity * innerRect.width * (-delta / 120)
-            let rangeX = {
-                min: boundary.xmax == null ? -Infinity : innerRect.width - boundary.xmax,
-                max: boundary.xmin == null ? Infinity : - boundary.xmin,
+            let range = {
+                min: boundary.hmax == null ? -Infinity : innerRect.width - boundary.hmax,
+                max: boundary.hmin == null ? Infinity : - boundary.hmin,
             }
-            translateX.value = oob_squish(movement, rangeX)
+            translateH.value = oob_squish(movement, range)
         }
-        if (y) {
+        if (v) {
             let movement = sensitivity * innerRect.height * (-delta / 120)
-            let rangeY = {
-                min: boundary.ymax == null ? -Infinity : innerRect.height - boundary.ymax,
-                max: boundary.ymin == null ? Infinity : - boundary.ymin,
+            let range = {
+                min: boundary.vmax == null ? -Infinity : innerRect.height - boundary.vmax,
+                max: boundary.vmin == null ? Infinity : - boundary.vmin,
             }
-            translateY.value = oob_squish(movement, rangeY)
+            translateV.value = oob_squish(movement, range)
         }
     }
 }
@@ -549,28 +610,28 @@ function setRange(coord, emition = 'rescale', event) {
 }
 
 const gridBreaks = computed(() => {
-    let xAxes = vplot.value.axes.filter(a => a.type == "x"),
-        yAxes = vplot.value.axes.filter(a => a.type == "y")
+    let hAxes = vplot.value.axes.filter(a => a.orientation == "v"),
+        vAxes = vplot.value.axes.filter(a => a.orientation == "h")
     return {
-        x: {
-            majorBreaks: unique(xAxes.flatMap(x => x.majorBreaks)),
-            minorBreaks: unique(xAxes.flatMap(x => x.minorBreaks)),
+        h: {
+            majorBreaks: unique(hAxes.flatMap(a => a.majorBreaks)),
+            minorBreaks: unique(hAxes.flatMap(a => a.minorBreaks)),
         },
-        y: {
-            majorBreaks: unique(yAxes.flatMap(y => y.majorBreaks)),
-            minorBreaks: unique(yAxes.flatMap(y => y.minorBreaks)),
+        v: {
+            majorBreaks: unique(vAxes.flatMap(a => a.majorBreaks)),
+            minorBreaks: unique(vAxes.flatMap(a => a.minorBreaks)),
         }
     }
 })
 const axes = computed(() => {
     return vplot.value.axes.map(axis => {
-        let { type, position, title, ticks, action, theme: $theme } = axis
+        let { coord, position, title, ticks, action, orientation, theme: $theme } = axis
         return {
-            type,
+            coord,
             bind: {
-                title, ticks, action,
+                title, ticks, action, orientation,
                 layout: innerRect,
-                theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[type] ?? {}, $theme),
+                theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
                 position,
                 coord2pos, pos2coord
             },
@@ -597,10 +658,10 @@ const axes = computed(() => {
         <rect :transform="`translate(${outerRect.left}, ${outerRect.top})`" :width="outerRect.width"
             :height="outerRect.height" :fill="theme.plot.background"></rect>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
-            <CoreGridX v-if="theme.grid.x" v-bind="gridBreaks.x" :layout="innerRect" :theme="theme.grid.x"
-                :translate="translateX" :transcale="transcaleX" :coord2pos="coord2pos" />
-            <CoreGridY v-if="theme.grid.y" v-bind="gridBreaks.y" :layout="innerRect" :theme="theme.grid.y"
-                :translate="translateY" :transcale="transcaleY" :coord2pos="coord2pos" />
+            <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
+                :translate="translateV" :transcale="transcaleV" :coord2pos="coord2pos" />
+            <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"
+                :translate="translateH" :transcale="transcaleH" :coord2pos="coord2pos" />
         </g>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`" :clip-path="`url(#${vid}-plot-clip)`">
             <g v-bind="transformBind">
@@ -614,9 +675,9 @@ const axes = computed(() => {
             </g>
         </g>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
-            <CoreAxis v-for="axis in axes.filter(a => a.type == 'x' || a.type == 'y')" v-bind="axis.bind" v-on="axis.on"
-                v-model:translateX="translateX" v-model:transcaleX="transcaleX" v-model:translateY="translateY"
-                v-model:transcaleY="transcaleY" />
+            <CoreAxis v-for="axis in axes.filter(a => a.coord == 'x' || a.coord == 'y')" v-bind="axis.bind"
+                v-on="axis.on" v-model:translateH="translateH" v-model:transcaleH="transcaleH"
+                v-model:translateV="translateV" v-model:transcaleV="transcaleV" />
         </g>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">

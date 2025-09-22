@@ -18,8 +18,8 @@ const binds = computed(() => {
         color = 'black', linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        let { x: x1, y: y1 } = coord2pos({ x: x, y: y })
-        let { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
+        const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+        const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max

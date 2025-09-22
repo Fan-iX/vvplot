@@ -20,17 +20,16 @@ const binds = computed(() => {
         let parts = splitLabel(String(label))
         let dx = (xend - x) / (parts.length - 1 || 1),
             dy = (yend - y) / (parts.length - 1 || 1)
-        let { x: x1, y: y1 } = coord2pos({ x: x, y: y })
-        let { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
+        const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+        const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
         let content = parts.map((v, i) => {
-            let { x: tx, y: ty } = coord2pos({ x: x + i * dx, y: y + i * dy })
+            const { h: tx, v: ty } = coord2pos({ x: x + i * dx, y: y + i * dy })
             return {
-                bind:
-                {
+                bind: {
                     x: tx, y: ty,
                     'text-anchor': 'middle',
                     'alignment-baseline': 'central'

@@ -30,8 +30,8 @@ const layerCanvas = computed(() => {
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             if (color === 'transparent') continue
-            const { x: x1, y: y1 } = coord2pos({ x: x, y: y })
-            const { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
+            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
             const path2d = new Path2D()
             path2d.moveTo(x1 + translateX, y1 + translateY)
             path2d.lineTo(x2 + translateX, y2 + translateY)

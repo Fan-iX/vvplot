@@ -2,7 +2,7 @@
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
-import { theme_base, theme_default, themeBuild, themeMerge } from '../js/theme'
+import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c } from '../js/utils'
 import CorePlot from './core/CorePlot.vue'
 import VVAction from './Action.vue'
@@ -23,6 +23,7 @@ const $props = defineProps({
     data: Array, scales: Object, aes: Object,
     axes: Object, expandAdd: Object, expandMult: Object, levels: Object, range: Object,
     theme: { type: Object, default: () => theme_default },
+    flip: Boolean,
     resize: null,
     legendTeleport: null,
 })
@@ -113,8 +114,8 @@ const vBind = computed(() => {
 
 const primaryAxis = reactiveComputed(() => {
     let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props }))
-    let xAxes = allAxes.filter(c => c.type === 'x')
-    let yAxes = allAxes.filter(c => c.type === 'y')
+    let xAxes = allAxes.filter(c => c.coord === 'x')
+    let yAxes = allAxes.filter(c => c.coord === 'y')
     return {
         x: xAxes.find(c => !_isFalse(c.primary)) ?? xAxes.find(c => c.primary !== false && _isFalse(c.secondary)),
         y: yAxes.find(c => !_isFalse(c.primary)) ?? yAxes.find(c => c.primary !== false && _isFalse(c.secondary))
@@ -124,10 +125,10 @@ const primaryAxis = reactiveComputed(() => {
 const selection = defineModel('selection')
 
 const activeSelection = defineModel('activeSelection')
-const translateX = defineModel('translateX')
-const translateY = defineModel('translateY')
-const transcaleX = defineModel('transcaleX')
-const transcaleY = defineModel('transcaleY')
+const translateH = defineModel('translateH')
+const translateV = defineModel('translateV')
+const transcaleH = defineModel('transcaleH')
+const transcaleV = defineModel('transcaleV')
 
 /* schema:
     global data and data transformation of the plot.
@@ -233,18 +234,22 @@ const coordDisplay = computed(() => {
     return {
         reverse: { ...$props.reverse, ...reverse },
         expandMult: { ...$props.expandMult, ...expandMult },
+        flip: $props.flip
     }
 })
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
+    let orientation = $props.flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
+    let defaultPos = $props.flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
     let allAxes = vnodes.axis.map(c => {
         let ax = { ...c.type.$_props, ...c.props }
-        let axis = (({ type, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ type, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
+        let axis = (({ coord, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ coord, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
         if (axis.position == null) {
-            axis.position = { x: "bottom", y: "left" }[axis.type]
+            axis.position = defaultPos[axis.coord]
         }
+        axis.orientation = orientation[axis.coord]
         axis.showGrid = ax['show-grid'] !== false
-        axis.extend = ax.extend ?? primaryAxis?.[axis.type]?.extend
+        axis.extend = ax.extend ?? primaryAxis?.[axis.coord]?.extend
         if (c.children) {
             axis.action = Object.keys(c.children)
                 .filter(s => typeof c.children[s] == "function")
@@ -256,9 +261,9 @@ const axes = computed(() => {
                         if (!props[act] && props[act] != "") continue
                         res.push({
                             action: act,
-                            [ax.type + "min"]: props[act].min ?? props.min,
-                            [ax.type + "max"]: props[act].max ?? props.max,
-                            ["min-range-" + ax.type]: props[act]["min-range"] ?? props["min-range"],
+                            [axis.orientation + "min"]: props[act].min ?? props.min,
+                            [axis.orientation + "max"]: props[act].max ?? props.max,
+                            ["min-range-" + axis.orientation]: props[act]["min-range"] ?? props["min-range"],
                             ctrlKey: Boolean(props[act].ctrl ?? (props.ctrl || props.ctrl === "")),
                             shiftKey: Boolean(props[act].shift ?? (props.shift || props.shift === "")),
                             altKey: Boolean(props[act].alt ?? (props.alt || props.alt === "")),
@@ -270,11 +275,11 @@ const axes = computed(() => {
                 })
         }
         return axis
-    })
-    if (allAxes.every(ax => ax?.type != 'x'))
-        allAxes.push({ type: 'x', position: 'bottom', showGrid: true })
-    if (allAxes.every(ax => ax?.type != 'y'))
-        allAxes.push({ type: 'y', position: 'left', showGrid: true })
+    }).filter(ax => ax != null)
+    if (allAxes.every(ax => ax?.coord != 'x'))
+        allAxes.push({ coord: 'x', position: defaultPos.x, orientation: orientation.x, showGrid: true })
+    if (allAxes.every(ax => ax?.coord != 'y'))
+        allAxes.push({ coord: 'y', position: defaultPos.y, orientation: orientation.y, showGrid: true })
     return allAxes.filter(ax => ax != null)
 })
 const action = computed(() => {
@@ -307,7 +312,7 @@ const action = computed(() => {
             return res
         })
 })
-const theme = reactiveComputed(() => themeBuild(themeMerge(theme_base, theme_default, $props.theme)), { deep: true })
+const theme = reactiveComputed(() => themeBuild(themePreprocess(themeMerge(theme_base, theme_default, $props.theme), $props.flip)), { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
@@ -346,8 +351,8 @@ const wrapperClass = computed(() => {
     <div ref="wrapper" class="vvplot relative overflow-hidden" :class="wrapperClass" v-bind="vBind.wrapper">
         <CorePlot ref="plot" :schema="schema" :layers="layers" :coord-scale="coordScale" :coord-display="coordDisplay"
             :coord-levels="coordLevels" :levels="levels" :scales="$props.scales" :axes="axes" :theme="theme"
-            v-model:selection="selection" v-model:active-selection="activeSelection" v-model:transcale-x="transcaleX"
-            v-model:transcale-y="transcaleY" v-model:translate-x="translateX" v-model:translate-y="translateY"
+            v-model:selection="selection" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
+            v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
             v-bind="vBind.plot" :action="action" :legendTeleport="$props.legendTeleport" />
         <div class="absolute right-4 top-4 flex flex-row">
             <slot name="toolbar"></slot>

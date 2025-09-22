@@ -8,12 +8,10 @@ export const theme_base = {
         label_size: 12,
         title_size: 18,
     },
-    axis_x: {
-        line_orientation: 'horizontal',
+    axis_h: {
         title_offset: 20,
     },
-    axis_y: {
-        line_orientation: 'vertical',
+    axis_v: {
         title_offset: 30,
         title_angle: 90,
     },
@@ -39,8 +37,8 @@ export const theme_base = {
     },
     plot: {
         margin: 20,
-        padding_x: 50,
-        padding_y: 20,
+        padding_h: 50,
+        padding_v: 20,
     },
     legend: {
         spacing: 4
@@ -137,58 +135,93 @@ export function themeMerge(...themes) {
                 acc[k] = Object.assign(acc[k] || {}, t[k])
             }
         }
-        return acc
+        return acc ?? undefined
     }, {})
+}
+
+export function themePreprocess(theme, flip = false) {
+    let {
+        axis_h, axis_v, axis_x, axis_y,
+        grid_h, grid_v, grid_x, grid_y,
+        plot: {
+            margin_x, margin_y, margin_h, margin_v,
+            padding_x, padding_y, padding_h, padding_v,
+            ...plot
+        } = {},
+        ...rest
+    } = theme
+    if (flip) {
+        axis_h = obj_merge([axis_h, axis_y])
+        axis_v = obj_merge([axis_v, axis_x])
+        grid_h = obj_merge([grid_h, grid_x])
+        grid_v = obj_merge([grid_v, grid_y])
+        plot.margin_h = margin_y === undefined ? margin_h : margin_y
+        plot.margin_v = margin_x === undefined ? margin_v : margin_x
+        plot.padding_h = padding_y === undefined ? padding_h : padding_y
+        plot.padding_v = padding_x === undefined ? padding_v : padding_x
+    } else {
+        axis_h = obj_merge([axis_h, axis_x])
+        axis_v = obj_merge([axis_v, axis_y])
+        grid_h = obj_merge([grid_h, grid_y])
+        grid_v = obj_merge([grid_v, grid_x])
+        plot.margin_h = margin_x === undefined ? margin_h : margin_x
+        plot.margin_v = margin_y === undefined ? margin_v : margin_y
+        plot.padding_h = padding_x === undefined ? padding_h : padding_x
+        plot.padding_v = padding_y === undefined ? padding_v : padding_y
+    }
+    return {
+        axis_h, axis_v, grid_h, grid_v, plot, ...rest
+    }
 }
 
 export function themeBuild(theme) {
     return {
         axis: {
-            x: obj_merge(["axis", "axis_x"].map(k => theme?.[k])),
-            y: obj_merge(["axis", "axis_y"].map(k => theme?.[k])),
+            h: obj_merge(["axis", "axis_h"].map(k => theme?.[k])),
+            v: obj_merge(["axis", "axis_v"].map(k => theme?.[k])),
             left: obj_merge(
-                ["axis", "axis_y", "axis_left"].map(k => theme?.[k])
+                ["axis", "axis_v", "axis_left"].map(k => theme?.[k])
             ),
             right: obj_merge(
-                ["axis", "axis_y", "axis_right"].map(k => theme?.[k])
+                ["axis", "axis_v", "axis_right"].map(k => theme?.[k])
             ),
             top: obj_merge(
-                ["axis", "axis_x", "axis_top"].map(k => theme?.[k])
+                ["axis", "axis_h", "axis_top"].map(k => theme?.[k])
             ),
             bottom: obj_merge(
-                ["axis", "axis_x", "axis_bottom"].map(k => theme?.[k])
+                ["axis", "axis_h", "axis_bottom"].map(k => theme?.[k])
             ),
         },
         grid: {
-            x: obj_merge(["grid", "grid_x"].map(k => theme?.[k])),
-            y: obj_merge(["grid", "grid_y"].map(k => theme?.[k]))
+            h: obj_merge(["grid", "grid_h"].map(k => theme?.[k])),
+            v: obj_merge(["grid", "grid_v"].map(k => theme?.[k]))
         },
         plot: {
             margin: {
-                left: ["margin", "margin_x", "margin_left"]
+                left: ["margin", "margin_h", "margin_left"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                right: ["margin", "margin_x", "margin_right"]
+                right: ["margin", "margin_h", "margin_right"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                top: ["margin", "margin_y", "margin_top"]
+                top: ["margin", "margin_v", "margin_top"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                bottom: ["margin", "margin_y", "margin_bottom"]
+                bottom: ["margin", "margin_v", "margin_bottom"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
             },
             padding: {
-                left: ["padding", "padding_x", "padding_left"]
+                left: ["padding", "padding_h", "padding_left"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                right: ["padding", "padding_x", "padding_right"]
+                right: ["padding", "padding_h", "padding_right"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                top: ["padding", "padding_y", "padding_top"]
+                top: ["padding", "padding_v", "padding_top"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
-                bottom: ["padding", "padding_y", "padding_bottom"]
+                bottom: ["padding", "padding_v", "padding_bottom"]
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
             },

@@ -29,8 +29,7 @@ const layerCanvas = computed(() => {
             fill, color, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
-            const { x: x1, y: y1 } = coord2pos({ x: xmin, y: ymin })
-            const { x: x2, y: y2 } = coord2pos({ x: xmax, y: ymax })
+            const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
             const path2d = new Path2D()
             path2d.rect(x1 + translateX, y1 + translateY, x2 - x1, y2 - y1)
             path_data.set(path2d, $raw)

@@ -129,6 +129,17 @@ export function extractModifier(event) {
     }
 }
 
+export function oob_squish(value, { min, max }) {
+    if (value < min) return min
+    if (value > max) return max
+    return value
+}
+export function oob_squish_infinite(value, { min, max }) {
+    if (value == -Infinity) return min
+    if (value == Infinity) return max
+    return value
+}
+
 function deepEqual(a, b) {
     if (a === b) return true
     if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false

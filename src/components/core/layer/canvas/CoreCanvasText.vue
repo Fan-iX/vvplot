@@ -32,7 +32,7 @@ const layerCanvas = computed(() => {
             'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
         } of group) {
             ctx.save()
-            const { x: tx, y: ty } = coord2pos({ x, y })
+            const { h: tx, v: ty } = coord2pos({ x, y })
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth

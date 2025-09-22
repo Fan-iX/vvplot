@@ -31,7 +31,7 @@ const vBind = {
     <article>
         <section>
             <h2>Gallery</h2>
-            <pre class="code">{{templates[1] = `<VVPlot :data="mtcars" legend-teleport="#legend-1">
+            <pre class="code">{{templates[1] = `<VVPlot :data="mtcars">
     <VVGeomPoint :x="d => d.wt" :y="d => d.mpg" shape="triangle" />
     <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15" :anchor-x="0" :anchor-y="0.5" :translate-x="6" :translate-y="-2" />
     <VVGeomSegment :x="d => d.x1" :y="d => d.y1" :xend="d => d.x2" :yend="d => d.y2"
@@ -104,7 +104,7 @@ const vBind = {
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
-            <pre class="code">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8">
+            <pre class="code">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip>
     <VVAxisY :position="0" :extend="1">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
@@ -114,10 +114,10 @@ const vBind = {
     </VVAxisX>
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species"
          :scales="{ color: vvscale.color.default({ key: 'Species' }), shape: vvscale.shape.default({ key: 'Species' }) }" />
-    <VVAction select />
+    <VVAction select x />
     <VVAction nudge shift />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
-    <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" />
+    <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" :min-range-y="4"/>
 </VVPlot>`}}</pre>
             <div class="flex flex-row">
                 <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -142,6 +142,7 @@ const vBind = {
         <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
         <VVAxisY position="left" primary />
         <VVAxisY position="right" />
+        <VVAxisX position="bottom" secondary />
         <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
     </VVPlot>`}}</pre>
             <component :is="{ template: templates[10], props: Object.keys(vBind) }" v-bind="vBind" />

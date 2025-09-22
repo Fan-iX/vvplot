@@ -20,10 +20,10 @@ const binds = computed(() => {
         'dock-x': dockX, 'dock-y': dockY,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
     }) => {
-        let { x: tx, y: ty } = coord2pos({ x, y })
+        const { h: tx, v: ty } = coord2pos({ x, y })
         if (tx < xlim_min || tx > xlim_max || ty < ylim_min || ty > ylim_max) return null
         let result = {
-            x: tx, y: ty, text: String(label), title: String(title),
+            x: tx, y: ty, text: String(label), title: title,
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
             anchorX, anchorY, dockX, dockY,
@@ -38,7 +38,7 @@ const binds = computed(() => {
             onPointermove: (e) => emit('pointermove', e, $raw),
         }
         return result
-    }).filter(x => x.text != null))
+    }).filter(x => x?.text != null))
 })
 </script>
 <template>
