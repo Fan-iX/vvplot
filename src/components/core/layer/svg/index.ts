@@ -1,3 +1,4 @@
+export { default as blank } from './CoreSvgBlank.vue'
 export { default as curve } from './CoreSvgCurve.vue'
 export { default as line } from './CoreSvgLine.vue'
 export { default as point } from './CoreSvgPoint.vue'

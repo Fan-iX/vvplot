@@ -15,6 +15,13 @@ export const number_cut = {
     }
 }
 
+function format_asis() {
+    return function (x) {
+        if (x == null) return ""
+        return String(x)
+    }
+}
+
 /**
  * format number with fixed scale
  * @param {*} options
@@ -98,6 +105,7 @@ export default {
     number: format_number,
     datetime: format_datetime,
     timestamp: format_datetime,
+    asis: format_asis,
     default: function (opts) {
         return format_number({ scale_cut: number_cut.default, ...opts })
     },

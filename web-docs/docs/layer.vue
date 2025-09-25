@@ -22,7 +22,7 @@ const render = ref('svg')
                 <option value="canvas">Canvas</option>
             </select>
             <div class="w-full overflow-auto">
-                <table class="w-full" id="doc-layer-table">
+                <table class="w-full doc-demo-table">
                     <thead>
                         <tr>
                             <th>Layer</th>
@@ -238,22 +238,3 @@ const render = ref('svg')
         </section>
     </article>
 </template>
-<style>
-#doc-layer-table {
-    .vvplot {
-        width: 200px;
-        height: 120px;
-        margin: 0 auto;
-    }
-
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding-inline: 8px;
-    }
-
-    th {
-        padding-block: 8px;
-    }
-}
-</style>

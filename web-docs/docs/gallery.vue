@@ -104,7 +104,7 @@ const vBind = {
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
-            <pre class="code">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip>
+            <pre class="code">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false">
     <VVAxisY :position="0" :extend="1">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
@@ -130,7 +130,7 @@ const vBind = {
             <VVAction move rescale zoom />
         </VVAxisY>
         <VVAxisX position="10%"
-            :theme="{ ticks_length: 3, title_position: 'right', title_size: 16, text_angle: 45, ticks_anchor_x: 0 }"
+            :theme="{ tick_length: 3, title_position: 'right', title_size: 16, text_angle: 45, tick_anchor_x: 0 }"
             :show-grid="false" title="date" :extend="0.5">
             <VVAction move rescale zoom />
         </VVAxisX>
@@ -162,7 +162,7 @@ const vBind = {
             <hr>
             <pre class="code">{{templates[12] = `<VVPlot :data="letters">
         <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
-        <VVAxisY position="center" :theme="{ ticks_anchor_y: 1 }" />
+        <VVAxisY position="center" :theme="{ tick_anchor_y: 1 }" />
         <VVGeomBar :x="d => d" />
     </VVPlot>`}}</pre>
             <component :is="{ template: templates[12], props: Object.keys(vBind) }" v-bind="vBind" />

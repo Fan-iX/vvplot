@@ -249,10 +249,12 @@ const render = ref('canvas')
             </p>
             <pre class="code">import vvtheme from 'vvplot/theme'</pre>
             <p>
-                Then pass the theme object to the <code>theme</code> property of <code>&lt;VVPlot&gt;</code>:
+                You can provide a single theme object or an array of theme objects to the <code>theme</code> property of
+                <code>&lt;VVPlot&gt;</code>:
             </p>
             <hr>
-            <pre class="code">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" :theme="vvtheme.gray">
+            <pre class="code">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" 
+    :theme="[vvtheme.gray, { axis_x: { line_color: 'blue' } }]">
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" bins="15"/>
 </VVPlot>` }}</pre>
             <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />

@@ -6,6 +6,12 @@ import { numutils, intraaction, intrazip } from './utils'
  * aesthetics can be added/removed/modified
  */
 export default {
+    blank: Object.assign(function (data) {
+        let missingAes = ['x', 'y'].filter(a => data[a] == null)
+        if (missingAes.length > 0)
+            throw new Error(`Missing aesthetics for GeomBlank: "${missingAes.join('", "')}"`)
+        return data
+    }, { core_attrs: ['x', 'y'] }),
     line: Object.assign(function (data, { orientation = 'x' } = {}) {
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)

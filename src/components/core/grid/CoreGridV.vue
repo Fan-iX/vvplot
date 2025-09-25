@@ -25,8 +25,8 @@ const majorLines = computed(() => {
         result.push({
             y1: 0, y2: height.value,
             x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_major ?? theme.line_color,
-            'stroke-width': line.width ?? theme.line_width_major ?? theme.line_width,
+            'stroke': line.color ?? theme.line_color_major,
+            'stroke-width': line.width ?? theme.line_width_major ?? 0,
         })
     }
     return result.filter(l => l.stroke !== null)
@@ -42,16 +42,16 @@ const minorLines = computed(() => {
         result.push({
             y1: 0, y2: height.value,
             x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_minor ?? theme.line_color,
-            'stroke-width': line.width ?? theme.line_width_minor ?? theme.line_width,
+            'stroke': line.color ?? theme.line_color_minor,
+            'stroke-width': line.width ?? theme.line_width_minor ?? 0,
         })
     }
-    return result.filter(l => l.stroke !== null)
+    return result.filter(l => l.stroke !== null && majorLines.value.every(ml => ml.x1 !== l.x1))
 })
 </script>
 <template>
     <g>
-        <line v-for="line in majorLines" v-bind="line" />
         <line v-for="line in minorLines" v-bind="line" />
+        <line v-for="line in majorLines" v-bind="line" />
     </g>
 </template>

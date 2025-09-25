@@ -17,6 +17,7 @@ const props = defineProps({
     levels: Object, scales: Object,
     axes: { type: Array, default: () => [] },
     theme: Object,
+    clip: Boolean,
     action: { type: Array, default: () => [] },
     legendTeleport: null,
 })
@@ -368,7 +369,7 @@ function svgPointerdown(e) {
             if (ev.button == 2) emit('contextmenu', ev, getCoord(ev))
             if (ev.button == 0) {
                 emit('click', ev, getCoord(ev))
-                if (isInPlot(e))
+                if (isInPlot(e) && layers.value)
                     layers.value.forEach(layer => layer.dispatchEvent(new PointerEvent("click", ev)))
             }
         }
@@ -663,7 +664,8 @@ const axes = computed(() => {
             <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"
                 :translate="translateH" :transcale="transcaleH" :coord2pos="coord2pos" />
         </g>
-        <g :transform="`translate(${outerRect.left}, ${outerRect.top})`" :clip-path="`url(#${vid}-plot-clip)`">
+        <g :transform="`translate(${outerRect.left}, ${outerRect.top})`"
+            :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />

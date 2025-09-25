@@ -91,6 +91,7 @@ export const vecutils = {
  */
 export function obj_merge(arr) {
     arr = arr.filter(x => x !== undefined)
+    if (arr.length == 0) return undefined
     arr = arr.slice(arr.findIndex(x => x == null) + 1)
     if (arr.length == 0) return null
     return arr.reduce((a, c) => Object.assign(a, c), {})

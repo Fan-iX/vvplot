@@ -30,7 +30,7 @@ const transform = computed(() => {
     return `translate(${translate}, 0)`
 })
 const axisTitle = computed(() => {
-    let pos = theme.title_position ?? theme.ticks_position, aln = pos,
+    let pos = theme.title_position ?? theme.tick_position, aln = pos,
         dockX = theme.title_dock_x, dockY = theme.title_dock_y, offset = 0
     if (typeof pos != "number") {
         aln = { bottom: 0, left: 0.5, right: 0.5, top: 1 }[pos] ?? 0.5
@@ -64,18 +64,18 @@ const tickLines = computed(() => {
         if (transcaleV.value?.ratio != null)
             position = position * transcaleV.value.ratio + (1 - transcaleV.value.ratio) * (transcaleV.value.origin ?? 0.5) * height.value
         if (position < 0 || position > height.value) continue
-        let offset = (theme.ticks_position == "right" ? 1 : -1) * (tick.length ?? theme.ticks_length)
+        let offset = (theme.tick_position == "right" ? 1 : -1) * (tick.length ?? theme.tick_length)
         result.push({
             y1: position, y2: position,
             x1: 0, x2: offset,
-            'stroke': tick.color ?? theme.ticks_color,
-            'stroke-width': tick.width ?? theme.ticks_width,
+            'stroke': tick.color ?? theme.tick_color,
+            'stroke-width': tick.width ?? theme.tick_width,
         })
     }
     return result.filter(t => t.stroke != null)
 })
 const tickTexts = computed(() => {
-    let isRight = theme.ticks_position == "right"
+    let isRight = theme.tick_position == "right"
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
@@ -83,14 +83,14 @@ const tickTexts = computed(() => {
         if (transcaleV.value?.ratio != null)
             position = position * transcaleV.value.ratio + (1 - transcaleV.value.ratio) * (transcaleV.value.origin ?? 0.5) * height.value
         if (position < 0 || position > height.value) continue
-        let offset = (isRight ? 1 : -1) * ((tick.length ?? theme.ticks_length) + 3)
+        let offset = (isRight ? 1 : -1) * ((tick.length ?? theme.tick_length) + 3)
         let anchorX, anchorY, dockX, dockY
-        if (theme.ticks_anchor_x != null || theme.ticks_anchor_y != null) {
-            anchorX = theme.ticks_anchor_x ?? (isRight ? 0 : 1)
-            anchorY = theme.ticks_anchor_y ?? 0.5
+        if (theme.tick_anchor_x != null || theme.tick_anchor_y != null) {
+            anchorX = theme.tick_anchor_x ?? (isRight ? 0 : 1)
+            anchorY = theme.tick_anchor_y ?? 0.5
         } else {
-            dockX = theme.ticks_dock_x ?? (isRight ? 0 : 1)
-            dockY = theme.ticks_dock_y ?? 0.5
+            dockX = theme.tick_dock_x ?? (isRight ? 0 : 1)
+            dockY = theme.tick_dock_y ?? 0.5
         }
         result.push({
             y: position,

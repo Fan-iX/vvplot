@@ -3,8 +3,8 @@ import { obj_merge } from './utils.js'
 export const theme_base = {
     axis: {
         line_width: 1,
-        ticks_width: 1,
-        ticks_length: 5,
+        tick_width: 1,
+        tick_length: 5,
         label_size: 12,
         title_size: 18,
     },
@@ -16,24 +16,24 @@ export const theme_base = {
         title_angle: 90,
     },
     axis_left: {
-        ticks_position: 'left',
+        tick_position: 'left',
         title_position: 'left',
     },
     axis_right: {
-        ticks_position: 'right',
+        tick_position: 'right',
         title_position: 'right',
     },
     axis_top: {
-        ticks_position: 'top',
+        tick_position: 'top',
         title_position: 'top',
     },
     axis_bottom: {
-        ticks_position: 'bottom',
+        tick_position: 'bottom',
         title_position: 'bottom',
     },
     grid: {
+        line_width: 1,
         line_width_major: 2,
-        line_width_minor: 1,
     },
     plot: {
         margin: 20,
@@ -48,7 +48,7 @@ export const theme_base = {
 export const theme_default = {
     axis: {
         line_color: 'black',
-        ticks_color: 'black',
+        tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
     },
@@ -60,7 +60,7 @@ export const theme_default = {
 const theme_light = {
     axis: {
         line_color: 'gray',
-        ticks_color: 'gray',
+        tick_color: 'gray',
         label_color: 'gray',
         title_color: 'gray',
     },
@@ -71,7 +71,7 @@ const theme_light = {
 
 const theme_gray = {
     axis: {
-        ticks_color: 'black',
+        tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
     },
@@ -85,7 +85,7 @@ const theme_gray = {
 
 const theme_dark = {
     axis: {
-        ticks_color: '#333333',
+        tick_color: '#333333',
         label_color: '#555555',
         title_color: 'black',
     },
@@ -100,7 +100,7 @@ const theme_dark = {
 const theme_linedraw = {
     axis: {
         line_color: 'black',
-        ticks_color: 'black',
+        tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
     },
@@ -114,7 +114,7 @@ const theme_linedraw = {
 const theme_classic = {
     axis: {
         line_color: 'black',
-        ticks_color: 'black',
+        tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
     },
@@ -175,6 +175,14 @@ export function themePreprocess(theme, flip = false) {
 }
 
 export function themeBuild(theme) {
+    function _grid_build(grid_theme) {
+        return {
+            line_color_major: ["line_color", "line_color_major"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
+            line_color_minor: ["line_color", "line_color_minor"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
+            line_width_major: ["line_width", "line_width_major"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
+            line_width_minor: ["line_width", "line_width_minor"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
+        }
+    }
     return {
         axis: {
             h: obj_merge(["axis", "axis_h"].map(k => theme?.[k])),
@@ -193,8 +201,8 @@ export function themeBuild(theme) {
             ),
         },
         grid: {
-            h: obj_merge(["grid", "grid_h"].map(k => theme?.[k])),
-            v: obj_merge(["grid", "grid_v"].map(k => theme?.[k]))
+            h: _grid_build(obj_merge(["grid", "grid_h"].map(k => theme?.[k]))),
+            v: _grid_build(obj_merge(["grid", "grid_v"].map(k => theme?.[k])))
         },
         plot: {
             margin: {

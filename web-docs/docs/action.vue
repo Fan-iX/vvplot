@@ -6,7 +6,7 @@ import iris from '../data/iris.json'
         <section>
             <h3>List of available action declarations</h3>
             <div class="w-full overflow-auto">
-                <table class="w-full" id="doc-action-table">
+                <table class="w-full doc-demo-table">
                     <thead>
                         <tr>
                             <th colspan="2">Action</th>
@@ -131,22 +131,3 @@ import iris from '../data/iris.json'
         </section>
     </article>
 </template>
-<style>
-#doc-action-table {
-    .vvplot {
-        width: 300px;
-        height: 200px;
-        margin: 0 auto;
-    }
-
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding-inline: 8px;
-    }
-
-    th {
-        padding-block: 8px;
-    }
-}
-</style>

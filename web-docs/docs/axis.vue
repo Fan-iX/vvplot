@@ -12,7 +12,7 @@ const demo_point = [
         <section>
             <h3>List of available geom layers</h3>
             <div class="w-full overflow-auto">
-                <table class="w-full whitespace-nowrap" id="doc-axis-table">
+                <table class="w-full whitespace-nowrap doc-demo-table">
                     <thead>
                         <tr>
                             <th>Axis property</th>
@@ -256,22 +256,3 @@ const demo_point = [
         </section>
     </article>
 </template>
-<style>
-#doc-axis-table {
-    .vvplot {
-        width: 200px;
-        height: 120px;
-        margin: 0 auto;
-    }
-
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding-inline: 8px;
-    }
-
-    th {
-        padding-block: 8px;
-    }
-}
-</style>

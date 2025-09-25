@@ -35,6 +35,11 @@ ul {
     padding-left: 2em;
 }
 
+ol {
+    list-style-type: decimal;
+    padding-left: 2em;
+}
+
 code,
 pre.code {
     background: #f0f0f0;
@@ -70,7 +75,6 @@ blockquote {
     border-left: 0.25em solid #ccc;
     margin: 1em 0;
     padding-left: 1em;
-    color: #666;
 
     &::before {
         display: block;

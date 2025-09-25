@@ -47,7 +47,7 @@ const templates = {
     economics: `<VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
     <VVAction move rescale zoom />
 </VVAxisY>
-<VVAxisX position="10%" :theme="{ ticks_length: 3, text_angle: 45, ticks_anchor_x: 0 }"
+<VVAxisX position="10%" :theme="{ tick_length: 3, text_angle: 45, tick_anchor_x: 0 }"
     :show-grid="false" :extend="0.5">
     <VVAction move rescale zoom />
 </VVAxisX>

@@ -47,4 +47,22 @@ select {
     flex-direction: column;
     align-items: center;
 }
+
+.doc-demo-table {
+    .vvplot {
+        width: 300px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding-inline: 8px;
+    }
+
+    th {
+        padding-block: 8px;
+    }
+}
 </style>

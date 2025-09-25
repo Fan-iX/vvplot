@@ -2,6 +2,19 @@ import { vecutils } from './utils'
 let psum = vecutils.sum
 
 export default {
+    blank: {
+        scale_attrs: [],
+        coord_scale(ds, levels) {
+            return null
+        },
+        get_range(ds, orientation) {
+            if (orientation == 'x') return ds.x ?? []
+            if (orientation == 'y') return ds.y ?? []
+        },
+        validate(d) {
+            return null
+        }
+    },
     point: {
         scale_attrs: ['shape', 'size', 'color', 'stroke', 'linewidth', 'linetype', 'alpha'],
         coord_scale(ds, levels) {
@@ -50,6 +63,10 @@ export default {
                 xend = psum(x, ds.dx),
                 yend = psum(y, ds.dy)
             return { x, y, xend, yend }
+        },
+        get_values(ds, orientation) {
+            if (orientation == 'x') return ds.x ?? []
+            if (orientation == 'y') return ds.y ?? []
         },
         get_range(ds, orientation) {
             if (orientation == 'x') return (ds.x ?? []).concat(psum(ds.x ?? [], ds.dx ?? 0) ?? [])

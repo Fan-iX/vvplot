@@ -22,8 +22,8 @@ const emit = defineEmits(['resize'])
 const $props = defineProps({
     data: Array, scales: Object, aes: Object,
     axes: Object, expandAdd: Object, expandMult: Object, levels: Object, range: Object,
-    theme: { type: Object, default: () => theme_default },
-    flip: Boolean,
+    theme: { type: [Object, Array], default: () => [] },
+    flip: Boolean, clip: { type: Boolean, default: true },
     resize: null,
     legendTeleport: null,
 })
@@ -312,7 +312,10 @@ const action = computed(() => {
             return res
         })
 })
-const theme = reactiveComputed(() => themeBuild(themePreprocess(themeMerge(theme_base, theme_default, $props.theme), $props.flip)), { deep: true })
+const theme = computed(() => {
+    let themes = Array.isArray($props.theme) ? $props.theme : [$props.theme]
+    return themeBuild(themePreprocess(themeMerge(theme_base, theme_default, ...themes), $props.flip))
+}, { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
@@ -353,7 +356,7 @@ const wrapperClass = computed(() => {
             :coord-levels="coordLevels" :levels="levels" :scales="$props.scales" :axes="axes" :theme="theme"
             v-model:selection="selection" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
-            v-bind="vBind.plot" :action="action" :legendTeleport="$props.legendTeleport" />
+            v-bind="vBind.plot" :action="action" :clip="$props.clip" :legendTeleport="$props.legendTeleport" />
         <div class="absolute right-4 top-4 flex flex-row">
             <slot name="toolbar"></slot>
         </div>
