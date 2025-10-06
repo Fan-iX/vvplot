@@ -182,12 +182,15 @@ function doRender() {
             <summary>data preview</summary>
             <div class="overflow-auto">
                 <table class="table-auto border-collapse">
-                    <tr>
-                        <th v-for="col in colnames" class="p-1 border border-slate-400">{{ col }}</th>
-                    </tr>
-                    <tr v-for="row in data.slice(0, 5)">
-                        <td v-for="col in colnames" class="p-1 border border-slate-400 text-center">{{ row[col] }}</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <th v-for="col in colnames" class="p-1 border border-slate-400">{{ col }}</th>
+                        </tr>
+                        <tr v-for="row in data.slice(0, 5)">
+                            <td v-for="col in colnames" class="p-1 border border-slate-400 text-center">{{ row[col] }}
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </details>

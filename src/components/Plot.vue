@@ -94,10 +94,7 @@ const vBind = computed(() => {
             wrapper[key] = $attrs[key]
         }
     }
-    let vns = vnodes.axis.filter(c => c.children).flatMap(c => Object.keys(c.children)
-        .filter(s => typeof c.children[s] == "function")
-        .flatMap(s => expandFragment(c.children[s]()))
-    ).concat(vnodes.axis).concat(vnodes.action)
+    let vns = vnodes.action
     for (let vn of vns) {
         for (let key in vn.props) {
             if (typeof vn.props[key] === 'function' && key.startsWith('on')) {
@@ -239,21 +236,37 @@ const coordDisplay = computed(() => {
 })
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
-    let orientation = $props.flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
+    let ori = $props.flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
     let defaultPos = $props.flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
     let allAxes = vnodes.axis.map(c => {
-        let ax = { ...c.type.$_props, ...c.props }
-        let axis = (({ coord, title, position, offset, breaks, labels, 'minor-breaks': minorBreaks, theme }) => ({ coord, title, position, offset, breaks, labels, minorBreaks, theme }))(ax)
-        if (axis.position == null) {
-            axis.position = defaultPos[axis.coord]
+        let {
+            coord, position, title, offset, breaks, labels,
+            'minor-breaks': minorBreaks, theme, extend, ...ax
+        } = { ...c.type.$_props, ...c.props }
+        let orientation = ori[coord]
+        let axis = {
+            coord, orientation, position: position ?? defaultPos[coord],
+            title, offset, breaks, labels, minorBreaks, theme,
+            showGrid: ax['show-grid'] !== false,
+            extend: extend ?? primaryAxis?.[coord]?.extend,
+            bind: {}
         }
-        axis.orientation = orientation[axis.coord]
-        axis.showGrid = ax['show-grid'] !== false
-        axis.extend = ax.extend ?? primaryAxis?.[axis.coord]?.extend
+        let children = Object.values(c.children ?? {})
+            .filter(s => typeof s == "function")
+            .flatMap(s => expandFragment(s()))
+        for (let vn of children.concat([c])) {
+            for (let key in vn.props) {
+                if (key.startsWith('on') && typeof vn.props[key] === 'function') {
+                    if (Array.isArray(axis.bind[key])) {
+                        axis.bind[key].push(vn.props[key])
+                    } else {
+                        axis.bind[key] = [vn.props[key]]
+                    }
+                }
+            }
+        }
         if (c.children) {
-            axis.action = Object.keys(c.children)
-                .filter(s => typeof c.children[s] == "function")
-                .flatMap(s => expandFragment(c.children[s]()))
+            axis.action = children
                 .map(c => ({ ...c.type.$_props, ...c.props }))
                 .flatMap(props => {
                     let res = []
@@ -261,9 +274,9 @@ const axes = computed(() => {
                         if (!props[act] && props[act] != "") continue
                         res.push({
                             action: act,
-                            [axis.orientation + "min"]: props[act].min ?? props.min,
-                            [axis.orientation + "max"]: props[act].max ?? props.max,
-                            ["min-range-" + axis.orientation]: props[act]["min-range"] ?? props["min-range"],
+                            [orientation + "min"]: props[act].min ?? props.min,
+                            [orientation + "max"]: props[act].max ?? props.max,
+                            ["min-range-" + orientation]: props[act]["min-range"] ?? props["min-range"],
                             ctrlKey: Boolean(props[act].ctrl ?? (props.ctrl || props.ctrl === "")),
                             shiftKey: Boolean(props[act].shift ?? (props.shift || props.shift === "")),
                             altKey: Boolean(props[act].alt ?? (props.alt || props.alt === "")),
@@ -277,9 +290,9 @@ const axes = computed(() => {
         return axis
     }).filter(ax => ax != null)
     if (allAxes.every(ax => ax?.coord != 'x'))
-        allAxes.push({ coord: 'x', position: defaultPos.x, orientation: orientation.x, showGrid: true })
+        allAxes.push({ coord: 'x', position: defaultPos.x, orientation: ori.x, showGrid: true })
     if (allAxes.every(ax => ax?.coord != 'y'))
-        allAxes.push({ coord: 'y', position: defaultPos.y, orientation: orientation.y, showGrid: true })
+        allAxes.push({ coord: 'y', position: defaultPos.y, orientation: ori.y, showGrid: true })
     return allAxes.filter(ax => ax != null)
 })
 const action = computed(() => {

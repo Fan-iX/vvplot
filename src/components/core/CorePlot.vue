@@ -24,8 +24,8 @@ const props = defineProps({
 const range = defineModel('range')
 const selection = defineModel('selection')
 const emit = defineEmits([
-    'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove',
-    'wheel', 'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange'
+    'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
+    'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange'
 ])
 const theme = reactiveComputed(() => props.theme)
 
@@ -317,31 +317,14 @@ const innerRect = reactiveComputed(() => {
         fullWidth: w, fullHeight: h,
     }
 })
-function getCoord(event, target) {
-    target = target || event.currentTarget
-    let rect = target.getBoundingClientRect()
-    return pos2coord({
-        h: event.clientX - (rect.left + outerRect.left + innerRect.left),
-        v: event.clientY - (rect.top + outerRect.top + innerRect.top),
-    })
-}
-function getInnerPos(event, target) {
-    target = target || event.currentTarget
-    let rect = target.getBoundingClientRect()
-    return {
-        x: event.clientX - (rect.left + outerRect.left + innerRect.left),
-        y: event.clientY - (rect.top + outerRect.top + innerRect.top),
-    }
-}
-function getInnerPosEx(event, target) {
-    target = target || event.currentTarget
-    let rect = target.getBoundingClientRect()
-    return {
-        l: event.clientX - (rect.left + outerRect.left + innerRect.left),
-        t: event.clientY - (rect.top + outerRect.top + innerRect.top),
-        r: rect.left + outerRect.left + innerRect.right - event.clientX,
-        b: rect.top + outerRect.top + innerRect.bottom - event.clientY,
-    }
+function getCoord(event) {
+    let rect = svgRef.value.getBoundingClientRect()
+    let l = Math.trunc(event.clientX) - (rect.left + outerRect.left + innerRect.left),
+        t = Math.trunc(event.clientY) - (rect.top + outerRect.top + innerRect.top),
+        r = rect.left + outerRect.left + innerRect.right - Math.trunc(event.clientX),
+        b = rect.top + outerRect.top + innerRect.bottom - Math.trunc(event.clientY)
+    let { x, y } = pos2coord({ h: l, v: t })
+    return { l, t, r, b, x, y }
 }
 function isInPlot(event) {
     let rect = svgRef.value.getBoundingClientRect()
@@ -353,38 +336,38 @@ function isInPlot(event) {
 
 let moveTimer
 function svgPointerdown(e) {
-    if (!isInPlot(e)) return
     let coord = getCoord(e)
     emit('pointerdown', e, coord)
     let svg = e.currentTarget
     let pointerMoved = false
     function detectMove(ev) {
-        pointerMoved = pointerMoved || (Math.abs(ev.screenX - e.screenX) > 3 || Math.abs(ev.screenY - e.screenY) > 3)
-    }
-    function oncapturerelease(ev) {
-        ev.preventDefault()
-        e.target.removeEventListener('pointermove', detectMove)
-        e.target.removeEventListener('pointerup', oncapturerelease)
-        if (!pointerMoved) {
-            if (ev.button == 2) emit('contextmenu', ev, getCoord(ev))
-            if (ev.button == 0) {
-                emit('click', ev, getCoord(ev))
-                if (isInPlot(e) && layers.value)
-                    layers.value.forEach(layer => layer.dispatchEvent(new PointerEvent("click", ev)))
-            }
+        if (Math.abs(ev.screenX - e.screenX) > 3 || Math.abs(ev.screenY - e.screenY) > 3) {
+            pointerMoved = true
+            ev.currentTarget.removeEventListener('pointermove', detectMove)
         }
-        svg.style.userSelect = null
     }
     e.target.addEventListener('pointermove', detectMove, { passive: true })
-    e.target.addEventListener('pointerup', oncapturerelease)
+    e.target.addEventListener('pointerup', function (ev) {
+        e.target.removeEventListener('pointermove', detectMove)
+        if (!pointerMoved) {
+            let coord = getCoord(ev)
+            emit('singleclick', new PointerEvent("singleclick", ev), coord)
+            if (isInPlot(e) && layers.value) {
+                if (ev.button == 0) {
+                    layers.value.forEach(layer => layer.dispatchEvent(new PointerEvent("click", ev)))
+                }
+            }
+        }
+    }, { once: true })
+    if (props.clip && !isInPlot(e)) return
     let act = props.action.find(a => ["move", "select"].includes(a.action) && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act) return
-    svg.style.userSelect = 'none'
     e.target.setPointerCapture(e.pointerId)
     if (act.action == "select") {
+        svg.style.userSelect = 'none'
         e.target.onpointermove = (ev) => {
             let { x = false, y = false } = act
-            let coordMove = getCoord(ev, svg)
+            let coordMove = getCoord(ev)
             if (x || y) activeSelection.value = {
                 xmin: x ? Math.min(coord.x, coordMove.x) : undefined,
                 xmax: x ? Math.max(coord.x, coordMove.x) : undefined,
@@ -395,10 +378,11 @@ function svgPointerdown(e) {
         e.target.onpointerup = (ev) => {
             ev.currentTarget.onpointerup = null
             ev.currentTarget.onpointermove = null
+            svg.style.userSelect = null
             let { x = false, y = false, once = false } = act
             activeSelection.value = null
             if (pointerMoved && (x || y)) {
-                let coordEnd = getCoord(ev, svg)
+                let coordEnd = getCoord(ev)
                 let res = extractModifier(ev)
                 res.type = "select"
                 if (x) {
@@ -429,6 +413,7 @@ function svgPointerdown(e) {
             }
         }
     } else if (act.action == "move") {
+        svg.style.userSelect = 'none'
         moveTimer = clearTimeout(moveTimer)
         let boundary = coord2pos(act, { unlimited: true })
         let rangeH = {
@@ -448,6 +433,7 @@ function svgPointerdown(e) {
         e.target.onpointerup = (ev) => {
             ev.currentTarget.onpointerup = null
             ev.currentTarget.onpointermove = null
+            svg.style.userSelect = null
             moveTimer = setTimeout(() => applyTransform(act, ev), 300)
         }
     }
@@ -491,14 +477,15 @@ function applyTransform(act, event) {
 }
 let wheelDelta = 0, wheelTimer
 function svgWheel(e) {
-    if (!isInPlot(e)) return
+    let coord = getCoord(e)
+    emit('wheel', e, coord)
+    if (props.clip && !isInPlot(e)) return
     let act = action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act || !act.x && !act.y) return
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
-    emit('wheel', e, getCoord(e))
     wheelDelta += e.deltaY
-    wheel(act, getInnerPosEx(e), wheelDelta)
+    wheel(act, coord, wheelDelta)
     wheelTimer = setTimeout(() => {
         applyTransform(act, e)
         wheelDelta = 0
@@ -572,42 +559,33 @@ function wheel(act, pos, delta) {
         }
     }
 }
-function svgPointerup(e) {
-    emit('pointerup', e, getCoord(e))
-}
-function svgPointerover(e) {
-    emit('pointerover', e, getCoord(e))
-}
-function svgPointerout(e) {
-    emit('pointerout', e, getCoord(e))
-}
-function svgPointerenter(e) {
-    emit('pointerenter', e, getCoord(e))
-}
-function svgPointerleave(e) {
-    emit('pointerleave', e, getCoord(e))
-}
-function svgDblclick(e) {
-    emit('dblclick', e, getCoord(e))
+const svgVOn = {
+    pointerdown: svgPointerdown,
+    pointerup(e) { emit('pointerup', e, getCoord(e)) },
+    pointerover(e) { emit('pointerover', e, getCoord(e)) },
+    pointerout(e) { emit('pointerout', e, getCoord(e)) },
+    pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
+    pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
+    dblclick(e) { emit('dblclick', e, getCoord(e)) },
+    click(e) { emit('click', e, getCoord(e)) },
+    contextmenu(e) { emit('contextmenu', e, getCoord(e)) },
+    pointermove(e) { emit('pointermove', e, getCoord(e)) },
+    wheel: svgWheel,
 }
 
 function setRange(coord, emition = 'rescale', event) {
-    let flag = false
-    let newrange = {}
-    for (const k of ['xmin', 'xmax', 'ymin', 'ymax']) {
-        if (coord[k] == null) {
-            newrange[k] = range.value[k]
-        } else {
-            newrange[k] = coord[k]
-            if (newrange[k] != range.value[k]) flag = true
-        }
-    }
-    if (flag) {
-        coordExpandAdd.value = { x: 0, y: 0 }
-        range.value = newrange
-        emit(emition, coord, event)
-        emit('rangechange', newrange)
-    }
+    let { xmin, xmax, ymin, ymax } = coord
+    emit(emition, dropNull({ xmin, xmax, ymin, ymax }), event)
+    let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range.value
+    xmin = xmin ?? $xmin
+    xmax = xmax ?? $xmax
+    ymin = ymin ?? $ymin
+    ymax = ymax ?? $ymax
+    if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
+    let newrange = { xmin, xmax, ymin, ymax }
+    coordExpandAdd.value = { x: 0, y: 0 }
+    range.value = newrange
+    emit('rangechange', newrange)
 }
 
 const gridBreaks = computed(() => {
@@ -626,15 +604,16 @@ const gridBreaks = computed(() => {
 })
 const axes = computed(() => {
     return vplot.value.axes.map(axis => {
-        let { coord, position, title, ticks, action, orientation, theme: $theme } = axis
+        let { position, title, ticks, action, orientation, theme: $theme, bind } = axis
         return {
-            coord,
+            orientation,
             bind: {
                 title, ticks, action, orientation,
                 layout: innerRect,
                 theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
                 position,
-                coord2pos, pos2coord
+                coord2pos, pos2coord,
+                ...bind
             },
             on: {
                 zoom: (e) => setRange(e, 'zoom'),
@@ -647,10 +626,7 @@ const axes = computed(() => {
 })
 </script>
 <template>
-    <svg ref="svg" width="100%" height="100%" @wheel="svgWheel" @pointerdown="svgPointerdown" @pointerup="svgPointerup"
-        @pointerover="svgPointerover" @pointerout="svgPointerout" @pointerenter="svgPointerenter"
-        @pointerleave="svgPointerleave" @dblclick="svgDblclick" @click="svgClick" @dragstart.prevent
-        @contextmenu.prevent v-bind="$attrs">
+    <svg ref="svg" width="100%" height="100%" v-on="svgVOn" v-bind="$attrs">
         <defs>
             <clipPath :id="`${vid}-plot-clip`">
                 <rect x="0" y="0" :width="outerRect.width" :height="outerRect.height" />
@@ -677,7 +653,7 @@ const axes = computed(() => {
             </g>
         </g>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
-            <CoreAxis v-for="axis in axes.filter(a => a.coord == 'x' || a.coord == 'y')" v-bind="axis.bind"
+            <CoreAxis v-for="axis in axes.filter(a => a.orientation == 'v' || a.orientation == 'h')" v-bind="axis.bind"
                 v-on="axis.on" v-model:translateH="translateH" v-model:transcaleH="transcaleH"
                 v-model:translateV="translateV" v-model:transcaleV="transcaleV" />
         </g>

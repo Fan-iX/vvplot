@@ -6,7 +6,7 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -36,6 +36,7 @@ const binds = computed(() => {
             onPointerdown: (e) => emit('pointerdown', e, $raw),
             onPointerup: (e) => emit('pointerup', e, $raw),
             onPointermove: (e) => emit('pointermove', e, $raw),
+            onWheel: (e) => emit('wheel', e, $raw),
         }
         return result
     }).filter(x => x != null))

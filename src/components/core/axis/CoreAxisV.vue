@@ -7,7 +7,7 @@ const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = 
     coord2pos: Function, pos2coord: Function,
     layout: Object,
     theme: { type: Object, default: () => ({}) },
-    action: { type: Object, default: () => ({}) },
+    action: { type: Array, default: () => [] },
     position: null
 })
 const width = computed(() => layout.width + layout.l + layout.r)
@@ -107,16 +107,38 @@ const tickTexts = computed(() => {
 })
 
 const iRef = useTemplateRef("i")
-function getPos(event) {
+function getCoord(event) {
     let rect = iRef.value.getBoundingClientRect()
-    return {
-        v: event.clientY - rect.top - layout.top,
-        t: event.clientY - rect.top - layout.top,
-        b: rect.top + layout.top + layout.height - event.clientY,
-    }
+    let t = Math.trunc(event.clientY) - rect.top - layout.top,
+        b = rect.top + layout.top + layout.height - Math.trunc(event.clientY)
+    let result = { t, b }
+    let { x, y } = pos2coord({ v: t })
+    if (x) result.x = x
+    if (y) result.y = y
+    return result
 }
-const emit = defineEmits(['move', 'zoom', 'rescale', 'nudge'])
-function axisPointerdown(e) {
+const emit = defineEmits([
+    'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
+    'move', 'zoom', 'rescale', 'nudge'
+])
+function axisMovePointerdown(e) {
+    let coord = getCoord(e)
+    emit('pointerdown', e, coord)
+    let pointerMoved = false
+    function detectMove(ev) {
+        if (Math.abs(ev.screenX - e.screenX) > 3 || Math.abs(ev.screenY - e.screenY) > 3) {
+            pointerMoved = true
+            ev.currentTarget.removeEventListener('pointermove', detectMove)
+        }
+    }
+    e.target.addEventListener('pointermove', detectMove, { passive: true })
+    e.target.addEventListener('pointerup', function (ev) {
+        e.target.removeEventListener('pointermove', detectMove)
+        if (!pointerMoved) {
+            let coord = getCoord(ev)
+            emit('singleclick', new PointerEvent("singleclick", ev), coord)
+        }
+    }, { once: true })
     let act = action.find(a => a.action == "move")
     if (!act) return
     e.preventDefault()
@@ -145,14 +167,14 @@ function axisResizeTopPointerdown(e) {
     e.stopPropagation()
     let { vmin, vmax, "min-range-v": mrv = 0 } = act
     let { vmin: vmin0, vmax: vmax0 } = pos2coord({ vmin: layout.top, vmax: layout.top + layout.height })
-    let { v } = getPos(e)
+    let v = e.clientY - iRef.value.getBoundingClientRect().top - layout.top
     let scalemin = layout.height / (layout.height - (coord2pos({ vmin, vmax }, { unlimited: true }).vmin ?? Infinity))
     let scalemax = layout.height / Math.abs(layout.height - (coord2pos({ vmin: vmax0 - mrv, vmax: vmin0 + mrv }).vmin))
     let dv = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         dv += ev.movementY
-        let ratio = (layout.height - v - dv) / (layout.height - v)
+        let ratio = 1 - dv / (layout.height - v)
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
         transcaleV.value = { ratio, origin: (layout.top + layout.height) / height.value }
@@ -170,14 +192,14 @@ function axisResizeBottomPointerdown(e) {
     e.stopPropagation()
     let { vmin, vmax, "min-range-v": mrv = 0 } = act
     let { vmin: vmin0, vmax: vmax0 } = pos2coord({ vmin: layout.top, vmax: layout.top + layout.height })
-    let { v } = getPos(e)
+    let v = e.clientY - iRef.value.getBoundingClientRect().top - layout.top
     let scalemin = layout.height / (coord2pos({ vmin, vmax }, { unlimited: true }).vmax ?? Infinity)
     let scalemax = layout.height / Math.abs(coord2pos({ vmin: vmax0 - mrv, vmax: vmin0 + mrv }).vmax)
     let dv = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         dv += ev.movementY
-        let ratio = (v + dv) / v
+        let ratio = 1 + dv / v
         if (ratio < scalemin) ratio = scalemin
         if (ratio > scalemax) ratio = scalemax
         transcaleV.value = { ratio, origin: layout.top / height.value }
@@ -190,13 +212,15 @@ function axisResizeBottomPointerdown(e) {
 }
 let wheelDelta = 0, wheelTimer
 function axisWheel(e) {
+    let coord = getCoord(e)
+    emit('wheel', e, coord)
     let act = action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act) return
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
     e.stopPropagation()
     wheelDelta += e.deltaY
-    wheel(act, getPos(e), wheelDelta)
+    wheel(act, coord, wheelDelta)
     wheelTimer = setTimeout(() => {
         applyTransform(act, e)
         wheelDelta = 0
@@ -249,9 +273,23 @@ function applyTransform(act, event) {
         vmin -= translateV.value
         vmax -= translateV.value
     }
-    emit(act.action, pos2coord({ vmin, vmax }), event)
+    let coord = (({ vmin, vmax, ...etc }) => etc)(pos2coord({ vmin, vmax }))
+    emit(act.action, coord, event)
     translateV.value = 0
     transcaleV.value = null
+}
+const axisVOn = {
+    pointerup(e) { emit('pointerup', e, getCoord(e)) },
+    pointerover(e) { emit('pointerover', e, getCoord(e)) },
+    pointerout(e) { emit('pointerout', e, getCoord(e)) },
+    pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
+    pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
+    dblclick(e) { emit('dblclick', e, getCoord(e)) },
+    click(e) { emit('click', e, getCoord(e)) },
+    contextmenu(e) { emit('contextmenu', e, getCoord(e)) },
+    pointermove(e) { emit('pointermove', e, getCoord(e)) },
+    pointerdown: axisMovePointerdown,
+    wheel: axisWheel
 }
 </script>
 <template>
@@ -259,11 +297,9 @@ function applyTransform(act, event) {
         <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <CoreText v-for="tick in tickTexts" v-bind="tick" />
-        <g v-if="action.some?.(a => ['move', 'zoom', 'nudge'].includes(a.action))" class="vv-interactive"
-            fill="transparent">
-            <rect :width="10" :height="height" :x="-5"
-                :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }" @pointerdown="axisPointerdown"
-                @wheel="axisWheel" />
+        <g class="vv-interactive" fill="transparent">
+            <rect :width="10" :height="height" :x="-5" v-on="axisVOn"
+                :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }" />
         </g>
         <g v-if="action.some?.(a => a.action == 'rescale')" class="vv-interactive" fill="transparent">
             <rect :width="10" :height="20" :x="-5" class="cursor-ns-resize" @pointerdown="axisResizeTopPointerdown" />
