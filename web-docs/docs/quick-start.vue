@@ -214,7 +214,7 @@ const render = ref('canvas')
                     </ul>
                 </li>
                 <li>
-                    Two <strong>axis</strong> components <code>&lt;VVAxisY /&gt;</code> draws y-axes on the left and
+                    Two axis components <code>&lt;VVAxisY /&gt;</code> draws y-axes on the left and
                     right sides of the plot.
                     <ul>
                         <li>

@@ -343,11 +343,11 @@ onMounted(() => {
     }, { immediate: true })
 })
 const { width: w, height: h } = useElementSize(plotRef)
-watch([w, h], ([w, h]) => {
-    if (w < 0 || h < 0) return
-    width.value = w
-    height.value = h
-    emit('resize', { width: w, height: h })
+watch([w, h], ([w, h], [ow, oh]) => {
+    if (wrapperRef.value.style.width) width.value = w
+    if (wrapperRef.value.style.height) height.value = h
+    if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
+        emit('resize', { width: w, height: h })
 })
 
 const wrapperClass = computed(() => {
