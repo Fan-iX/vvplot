@@ -1,6 +1,6 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue'
-import { oob_squish } from '#base/js/utils'
+import { oob_squish_any } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
 const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
@@ -151,7 +151,7 @@ function axisMovePointerdown(e) {
     }
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        translateH.value = oob_squish(translateH.value + ev.movementX, range)
+        translateH.value = oob_squish_any(translateH.value + ev.movementX, range)
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -257,7 +257,7 @@ function wheel(act, pos, delta) {
             min: boundary.hmax == null ? -Infinity : layout.width - boundary.hmax,
             max: boundary.hmin == null ? Infinity : - boundary.hmin,
         }
-        translateH.value = oob_squish(movement, range)
+        translateH.value = oob_squish_any(movement, range)
     }
 }
 function applyTransform(act, event) {

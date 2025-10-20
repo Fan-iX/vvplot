@@ -130,7 +130,11 @@ export function extractModifier(event) {
     }
 }
 
-export function oob_squish(value, { min, max }) {
+export function oob_censor(value, { min, max }) {
+    if (value < min || value > max) return NaN
+    return value
+}
+export function oob_squish_any(value, { min, max }) {
     if (value < min) return min
     if (value > max) return max
     return value

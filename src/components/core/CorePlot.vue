@@ -2,7 +2,7 @@
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
-import { unique, extractModifier, oob_squish, oob_squish_infinite } from '#base/js/utils'
+import { unique, extractModifier, oob_squish_any, oob_squish_infinite } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
@@ -427,8 +427,8 @@ function svgPointerdown(e) {
         e.target.onpointermove = (ev) => {
             let { x = false, y = false } = act
             let [h, v] = flip.value ? [y, x] : [x, y]
-            if (h) translateH.value = oob_squish(translateH.value + ev.movementX, rangeH)
-            if (v) translateV.value = oob_squish(translateV.value + ev.movementY, rangeV)
+            if (h) translateH.value = oob_squish_any(translateH.value + ev.movementX, rangeH)
+            if (v) translateV.value = oob_squish_any(translateV.value + ev.movementY, rangeV)
         }
         e.target.onpointerup = (ev) => {
             ev.currentTarget.onpointerup = null
@@ -547,7 +547,7 @@ function wheel(act, pos, delta) {
                 min: boundary.hmax == null ? -Infinity : innerRect.width - boundary.hmax,
                 max: boundary.hmin == null ? Infinity : - boundary.hmin,
             }
-            translateH.value = oob_squish(movement, range)
+            translateH.value = oob_squish_any(movement, range)
         }
         if (v) {
             let movement = sensitivity * innerRect.height * (-delta / 120)
@@ -555,7 +555,7 @@ function wheel(act, pos, delta) {
                 min: boundary.vmax == null ? -Infinity : innerRect.height - boundary.vmax,
                 max: boundary.vmin == null ? Infinity : - boundary.vmin,
             }
-            translateV.value = oob_squish(movement, range)
+            translateV.value = oob_squish_any(movement, range)
         }
     }
 }
