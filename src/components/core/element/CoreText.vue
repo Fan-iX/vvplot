@@ -2,7 +2,7 @@
 import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
-    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontSize
+    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontSize, textLength
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     text: null, title: null, size: Number, color: String,
@@ -11,12 +11,12 @@ const {
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
     anchorX: Number, anchorY: Number, dockX: Number, dockY: Number,
-    fontSize: Number,
+    fontSize: Number, textLength: Number,
 })
 const ele = useTemplateRef('ele')
 const textBox = reactive({ width: 0, height: 0 })
 watch(
-    [ele, () => fontSize, () => size, () => text],
+    [ele, () => fontSize, () => size, () => text, () => textLength],
     async ([e]) => {
         if (!e) return
         await nextTick()
@@ -55,6 +55,8 @@ const binds = computed(() => {
         'stroke-dasharray': parseLineType(linetype),
         'stroke-opacity': alpha,
         transform,
+        textLength,
+        lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
         'transform-origin': `${x} ${y}`,
     }
 })

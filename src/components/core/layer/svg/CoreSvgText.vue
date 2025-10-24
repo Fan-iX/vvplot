@@ -18,15 +18,22 @@ const binds = computed(() => {
         color, stroke, linewidth, linetype, alpha,
         'anchor-x': anchorX, 'anchor-y': anchorY,
         'dock-x': dockX, 'dock-y': dockY,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        angle, 'text-length': textLength, $raw
     }) => {
         const { h: tx, v: ty } = coord2pos({ x, y })
         if (tx < xlim_min || tx > xlim_max || ty < ylim_min || ty > ylim_max) return null
+        if (typeof (textLength) == "object") {
+            let { x: lx = 0, y: ly = 0 } = textLength
+            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+            textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
+        }
         let result = {
-            x: tx, y: ty, text: String(label), title: title,
+            x: tx, y: ty, text: String(label), title: String(title),
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
-            anchorX, anchorY, dockX, dockY,
+            anchorX, anchorY, dockX, dockY, textLength,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),

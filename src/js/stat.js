@@ -119,7 +119,7 @@ export default {
         if (data.points != null) return data
         let missingAes = ['x', 'y'].filter(a => data[a] == null)
         if (missingAes.length > 0)
-            throw new Error(`Missing aesthetics for GeomCurve: "${missingAes.join('", "')}" or "points"`)
+            throw new Error(`Missing aesthetics for GeomPolygon: "${missingAes.join('", "')}" or "points"`)
         let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
         let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
         let cut = intraaction({
@@ -160,7 +160,7 @@ export default {
         if (missingAes.length > 0)
             throw new Error(`Missing aesthetics for GeomText: "${missingAes.join('", "')}"`)
         return data
-    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label'] }),
+    }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'text-length'] }),
     textsegment: Object.assign(function (data) {
         if (data.xend == null) data.xend = data.x
         if (data.yend == null) data.yend = data.y

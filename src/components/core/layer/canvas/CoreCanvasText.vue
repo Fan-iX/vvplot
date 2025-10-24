@@ -29,7 +29,8 @@ const layerCanvas = computed(() => {
             color, size = 4, label, title, stroke, linewidth, linetype, alpha,
             'anchor-x': anchorX, 'anchor-y': anchorY,
             'dock-x': dockX, 'dock-y': dockY,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0,
+            angle, 'text-length': textLength, $raw
         } of group) {
             ctx.save()
             const { h: tx, v: ty } = coord2pos({ x, y })
@@ -39,9 +40,17 @@ const layerCanvas = computed(() => {
             ctx.globalAlpha = alpha
             ctx.font = `${size * 4}px sans-serif`
             ctx.setLineDash(parseLineType(linetype))
-            let { width, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
-                height = a + d
             ctx.translate(tx + translateX, ty + translateY)
+            let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
+                width = w, height = a + d
+            if (typeof (textLength) == "object") {
+                let { x: lx = 0, y: ly = 0 } = textLength
+                let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                    { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+                width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
+            } else if (textLength != null) {
+                width = textLength
+            }
             if (anchorX != null || anchorY != null) {
                 let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
                     alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
@@ -60,6 +69,7 @@ const layerCanvas = computed(() => {
                 ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
                 ctx.rotate(angle * Math.PI / 180)
             }
+            if (width != w) ctx.scale(width / w, 1)
             if (color !== 'none') {
                 ctx.fillStyle = color
                 ctx.fillText(label, 0, 0)

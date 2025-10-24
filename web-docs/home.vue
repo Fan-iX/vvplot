@@ -7,9 +7,13 @@ import iris from './data/iris.json'
         <section>
             <h2>Introduction</h2>
             <h3>What is VVPlot?</h3>
-            <p>VVPlot is a data visualization library based on Vue.js that makes it easy to create complex plots and
-                charts using a declarative syntax.</p>
-            <p>VVPlot uses <i>Grammar of Graphics</i> principles to provide a powerful API for building visualizations.</p>
+            <p>
+                VVPlot is a data visualization library based on Vue.js that makes it easy to create complex plots and
+                charts using a declarative syntax.
+            </p>
+            <p>
+                VVPlot uses <i>Grammar of Graphics</i> principles to provide a powerful API for building visualizations.
+            </p>
             <p>Here is a minimal example:</p>
             <pre class="code">{{`<script setup>
 import iris from './data/iris.json'
