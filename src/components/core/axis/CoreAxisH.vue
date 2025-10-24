@@ -2,10 +2,10 @@
 import { computed, useTemplateRef } from 'vue'
 import { oob_squish_any } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
-const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
+const { ticks, title, coord2pos, pos2coord, layout, theme, action, position, expandAdd } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,
-    layout: Object,
+    layout: Object, expandAdd: Object,
     theme: { type: Object, default: () => ({}) },
     action: { type: Array, default: () => [] },
     position: null
@@ -119,7 +119,7 @@ function getCoord(event) {
 }
 const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
-    'move', 'zoom', 'rescale', 'nudge'
+    'move', 'zoom', 'rescale', 'nudge', 'update:min', 'update:max'
 ])
 function axisMovePointerdown(e) {
     let coord = getCoord(e)
@@ -273,7 +273,9 @@ function applyTransform(act, event) {
         hmin -= translateH.value
         hmax -= translateH.value
     }
-    let coord = (({ hmin, hmax, ...etc }) => etc)(pos2coord({ hmin, hmax }))
+    let { hmin: min, hmax: max, ...coord } = pos2coord({ hmin, hmax })
+    emit('update:min', min + expandAdd.min)
+    emit('update:max', max - expandAdd.max)
     emit(act.action, coord, event)
     translateH.value = 0
     transcaleH.value = null

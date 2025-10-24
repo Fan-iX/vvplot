@@ -604,12 +604,12 @@ const gridBreaks = computed(() => {
 })
 const axes = computed(() => {
     return vplot.value.axes.map(axis => {
-        let { position, title, ticks, action, orientation, theme: $theme, bind } = axis
+        let { coord, position, title, ticks, action, orientation, theme: $theme, bind } = axis
         return {
             orientation,
             bind: {
                 title, ticks, action, orientation,
-                layout: innerRect,
+                layout: innerRect, expandAdd: expandAdd[coord],
                 theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
                 position,
                 coord2pos, pos2coord,
