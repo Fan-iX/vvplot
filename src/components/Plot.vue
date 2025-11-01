@@ -106,6 +106,13 @@ const vBind = computed(() => {
             }
         }
     }
+    for (let ori of ['x', 'y']) {
+        for (let bound of ['min', 'max']) {
+            if (primaryAxis?.[ori]?.[`onUpdate:${bound}`]) {
+                plot[`onUpdate:${ori}${bound}`] = primaryAxis?.[ori]?.[`onUpdate:${bound}`]
+            }
+        }
+    }
     return { plot, wrapper }
 })
 

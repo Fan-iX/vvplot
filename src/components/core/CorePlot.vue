@@ -25,7 +25,8 @@ const range = defineModel('range')
 const selection = defineModel('selection')
 const emit = defineEmits([
     'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
-    'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange'
+    'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange',
+    'update:xmin', 'update:xmax', 'update:ymin', 'update:ymax',
 ])
 const theme = reactiveComputed(() => props.theme)
 
@@ -573,9 +574,9 @@ const svgVOn = {
     wheel: svgWheel,
 }
 
-function setRange(coord, emition = 'rescale', event) {
+function setRange(coord, emission = 'rescale', event) {
     let { xmin, xmax, ymin, ymax } = coord
-    emit(emition, dropNull({ xmin, xmax, ymin, ymax }), event)
+    emit(emission, dropNull({ xmin, xmax, ymin, ymax }), event)
     let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range.value
     xmin = xmin ?? $xmin
     xmax = xmax ?? $xmax
@@ -583,9 +584,13 @@ function setRange(coord, emition = 'rescale', event) {
     ymax = ymax ?? $ymax
     if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
     let newrange = { xmin, xmax, ymin, ymax }
-    coordExpandAdd.value = { x: 0, y: 0 }
+    if (xmin != null) emit('update:xmin', xmin + expandAdd.x.min)
+    if (xmax != null) emit('update:xmax', xmax - expandAdd.x.max)
+    if (ymin != null) emit('update:ymin', ymin + expandAdd.y.min)
+    if (ymax != null) emit('update:ymax', ymax - expandAdd.y.max)
     range.value = newrange
     emit('rangechange', newrange)
+    coordExpandAdd.value = { x: 0, y: 0 }
 }
 
 const gridBreaks = computed(() => {
@@ -609,7 +614,7 @@ const axes = computed(() => {
             orientation,
             bind: {
                 title, ticks, action, orientation,
-                layout: innerRect, expandAdd: expandAdd[coord],
+                layout: innerRect,
                 theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
                 position,
                 coord2pos, pos2coord,
