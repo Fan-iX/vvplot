@@ -130,6 +130,18 @@ export function extractModifier(event) {
     }
 }
 
+export function emitEvent(handlers, ...args) {
+    if (Array.isArray(handlers)) {
+        handlers = handlers.filter(h => typeof h === "function")
+        if (handlers.length === 0) return false
+        handlers.forEach(h => h(...args))
+        return true
+    }
+    if (typeof handlers !== "function") return false
+    handlers(...args)
+    return true
+}
+
 export function oob_censor(value, { min, max }) {
     if (value < min || value > max) return NaN
     return value

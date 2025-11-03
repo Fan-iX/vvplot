@@ -1,6 +1,6 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue'
-import { oob_squish_any } from '#base/js/utils'
+import { oob_squish_any, emitEvent } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
 const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
@@ -274,7 +274,10 @@ function applyTransform(act, event) {
         vmax -= translateV.value
     }
     let { vmin: min, vmax: max, ...coord } = pos2coord({ vmin, vmax })
-    emit(act.action, coord, event)
+    if (!emitEvent(act.emit, coord, event)) {
+        emit(act.action, coord, event)
+    }
+    emit('rangechange', coord)
     translateV.value = 0
     transcaleV.value = null
 }

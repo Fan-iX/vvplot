@@ -66,13 +66,15 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
         ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, d) => layerEventData = d"`).join(' ')} />
 </VVPlot>`)
 
+const selection = ref({})
 const selectProperties = reactive({
-    once: false,
-    dismissible: true,
+    once: false, dismissible: true,
+    resize: true, move: false,
 })
 const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-    <VVAction select once="${selectProperties.once}" dismissible="${selectProperties.dismissible}" @select="e => selectEventArgument = e" />
+    <VVSelection v-model="selection" :once="${selectProperties.once}" :dismissible="${selectProperties.dismissible}" :resize="${selectProperties.resize}" :move="${selectProperties.move}"
+        @select="e => selectEventArgument = e" @cancel="e => selectEventArgument = e" />
 </VVPlot>`)
 </script>
 <template>
@@ -160,15 +162,27 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <h4>Selection</h4>
             <p>
                 A rectangular region of the plot can be selected via mouse drag.
-                The selection action is declared through the <code>select</code> property of the
-                <code>&lt;VVAction&gt;</code> helper component.
+                Selection actions can be declared through the <code>&lt;VVSelection&gt;</code> helper component.
             </p>
             <p>
-                The boolean properties <code>once</code> and <code>dismissible</code>
-                can be used to control the selection behavior.
-                If <code>once</code> is true, the selection range will not be displayed after the selection is made.
-                If <code>dismissible</code> is false, the selection range will not be dismissed by a singleclick.
+                Boolean properties <code>once</code>, <code>dismissible</code>, <code>resize</code> and
+                <code>move</code> can be used to control the selection behavior:
             </p>
+            <ul>
+                <li>
+                    <code>once</code>: If true, the selection range will not be displayed after the selection is made.
+                </li>
+                <li>
+                    <code>dismissible</code>: If false, the selection range will not be dismissed by a singleclick.
+                </li>
+                <li>
+                    <code>resize</code>: If true, the selection region can be resized via dragging its edges and
+                    corners.
+                </li>
+                <li>
+                    <code>move</code>: If true, the selection region can be moved via dragging its body.
+                </li>
+            </ul>
             <p>
                 Two event, <code>select</code> and <code>cancel</code> will emitted when a selection is made or
                 dismissed.
@@ -183,11 +197,14 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <div class="flex flex-row">
                 <VVPlot :data="iris" :width="600" :height="400">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-                    <VVAction select @select="e => plotSelectArg = e" v-bind="selectProperties" />
+                    <VVSelection v-model="selection" @select="e => plotSelectArg = e" @cancel="e => plotSelectArg = e"
+                        v-bind="selectProperties" />
                 </VVPlot>
-                <div>
-                    <p><strong>Select event argument</strong></p>
-                    <pre class="max-h-96 overflow-auto flex-1">{{ plotSelectArg }}</pre>
+                <div class="flex-1">
+                    <p><strong>Selection model value</strong></p>
+                    <pre class="h-36 overflow-auto">{{ selection }}</pre>
+                    <p><strong>Event argument</strong></p>
+                    <pre class="h-44 overflow-auto">{{ plotSelectArg }}</pre>
                 </div>
             </div>
             <hr>

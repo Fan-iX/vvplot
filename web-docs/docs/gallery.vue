@@ -114,7 +114,7 @@ const vBind = {
     </VVAxisX>
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species"
          :scales="{ color: vvscale.color.default({ key: 'Species' }), shape: vvscale.shape.default({ key: 'Species' }) }" />
-    <VVAction select x />
+    <VVSelection x />
     <VVAction nudge shift />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
     <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" :min-range-y="4"/>

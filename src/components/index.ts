@@ -1,4 +1,5 @@
 export { default as VVPlot } from './Plot.vue'
 export { default as VVAction } from './Action.vue'
+export { default as VVSelection } from './Selection.vue'
 export * from './axis/index'
 export * from './geom/index'

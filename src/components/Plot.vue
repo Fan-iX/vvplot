@@ -1,17 +1,18 @@
 <script setup>
-import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted } from 'vue'
+import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive } from 'vue'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c } from '../js/utils'
 import CorePlot from './core/CorePlot.vue'
 import VVAction from './Action.vue'
+import VVSelection from './Action.vue'
 import * as geom_components from './geom'
 import * as axis_components from './axis'
 const components = {
     ...geom_components,
     ...axis_components,
-    VVAction,
+    VVAction, VVSelection,
 }
 
 function _isFalse(v) {
@@ -77,6 +78,7 @@ const vnodes = reactiveComputed(() => {
     res.axis = res.axis ?? []
     res.layer = res.layer ?? []
     res.action = res.action ?? []
+    res.selection = res.selection ?? []
     return res
 })
 
@@ -84,26 +86,12 @@ const vBind = computed(() => {
     let plot = {}
     let wrapper = {}
     for (let key in $attrs) {
-        if (typeof $attrs[key] === 'function' && key.startsWith('on')) {
-            if (Array.isArray(plot[key])) {
-                plot[key].push($attrs[key])
-            } else {
-                plot[key] = [$attrs[key]]
-            }
+        if (key.startsWith('on')) {
+            let arr = Array.isArray($attrs[key]) ? $attrs[key] : [$attrs[key]]
+            plot[key] = arr.filter(f => typeof f === 'function')
+            wrapper[key] = arr.filter(f => typeof f !== 'function')
         } else {
             wrapper[key] = $attrs[key]
-        }
-    }
-    let vns = vnodes.action
-    for (let vn of vns) {
-        for (let key in vn.props) {
-            if (typeof vn.props[key] === 'function' && key.startsWith('on')) {
-                if (Array.isArray(plot[key])) {
-                    plot[key].push(vn.props[key])
-                } else {
-                    plot[key] = [vn.props[key]]
-                }
-            }
         }
     }
     for (let ori of ['x', 'y']) {
@@ -125,8 +113,19 @@ const primaryAxis = reactiveComputed(() => {
         y: yAxes.find(c => !_isFalse(c.primary)) ?? yAxes.find(c => c.primary !== false && _isFalse(c.secondary))
     }
 })
-
-const selection = defineModel('selection')
+const actionBoundary = reactiveComputed(() => {
+    let boundary = {}
+    for (let ori of ['x', 'y']) {
+        let bound = primaryAxis[ori]?.boundary
+        if (bound) {
+            boundary[ori] = {
+                min: bound.min ?? bound[0],
+                max: bound.max ?? bound[1]
+            }
+        }
+    }
+    return boundary
+})
 
 const activeSelection = defineModel('activeSelection')
 const translateH = defineModel('translateH')
@@ -160,18 +159,10 @@ const layers = computed(() => {
             if (key == "key") continue
             if (argnames.includes(key)) {
                 args[key] = etc[key]
+            } else if (key.startsWith('on')) {
+                vBind[key] = etc[key]
             } else if (typeof etc[key] === 'function') {
-                if (key.startsWith('on')) {
-                    if (vBind[key] == null) {
-                        vBind[key] = etc[key]
-                    } else if (Array.isArray(vBind[key])) {
-                        vBind[key].push(args[key])
-                    } else {
-                        vBind[key] = [vBind[key], args[key]]
-                    }
-                } else {
-                    aes[key] = etc[key]
-                }
+                aes[key] = etc[key]
             } else {
                 if (["class", 'style', 'render'].includes(key)) {
                     vBind[key] = etc[key]
@@ -247,53 +238,47 @@ const axes = computed(() => {
     let defaultPos = $props.flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
     let allAxes = vnodes.axis.map(c => {
         let {
-            coord, position, title, offset, breaks, labels,
-            'minor-breaks': minorBreaks, theme, extend, ...ax
+            coord, position, title, breaks, labels,
+            'minor-breaks': minorBreaks, 'show-grid': showGrid,
+            theme, extend, boundary,
+            // preserved properties
+            primary, secondary, 'expand-mult': em, 'expand-add': ea,
+            levels, limits, min, max, 'onUpdate:min': oum, 'onUpdate:max': ouM,
+            ...ax
         } = { ...c.type.$_props, ...c.props }
         let orientation = ori[coord]
         let axis = {
             coord, orientation, position: position ?? defaultPos[coord],
-            title, offset, breaks, labels, minorBreaks, theme,
-            showGrid: ax['show-grid'] !== false,
+            title, breaks, labels, minorBreaks, theme,
+            showGrid: position !== "none" && showGrid !== false,
             extend: extend ?? primaryAxis?.[coord]?.extend,
-            bind: {}
+            bind: ax
         }
-        let children = Object.values(c.children ?? {})
+        axis.action = Object.values(c.children ?? {})
             .filter(s => typeof s == "function")
             .flatMap(s => expandFragment(s()))
-        for (let vn of children.concat([c])) {
-            for (let key in vn.props) {
-                if (key.startsWith('on') && typeof vn.props[key] === 'function') {
-                    if (Array.isArray(axis.bind[key])) {
-                        axis.bind[key].push(vn.props[key])
-                    } else {
-                        axis.bind[key] = [vn.props[key]]
-                    }
+            .map(c => ({ ...c.type.$_props, ...c.props }))
+            .flatMap(props => {
+                let res = []
+                for (let a of ["move", "nudge", "zoom", "rescale"]) {
+                    let act = props[a]
+                    if (act == null || act === false) continue
+                    let eventName = 'on' + a.charAt(0).toUpperCase() + a.slice(1)
+                    res.push({
+                        action: a,
+                        [orientation + "min"]: act.min ?? props.min ?? boundary?.min ?? boundary?.[0] ?? actionBoundary?.[coord]?.min,
+                        [orientation + "max"]: act.max ?? props.max ?? boundary?.max ?? boundary?.[1] ?? actionBoundary?.[coord]?.max,
+                        ["min-range-" + orientation]: act["min-range"] ?? props["min-range"],
+                        ctrlKey: Boolean(act.ctrl ?? !_isFalse(props.ctrl)),
+                        shiftKey: Boolean(act.shift ?? !_isFalse(props.shift)),
+                        altKey: Boolean(act.alt ?? !_isFalse(props.alt)),
+                        metaKey: Boolean(act.meta ?? !_isFalse(props.meta)),
+                        buttons: act.buttons ?? buttonsMap[act.button] ?? props.buttons ?? buttonsMap[props.button] ?? 1,
+                        emit: props[eventName]
+                    })
                 }
-            }
-        }
-        if (c.children) {
-            axis.action = children
-                .map(c => ({ ...c.type.$_props, ...c.props }))
-                .flatMap(props => {
-                    let res = []
-                    for (let act of ["move", "nudge", "zoom", "rescale"]) {
-                        if (!props[act] && props[act] != "") continue
-                        res.push({
-                            action: act,
-                            [orientation + "min"]: props[act].min ?? props.min,
-                            [orientation + "max"]: props[act].max ?? props.max,
-                            ["min-range-" + orientation]: props[act]["min-range"] ?? props["min-range"],
-                            ctrlKey: Boolean(props[act].ctrl ?? (props.ctrl || props.ctrl === "")),
-                            shiftKey: Boolean(props[act].shift ?? (props.shift || props.shift === "")),
-                            altKey: Boolean(props[act].alt ?? (props.alt || props.alt === "")),
-                            metaKey: Boolean(props[act].meta ?? (props.meta || props.meta === "")),
-                            buttons: props[act].buttons ?? buttonsMap[props[act].button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
-                        })
-                    }
-                    return res
-                })
-        }
+                return res
+            })
         return axis
     }).filter(ax => ax != null)
     if (allAxes.every(ax => ax?.coord != 'x'))
@@ -310,26 +295,63 @@ const action = computed(() => {
                 let act = props[a]
                 if (act == null || act === false) continue
                 let xy = act.x == null && act.y == null && props.x == null && props.y == null
+                let eventName = 'on' + a.charAt(0).toUpperCase() + a.slice(1)
                 res.push({
                     action: a,
                     once: act.once ?? props.once,
                     dismissible: (act.dismissible ?? props.dismissible) !== false,
-                    x: xy || Boolean(act.x ?? (props.x || props.x === "")),
-                    y: xy || Boolean(act.y ?? (props.y || props.y === "")),
-                    xmin: act.xmin ?? props.xmin,
-                    xmax: act.xmax ?? props.xmax,
-                    ymin: act.ymin ?? props.ymin,
-                    ymax: act.ymax ?? props.ymax,
+                    x: xy || Boolean(act.x ?? !_isFalse(props.x)),
+                    y: xy || Boolean(act.y ?? !_isFalse(props.y)),
+                    xmin: act.xmin ?? props.xmin ?? actionBoundary?.x?.min,
+                    xmax: act.xmax ?? props.xmax ?? actionBoundary?.x?.max,
+                    ymin: act.ymin ?? props.ymin ?? actionBoundary?.y?.min,
+                    ymax: act.ymax ?? props.ymax ?? actionBoundary?.y?.max,
                     "min-range-x": act["min-range-x"] ?? props["min-range-x"],
                     "min-range-y": act["min-range-y"] ?? props["min-range-y"],
-                    ctrlKey: Boolean(act.ctrl ?? (props.ctrl || props.ctrl === "")),
-                    shiftKey: Boolean(act.shift ?? (props.shift || props.shift === "")),
-                    altKey: Boolean(act.alt ?? (props.alt || props.alt === "")),
-                    metaKey: Boolean(act.meta ?? (props.meta || props.meta === "")),
-                    buttons: act.buttons ?? buttonsMap[act.button] ?? props.buttons ?? buttonsMap[props.button] ?? 1
+                    ctrlKey: Boolean(act.ctrl ?? !_isFalse(props.ctrl)),
+                    shiftKey: Boolean(act.shift ?? !_isFalse(props.shift)),
+                    altKey: Boolean(act.alt ?? !_isFalse(props.alt)),
+                    metaKey: Boolean(act.meta ?? !_isFalse(props.meta)),
+                    buttons: act.buttons ?? buttonsMap[act.button] ?? props.buttons ?? buttonsMap[props.button] ?? 1,
+                    emit: props[eventName]
                 })
             }
             return res
+        })
+})
+const selections = computed(() => {
+    return vnodes.selection.map(c => ({ ...c.type.$_props, ...c.props }))
+        .map(({
+            once, move, dismissible, resize, x, y,
+            xmin, xmax, ymin, ymax,
+            ctrl, shift, alt, meta,
+            button, buttons, modelValue, "onUpdate:modelValue": onUpdate,
+            ...etc
+        }) => {
+            let xy = x == null && y == null
+            if (onUpdate == null) {
+                modelValue = reactive(modelValue ?? {})
+                onUpdate = $event => {
+                    for (let key in modelValue) delete modelValue[key]
+                    Object.assign(modelValue, $event)
+                }
+            }
+            return {
+                once: !_isFalse(once),
+                move: !_isFalse(move),
+                dismissible: dismissible !== false,
+                resize: resize !== false,
+                x: xy || !_isFalse(x),
+                y: xy || !_isFalse(y),
+                xmin, xmax, ymin, ymax,
+                ctrlKey: !_isFalse(ctrl),
+                shiftKey: !_isFalse(shift),
+                altKey: !_isFalse(alt),
+                metaKey: !_isFalse(meta),
+                buttons: buttons ?? buttonsMap[button] ?? 1,
+                modelValue, "onUpdate:modelValue": onUpdate,
+                ...etc
+            }
         })
 })
 const theme = computed(() => {
@@ -374,7 +396,7 @@ const wrapperClass = computed(() => {
     <div ref="wrapper" class="vvplot relative overflow-hidden" :class="wrapperClass" v-bind="vBind.wrapper">
         <CorePlot ref="plot" :schema="schema" :layers="layers" :coord-scale="coordScale" :coord-display="coordDisplay"
             :coord-levels="coordLevels" :levels="levels" :scales="$props.scales" :axes="axes" :theme="theme"
-            v-model:selection="selection" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
+            :selections="selections" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
             v-bind="vBind.plot" :action="action" :clip="$props.clip" :legendTeleport="$props.legendTeleport" />
         <div class="absolute right-4 top-4 flex flex-row">

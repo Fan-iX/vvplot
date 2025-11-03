@@ -1,6 +1,6 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue'
-import { oob_squish_any } from '#base/js/utils'
+import { oob_squish_any, emitEvent } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
 const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
@@ -119,7 +119,7 @@ function getCoord(event) {
 }
 const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
-    'move', 'zoom', 'rescale', 'nudge',
+    'move', 'zoom', 'rescale', 'nudge', 'rangechange'
 ])
 function axisMovePointerdown(e) {
     let coord = getCoord(e)
@@ -274,7 +274,10 @@ function applyTransform(act, event) {
         hmax -= translateH.value
     }
     let { hmin: min, hmax: max, ...coord } = pos2coord({ hmin, hmax })
-    emit(act.action, coord, event)
+    if (!emitEvent(act.emit, coord, event)) {
+        emit(act.action, coord, event)
+    }
+    emit('rangechange', coord)
     translateH.value = 0
     transcaleH.value = null
 }

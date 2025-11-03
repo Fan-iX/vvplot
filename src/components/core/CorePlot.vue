@@ -2,7 +2,7 @@
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
-import { unique, extractModifier, oob_squish_any, oob_squish_infinite } from '#base/js/utils'
+import { unique, extractModifier, oob_squish_any, oob_squish_infinite, emitEvent } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
@@ -19,10 +19,10 @@ const props = defineProps({
     theme: Object,
     clip: Boolean,
     action: { type: Array, default: () => [] },
+    selections: { type: Array, default: () => [] },
     legendTeleport: null,
 })
 const range = defineModel('range')
-const selection = defineModel('selection')
 const emit = defineEmits([
     'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
     'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange',
@@ -66,7 +66,6 @@ const reverse = reactiveComputed(() => {
     }
 })
 const flip = computed(() => props.coordDisplay?.flip ?? false)
-const action = reactiveComputed(() => props.action)
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
@@ -361,13 +360,12 @@ function svgPointerdown(e) {
         }
     }, { once: true })
     if (props.clip && !isInPlot(e)) return
-    let act = props.action.find(a => ["move", "select"].includes(a.action) && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
-    if (!act) return
-    e.target.setPointerCapture(e.pointerId)
-    if (act.action == "select") {
+    let sel = props.selections.find(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
+    if (sel) {
+        e.target.setPointerCapture(e.pointerId)
         svg.style.userSelect = 'none'
         e.target.onpointermove = (ev) => {
-            let { x = false, y = false } = act
+            let { x = false, y = false } = sel
             let coordMove = getCoord(ev)
             if (x || y) activeSelection.value = {
                 xmin: x ? Math.min(coord.x, coordMove.x) : undefined,
@@ -380,11 +378,11 @@ function svgPointerdown(e) {
             ev.currentTarget.onpointerup = null
             ev.currentTarget.onpointermove = null
             svg.style.userSelect = null
-            let { x = false, y = false, once = false } = act
+            let { x = false, y = false, once = false } = sel
             activeSelection.value = null
             if (pointerMoved && (x || y)) {
                 let coordEnd = getCoord(ev)
-                let res = extractModifier(ev)
+                let res = extractModifier(e)
                 res.type = "select"
                 if (x) {
                     res.xstart = coord.x
@@ -399,21 +397,30 @@ function svgPointerdown(e) {
                     res.ymax = Math.max(coord.y, coordEnd.y)
                 }
                 if (!once) {
-                    selection.value = {
+                    sel["onUpdate:modelValue"]?.({
                         xmin: res.xmin, xmax: res.xmax,
                         ymin: res.ymin, ymax: res.ymax,
-                    }
+                    })
                 }
-                emit('select', res)
+                if (!emitEvent(sel["onSelect"], res)) {
+                    emit('select', res)
+                }
             }
-            if (!pointerMoved && act.dismissible) {
-                selection.value = {}
-                let res = extractModifier(ev)
+            if (!pointerMoved && sel.dismissible) {
+                if (sel.modelValue == null || Object.keys(sel.modelValue).length === 0) return
+                sel["onUpdate:modelValue"]?.({})
+                let res = extractModifier(e)
                 res.type = "cancel"
-                emit('select', res)
+                if (!emitEvent(sel["onCancel"], res)) {
+                    emit('select', res)
+                }
             }
         }
-    } else if (act.action == "move") {
+        return
+    }
+    let act = props.action.find(a => a.action == "move" && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
+    if (act) {
+        e.target.setPointerCapture(e.pointerId)
         svg.style.userSelect = 'none'
         moveTimer = clearTimeout(moveTimer)
         let boundary = coord2pos(act, { unlimited: true })
@@ -437,13 +444,14 @@ function svgPointerdown(e) {
             svg.style.userSelect = null
             moveTimer = setTimeout(() => applyTransform(act, ev), 300)
         }
+        return
     }
 }
 function applyTransform(act, event) {
     let { x = false, y = false } = act
     let [h, v] = flip.value ? [y, x] : [x, y]
-    if (transcaleH.value != null || translateH.value != 0 ||
-        transcaleV.value != null || transcaleV.value != 0) {
+    if (transcaleH.value != null || translateH.value ||
+        transcaleV.value != null || translateV.value) {
         let hmin, hmax, vmin, vmax
         if (h) {
             hmin = 0, hmax = innerRect.width
@@ -471,7 +479,12 @@ function applyTransform(act, event) {
                 vmax -= translateV.value
             }
         }
-        setRange(pos2coord({ hmin, hmax, vmin, vmax }), act.action, event)
+        let { xmin, xmax, ymin, ymax } = pos2coord({ hmin, hmax, vmin, vmax }),
+            coord = { xmin, xmax, ymin, ymax }
+        if (!emitEvent(act.emit, dropNull(coord), event)) {
+            emit(act.action, dropNull(coord), event)
+        }
+        changerange(coord)
     }
     translateH.value = translateV.value = 0
     transcaleH.value = transcaleV.value = null
@@ -481,7 +494,7 @@ function svgWheel(e) {
     let coord = getCoord(e)
     emit('wheel', e, coord)
     if (props.clip && !isInPlot(e)) return
-    let act = action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
+    let act = props.action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act || !act.x && !act.y) return
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
@@ -574,9 +587,8 @@ const svgVOn = {
     wheel: svgWheel,
 }
 
-function setRange(coord, emission = 'rescale', event) {
+function changerange(coord) {
     let { xmin, xmax, ymin, ymax } = coord
-    emit(emission, dropNull({ xmin, xmax, ymin, ymax }), event)
     let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range.value
     xmin = xmin ?? $xmin
     xmax = xmax ?? $xmax
@@ -589,7 +601,7 @@ function setRange(coord, emission = 'rescale', event) {
     if (ymin != null) emit('update:ymin', ymin + expandAdd.y.min)
     if (ymax != null) emit('update:ymax', ymax - expandAdd.y.max)
     range.value = newrange
-    emit('rangechange', newrange)
+    emit('rangechange', dropNull(newrange))
     coordExpandAdd.value = { x: 0, y: 0 }
 }
 
@@ -609,7 +621,14 @@ const gridBreaks = computed(() => {
 })
 const axes = computed(() => {
     return vplot.value.axes.map(axis => {
-        let { coord, position, title, ticks, action, orientation, theme: $theme, bind } = axis
+        let { coord, position, title, ticks, action, orientation, theme: $theme, bind = {} } = axis
+        let {
+            onMove: move = (...args) => emit('move', ...args),
+            onZoom: zoom = (...args) => emit('zoom', ...args),
+            onRescale: rescale = (...args) => emit('rescale', ...args),
+            onNudge: nudge = (...args) => emit('nudge', ...args),
+            ...etc
+        } = bind
         return {
             orientation,
             bind: {
@@ -618,14 +637,9 @@ const axes = computed(() => {
                 theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
                 position,
                 coord2pos, pos2coord,
-                ...bind
+                ...etc
             },
-            on: {
-                zoom: (e) => setRange(e, 'zoom'),
-                move: (e) => setRange(e, 'move'),
-                rescale: (e) => setRange(e, 'rescale'),
-                nudge: (e) => setRange(e, 'nudge'),
-            }
+            on: { zoom, move, rescale, nudge, rangechange: changerange }
         }
     })
 })
@@ -650,10 +664,10 @@ const axes = computed(() => {
             <g v-bind="transformBind">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />
-                <CoreSelection v-model:selection="selection" :coord2pos="coord2pos" :pos2coord="pos2coord"
-                    :layout="innerRect" @select="emit('select', $event)" @selecting=" activeSelection = $event"
-                    :action="props.action" />
-                <CoreSelection v-model:selection="activeSelection" :coord2pos="coord2pos" :pos2coord="pos2coord"
+                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
+                    @select="emit('select', $event)" @selecting=" activeSelection = $event" v-bind="sel"
+                    v-for="sel in props.selections" />
+                <CoreSelection v-model="activeSelection" :coord2pos="coord2pos" :pos2coord="pos2coord"
                     :layout="innerRect" />
             </g>
         </g>
