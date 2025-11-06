@@ -119,7 +119,7 @@ function getCoord(event) {
 }
 const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
-    'move', 'zoom', 'rescale', 'nudge',
+    'move', 'zoom', 'rescale', 'nudge', 'rangechange'
 ])
 function axisMovePointerdown(e) {
     let coord = getCoord(e)

@@ -235,6 +235,7 @@ export function themeBuild(theme) {
             },
             background: theme?.plot?.background ?? 'none'
         },
+        selection: theme?.selection ?? {},
         legend: {
             spacing: theme?.legend?.spacing ?? 0
         }

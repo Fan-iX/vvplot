@@ -2,7 +2,7 @@
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
-import { unique, extractModifier, oob_squish_any, oob_squish_infinite, emitEvent } from '#base/js/utils'
+import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
@@ -209,9 +209,6 @@ function pos2coord({
     }
     return result
 }
-function dropNull(obj) {
-    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
-}
 function _coord2pos(
     { value, min, max } = {},
     { oob = oob_squish_infinite } = {},
@@ -362,57 +359,66 @@ function svgPointerdown(e) {
     if (props.clip && !isInPlot(e)) return
     let sel = props.selections.find(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
     if (sel) {
+        let { x = false, y = false } = sel
         e.target.setPointerCapture(e.pointerId)
         svg.style.userSelect = 'none'
+        let xboundary = (({ xmin: min, xmax: max }) => ({ min, max }))(sel),
+            yboundary = (({ ymin: min, ymax: max }) => ({ min, max }))(sel)
         e.target.onpointermove = (ev) => {
-            let { x = false, y = false } = sel
             let coordMove = getCoord(ev)
-            if (x || y) activeSelection.value = {
-                xmin: x ? Math.min(coord.x, coordMove.x) : undefined,
-                xmax: x ? Math.max(coord.x, coordMove.x) : undefined,
-                ymin: y ? Math.min(coord.y, coordMove.y) : undefined,
-                ymax: y ? Math.max(coord.y, coordMove.y) : undefined,
+            if (!x && !y) return
+            let res = {}
+            if (x) {
+                let xstart = oob_squish_any(coord.x, xboundary),
+                    xend = oob_squish_any(coordMove.x, xboundary)
+                res.xmin = Math.min(xstart, xend)
+                res.xmax = Math.max(xstart, xend)
             }
+            if (y) {
+                let ystart = oob_squish_any(coord.y, yboundary),
+                    yend = oob_squish_any(coordMove.y, yboundary)
+                res.ymin = Math.min(ystart, yend)
+                res.ymax = Math.max(ystart, yend)
+            }
+            activeSelection.value = { modelValue: res, theme: sel.theme }
         }
-        e.target.onpointerup = (ev) => {
-            ev.currentTarget.onpointerup = null
+        e.target.onclick = (ev) => {
+            ev.currentTarget.onclick = null
             ev.currentTarget.onpointermove = null
             svg.style.userSelect = null
-            let { x = false, y = false, once = false } = sel
             activeSelection.value = null
             if (pointerMoved && (x || y)) {
                 let coordEnd = getCoord(ev)
-                let res = extractModifier(e)
-                res.type = "select"
+                let res = {}, event = new PointerEvent("select", e)
                 if (x) {
-                    res.xstart = coord.x
-                    res.xend = coordEnd.x
-                    res.xmin = Math.min(coord.x, coordEnd.x)
-                    res.xmax = Math.max(coord.x, coordEnd.x)
+                    let xstart = oob_squish_any(coord.x, xboundary),
+                        xend = oob_squish_any(coordEnd.x, xboundary)
+                    if (xstart == xend) return
+                    res.xmin = Math.min(xstart, xend)
+                    res.xmax = Math.max(xstart, xend)
+                    res.xreverse = xstart > xend
                 }
                 if (y) {
-                    res.ystart = coord.y
-                    res.yend = coordEnd.y
-                    res.ymin = Math.min(coord.y, coordEnd.y)
-                    res.ymax = Math.max(coord.y, coordEnd.y)
+                    let ystart = oob_squish_any(coord.y, yboundary),
+                        yend = oob_squish_any(coordEnd.y, yboundary)
+                    if (ystart == yend) return
+                    res.ymin = Math.min(ystart, yend)
+                    res.ymax = Math.max(ystart, yend)
+                    res.yreverse = ystart > yend
                 }
-                if (!once) {
-                    sel["onUpdate:modelValue"]?.({
-                        xmin: res.xmin, xmax: res.xmax,
-                        ymin: res.ymin, ymax: res.ymax,
-                    })
-                }
-                if (!emitEvent(sel["onSelect"], res)) {
-                    emit('select', res)
+                sel["onUpdate:modelValue"]?.(res)
+                if (!emitEvent(sel["onSelect"], dropNull(res), event)) {
+                    emit('select', dropNull(res), event)
                 }
             }
-            if (!pointerMoved && sel.dismissible) {
-                if (sel.modelValue == null || Object.keys(sel.modelValue).length === 0) return
-                sel["onUpdate:modelValue"]?.({})
-                let res = extractModifier(e)
-                res.type = "cancel"
-                if (!emitEvent(sel["onCancel"], res)) {
-                    emit('select', res)
+            if (!pointerMoved && sel.dismissible !== false) {
+                if (ev.defaultPrevented || ev.handled) return
+                let model = sel.modelValue
+                if (sel.dismissible !== true && ["xmin", "xmax", "ymin", "ymax"].every(k => model?.[k] == null)) return
+                let res = {}, event = new PointerEvent("select", e)
+                sel["onUpdate:modelValue"]?.(res)
+                if (!emitEvent(sel["onCancel"], dropNull(res), event)) {
+                    emit('select', dropNull(res), event)
                 }
             }
         }
@@ -621,7 +627,7 @@ const gridBreaks = computed(() => {
 })
 const axes = computed(() => {
     return vplot.value.axes.map(axis => {
-        let { coord, position, title, ticks, action, orientation, theme: $theme, bind = {} } = axis
+        let { position, title, ticks, action, orientation, ...bind } = axis
         let {
             onMove: move = (...args) => emit('move', ...args),
             onZoom: zoom = (...args) => emit('zoom', ...args),
@@ -632,10 +638,8 @@ const axes = computed(() => {
         return {
             orientation,
             bind: {
-                title, ticks, action, orientation,
+                title, ticks, action, orientation, position,
                 layout: innerRect,
-                theme: Object.assign({}, theme.axis?.[position] ?? theme.axis?.[orientation] ?? {}, $theme),
-                position,
                 coord2pos, pos2coord,
                 ...etc
             },
@@ -665,10 +669,10 @@ const axes = computed(() => {
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    @select="emit('select', $event)" @selecting=" activeSelection = $event" v-bind="sel"
+                    @selecting="activeSelection = $event" v-bind="{ onSelect: (d, e) => emit('select', d, e), ...sel }"
                     v-for="sel in props.selections" />
-                <CoreSelection v-model="activeSelection" :coord2pos="coord2pos" :pos2coord="pos2coord"
-                    :layout="innerRect" />
+                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
+                    v-bind="activeSelection" />
             </g>
         </g>
         <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">

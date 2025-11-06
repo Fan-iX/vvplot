@@ -267,16 +267,16 @@ const render = ref('canvas')
             <h3>Make the plot interactive</h3>
             <p>
                 VVPlot uses an declarative approach to add interactivity to plots.
-                The <strong>action component</strong> <code>&lt;VVAction /&gt;</code> is used to declare interactive
-                behaviors.
+                The <strong>action component</strong> <code>&lt;VVAction /&gt;</code> and
+                <strong>selection component</strong> <code>&lt;VVSelection /&gt;</code>
+                are used to declare interactive behaviors.
             </p>
             <p>
                 <code>&lt;VVAction /&gt;</code> can be placed inside the plot or within an axis.
             </p>
             <p>
-                There are 4 available <strong>plot actions</strong> and 4 available <strong>axis actions</strong>,
-                which are: <code>move</code>, <code>nudge</code>, <code>zoom</code>, <code>rescale</code> (axis only)
-                and <code>select</code> (plot only).
+                There are 3 available <strong>plot actions</strong> and 4 available <strong>axis actions</strong>,
+                which are: <code>move</code>, <code>nudge</code>, <code>zoom</code>, <code>rescale</code> (axis only).
             </p>
             <hr>
             <pre class="code">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
@@ -288,7 +288,7 @@ const render = ref('canvas')
     <VVAxisY :position="0" :extend="1">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
-    <VVAction select />
+    <VVSelection />
     <VVAction nudge shift x />
     <VVAction nudge y />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
@@ -332,9 +332,6 @@ const render = ref('canvas')
                     plot actions that are bound to the whole plot.
                     <ul>
                         <li>
-                            The <code>select</code> action allows the creation of a selection range for the plot.
-                        </li>
-                        <li>
                             The <code>nudge</code> action allows <strong>moving</strong> the plot view via mouse scroll.
                             The <code>x</code> and <code>y</code> propertys restrict the nudge direction to horizontal
                             and vertical respectively.
@@ -356,6 +353,10 @@ const render = ref('canvas')
                             action to be activated only when the right mouse button is held down.
                         </li>
                     </ul>
+                </li>
+                <li>
+                    The <code>&lt;VVSelection /&gt;</code> declaration allows the creation of a selection range for the
+                    plot.
                 </li>
             </ul>
             <p>

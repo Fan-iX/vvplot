@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, reactive, useTemplateRef, watch } from 'vue';
 import iris from '../data/iris.json'
-const plotSelectArg = ref({})
 const plotNudgeArg = ref({})
 const plotMoveArg = ref({})
 const plotZoomArg = ref({})
@@ -67,14 +66,19 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
 </VVPlot>`)
 
 const selection = ref({})
-const selectProperties = reactive({
+const selectConfigs = reactive({
     once: false, dismissible: true,
     resize: true, move: false,
 })
+const selectModifiers = reactive({
+    ctrl: false, shift: false, meta: false, alt: false
+})
+const selectButton = ref("left")
 const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-    <VVSelection v-model="selection" :once="${selectProperties.once}" :dismissible="${selectProperties.dismissible}" :resize="${selectProperties.resize}" :move="${selectProperties.move}"
-        @select="e => selectEventArgument = e" @cancel="e => selectEventArgument = e" />
+    <VVSelection v-model="selection" ${Object.entries(selectConfigs).map(([k, v]) => `:${k}="${v}"`).join(' ')}
+        ${Object.entries(selectModifiers).map(([k, v]) => `:${k}="${v}"`).join(' ')} button="${selectButton.value}"
+        :xmin="0.5" :xmax="2" :theme="{ line_color: 'gray' }" />
 </VVPlot>`)
 </script>
 <template>
@@ -88,7 +92,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 to capture pointer actions.
             </p>
             <p>
-                Two arguments are passed to the event handler:
+                Two arguments are passed to pointer event handlers:
                 the first is the original DOM event object,
                 and the second is an object containing information about the event context.
             </p>
@@ -165,46 +169,80 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 Selection actions can be declared through the <code>&lt;VVSelection&gt;</code> helper component.
             </p>
             <p>
+                The model value of the <code>&lt;VVSelection&gt;</code> component contains the selected region in data
+                coordinates.
+            </p>
+            <p>
+                When a selection is made or dismissed, a <code>select</code> or <code>cancel</code> event will be
+                emitted to the helper component. Event handlers could take two arguments:
+                the first is the selection model value, and the second is a virtual pointer event.
+            </p>
+            <p>
                 Boolean properties <code>once</code>, <code>dismissible</code>, <code>resize</code> and
                 <code>move</code> can be used to control the selection behavior:
             </p>
             <ul>
                 <li>
-                    <code>once</code>: If true, the selection range will not be displayed after the selection is made.
+                    <code>once</code>:
+                    If true, the selection range will not be displayed after the selection is made,
+                    only the <code>select</code> event will be emitted.
                 </li>
                 <li>
-                    <code>dismissible</code>: If false, the selection range will not be dismissed by a singleclick.
+                    <code>dismissible</code>:
+                    If unset, a <code>cancel</code> event will be emitted on singleclick only if there is an
+                    existing selection range;
+                    If false, the selection range will not be dismissed by a singleclick;
+                    If true, a <code>cancel</code> event will always be emitted on singleclick.
                 </li>
                 <li>
-                    <code>resize</code>: If true, the selection region can be resized via dragging its edges and
-                    corners.
+                    <code>resize</code>:
+                    If true, the selection region can be resized via dragging its edges and corners.
                 </li>
                 <li>
-                    <code>move</code>: If true, the selection region can be moved via dragging its body.
+                    <code>move</code>:
+                    If true, the selection region can be moved via dragging its body.
                 </li>
             </ul>
             <p>
-                Two event, <code>select</code> and <code>cancel</code> will emitted when a selection is made or
-                dismissed.
+                Key modifier <code>ctrl</code>, <code>shift</code>, <code>meta</code>, <code>alt</code>
+                and mouse modifier <code>button</code> / <code>buttons</code>
+                can be used to control when the selection can be made or canceled.
+            </p>
+            <p>
+                limits of the selection region can be set via properties <code>xmin</code>, <code>xmax</code>,
+                <code>ymin</code> and <code>ymax</code>.
+            </p>
+            <p>
+                The selection region can be styled via the <code>theme</code> property.
+                It accepts an object with properties <code>background</code>, <code>opacity</code>,
+                <code>line_color</code> and <code>line_width</code>.
             </p>
             <hr>
             <p class="flex flex-wrap gap-x-4">
-                <label v-for="v, k in selectProperties" :key="k" class="inline-block">
-                    <input type="checkbox" v-model="selectProperties[k]"> {{ k }}
+                <label v-for="v, k in selectConfigs" :key="k" class="inline-block">
+                    <input type="checkbox" class="align-middle" v-model="selectConfigs[k]"> {{ k }}
+                </label>
+                <label v-for="v, k in selectModifiers" :key="k" class="inline-block">
+                    <input type="checkbox" class="align-middle" v-model="selectModifiers[k]"> {{ k }}
+                </label>
+                <label class="inline-block">
+                    button:
+                    <select v-model="selectButton">
+                        <option value="left">left</option>
+                        <option value="right">right</option>
+                    </select>
                 </label>
             </p>
             <pre class="code">{{ selectTemplate }}</pre>
             <div class="flex flex-row">
                 <VVPlot :data="iris" :width="600" :height="400">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-                    <VVSelection v-model="selection" @select="e => plotSelectArg = e" @cancel="e => plotSelectArg = e"
-                        v-bind="selectProperties" />
+                    <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2"
+                        :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }" />
                 </VVPlot>
                 <div class="flex-1">
                     <p><strong>Selection model value</strong></p>
-                    <pre class="h-36 overflow-auto">{{ selection }}</pre>
-                    <p><strong>Event argument</strong></p>
-                    <pre class="h-44 overflow-auto">{{ plotSelectArg }}</pre>
+                    <pre>{{ selection }}</pre>
                 </div>
             </div>
             <hr>
@@ -214,14 +252,14 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 The interactive actions are declared through the <code>&lt;VVAction /&gt;</code> helper component.
             </p>
             <p>
-                These actions will emit events of the same name.
-                They have the updated plot/axis limits as the event argument.
-                You can attach event handlers on the <code>&lt;VVPlot&gt;</code> component to capture them.
-                For convenience, event handlers can be attached to the <code>&lt;VVAction /&gt;</code> component as
+                These actions will emit events of the same name, which have the updated plot/axis limits as the event
+                argument.
+                You can attach event handlers on the <code>&lt;VVAction /&gt;</code> component to capture them.
+                For convenience, event handlers can be attached to the <code>&lt;VVPlot&gt;</code> component as
                 well.
             </p>
             <p>
-                A <code>rangechange</code> event will also be emitted when the plot limits change.
+                A <code>rangechange</code> event will also be emitted to the plot when the plot limits change.
             </p>
             <div class="w-full overflow-auto">
                 <table class="w-full doc-demo-table">
@@ -230,7 +268,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                             <th colspan="2">Action</th>
                             <th>Description</th>
                             <th>Example</th>
-                            <th>Event argument</th>
+                            <th><code>rangechange</code> event argument</th>
                         </tr>
                     </thead>
                     <tbody>

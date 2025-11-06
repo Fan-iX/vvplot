@@ -104,6 +104,11 @@ const vBind = computed(() => {
     return { plot, wrapper }
 })
 
+const theme = computed(() => {
+    let themes = Array.isArray($props.theme) ? $props.theme : [$props.theme]
+    return themeBuild(themePreprocess(themeMerge(theme_base, theme_default, ...themes), $props.flip))
+}, { deep: true })
+
 const primaryAxis = reactiveComputed(() => {
     let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props }))
     let xAxes = allAxes.filter(c => c.coord === 'x')
@@ -236,25 +241,21 @@ const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let ori = $props.flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
     let defaultPos = $props.flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
-    let allAxes = vnodes.axis.map(c => {
-        let {
-            coord, position, title, breaks, labels,
-            'minor-breaks': minorBreaks, 'show-grid': showGrid,
-            theme, extend, boundary,
-            // preserved properties
-            primary, secondary, 'expand-mult': em, 'expand-add': ea,
-            levels, limits, min, max, 'onUpdate:min': oum, 'onUpdate:max': ouM,
-            ...ax
-        } = { ...c.type.$_props, ...c.props }
-        let orientation = ori[coord]
-        let axis = {
-            coord, orientation, position: position ?? defaultPos[coord],
-            title, breaks, labels, minorBreaks, theme,
-            showGrid: position !== "none" && showGrid !== false,
-            extend: extend ?? primaryAxis?.[coord]?.extend,
-            bind: ax
-        }
-        axis.action = Object.values(c.children ?? {})
+    let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children }))
+    if (allAxes.every(ax => ax?.coord != 'x')) allAxes.push({ coord: 'x' })
+    if (allAxes.every(ax => ax?.coord != 'y')) allAxes.push({ coord: 'y' })
+    return allAxes.map(({
+        coord, position, title, breaks, labels,
+        'minor-breaks': minorBreaks, 'show-grid': showGrid,
+        theme: $theme, extend, boundary,
+        // preserved properties
+        primary, secondary, 'expand-mult': em, 'expand-add': ea,
+        levels, limits, min, max, 'onUpdate:min': oum, 'onUpdate:max': ouM,
+        $_children, ...etc
+    }) => {
+        let orientation = ori[coord], axis_theme = theme.value?.axis ?? {}
+        position = position ?? defaultPos[coord]
+        let action = Object.values($_children ?? {})
             .filter(s => typeof s == "function")
             .flatMap(s => expandFragment(s()))
             .map(c => ({ ...c.type.$_props, ...c.props }))
@@ -279,13 +280,14 @@ const axes = computed(() => {
                 }
                 return res
             })
-        return axis
+        return {
+            coord, orientation, position, title, breaks, labels, minorBreaks,
+            showGrid: position !== "none" && showGrid !== false,
+            extend: extend ?? primaryAxis?.[coord]?.extend,
+            theme: Object.assign({}, axis_theme[position] ?? axis_theme[orientation], $theme),
+            action, ...etc,
+        }
     }).filter(ax => ax != null)
-    if (allAxes.every(ax => ax?.coord != 'x'))
-        allAxes.push({ coord: 'x', position: defaultPos.x, orientation: ori.x, showGrid: true })
-    if (allAxes.every(ax => ax?.coord != 'y'))
-        allAxes.push({ coord: 'y', position: defaultPos.y, orientation: ori.y, showGrid: true })
-    return allAxes.filter(ax => ax != null)
 })
 const action = computed(() => {
     return vnodes.action.map(c => ({ ...c.type.$_props, ...c.props }))
@@ -298,8 +300,6 @@ const action = computed(() => {
                 let eventName = 'on' + a.charAt(0).toUpperCase() + a.slice(1)
                 res.push({
                     action: a,
-                    once: act.once ?? props.once,
-                    dismissible: (act.dismissible ?? props.dismissible) !== false,
                     x: xy || Boolean(act.x ?? !_isFalse(props.x)),
                     y: xy || Boolean(act.y ?? !_isFalse(props.y)),
                     xmin: act.xmin ?? props.xmin ?? actionBoundary?.x?.min,
@@ -326,10 +326,13 @@ const selections = computed(() => {
             xmin, xmax, ymin, ymax,
             ctrl, shift, alt, meta,
             button, buttons, modelValue, "onUpdate:modelValue": onUpdate,
-            ...etc
+            theme: $theme, ...etc
         }) => {
             let xy = x == null && y == null
-            if (onUpdate == null) {
+            if (!_isFalse(once)) {
+                modelValue = reactive({})
+                onUpdate = null
+            } else if (onUpdate == null) {
                 modelValue = reactive(modelValue ?? {})
                 onUpdate = $event => {
                     for (let key in modelValue) delete modelValue[key]
@@ -337,9 +340,8 @@ const selections = computed(() => {
                 }
             }
             return {
-                once: !_isFalse(once),
                 move: !_isFalse(move),
-                dismissible: dismissible !== false,
+                dismissible: dismissible == undefined ? undefined : dismissible !== false,
                 resize: resize !== false,
                 x: xy || !_isFalse(x),
                 y: xy || !_isFalse(y),
@@ -350,14 +352,11 @@ const selections = computed(() => {
                 metaKey: !_isFalse(meta),
                 buttons: buttons ?? buttonsMap[button] ?? 1,
                 modelValue, "onUpdate:modelValue": onUpdate,
+                theme: Object.assign({}, theme.value?.selection, $theme),
                 ...etc
             }
         })
 })
-const theme = computed(() => {
-    let themes = Array.isArray($props.theme) ? $props.theme : [$props.theme]
-    return themeBuild(themePreprocess(themeMerge(theme_base, theme_default, ...themes), $props.flip))
-}, { deep: true })
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')

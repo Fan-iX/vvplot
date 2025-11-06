@@ -119,17 +119,6 @@ export function getListeners(attrs) {
     return listeners
 }
 
-export function extractModifier(event) {
-    return {
-        shiftKey: event.shiftKey,
-        ctrlKey: event.ctrlKey,
-        altKey: event.altKey,
-        metaKey: event.metaKey,
-        button: event.button,
-        buttons: event.buttons,
-    }
-}
-
 export function emitEvent(handlers, ...args) {
     if (Array.isArray(handlers)) {
         handlers = handlers.filter(h => typeof h === "function")
@@ -155,6 +144,10 @@ export function oob_squish_infinite(value, { min, max }) {
     if (value == -Infinity) return min
     if (value == Infinity) return max
     return value
+}
+
+export function dropNull(obj) {
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
 }
 
 function deepEqual(a, b) {
