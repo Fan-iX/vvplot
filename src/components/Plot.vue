@@ -63,10 +63,17 @@ function resolveComponent(ast) {
 }
 const $slots = useSlots()
 const $attrs = useAttrs()
-const vnodes = reactiveComputed(() => {
-    let comps = Object.keys($slots).filter(s => s != "toolbar")
-        .flatMap(s => expandFragment($slots[s]()))
-        .flatMap(c => {
+
+const vnodes = reactive({
+    axis: {},
+    layer: {},
+    action: {},
+    selection: {},
+    dom: {},
+})
+for (let key in $slots) {
+    watch(() => $slots[key]?.(), s => {
+        let comps = expandFragment(s).flatMap(c => {
             if (c.type?.template) {
                 let comp = baseParse(c.type.template, { decodeEntities: true })
                 return comp.children.map(x => resolveComponent(x))
@@ -74,13 +81,17 @@ const vnodes = reactiveComputed(() => {
                 return c
             }
         }).filter(x => x != null)
-    let res = Object.groupBy(comps.filter(c => c.type.$_type != undefined), c => c.type.$_type)
-    res.axis = res.axis ?? []
-    res.layer = res.layer ?? []
-    res.action = res.action ?? []
-    res.selection = res.selection ?? []
-    return res
-})
+        let res = Object.groupBy(comps, c => c.type.$_type ?? "dom")
+        for (let type in res) {
+            vnodes[type][key] = res[type]
+        }
+    }, { immediate: true })
+}
+const vlayer = computed(() => Object.values(vnodes.layer).flat())
+const vaxis = computed(() => Object.values(vnodes.axis).flat())
+const vaction = computed(() => Object.values(vnodes.action).flat())
+const vselection = computed(() => Object.values(vnodes.selection).flat())
+const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'toolbar' || k == 'panel' ? [] : vnodes.dom[k]))
 
 const vBind = computed(() => {
     let plot = {}
@@ -110,7 +121,7 @@ const theme = computed(() => {
 }, { deep: true })
 
 const primaryAxis = reactiveComputed(() => {
-    let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props }))
+    let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props }))
     let xAxes = allAxes.filter(c => c.coord === 'x')
     let yAxes = allAxes.filter(c => c.coord === 'y')
     return {
@@ -155,7 +166,7 @@ const schema = computed(() => {
     [ layer<geom, stat, data, aes, attrs, scales, vBind> ]
 */
 const layers = computed(() => {
-    return vnodes.layer.map(layer => {
+    return vlayer.value.map(layer => {
         let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let aes = {}, args = {}, attrs = {}
@@ -241,7 +252,7 @@ const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let ori = $props.flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
     let defaultPos = $props.flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
-    let allAxes = vnodes.axis.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children }))
+    let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children }))
     if (allAxes.every(ax => ax?.coord != 'x')) allAxes.push({ coord: 'x' })
     if (allAxes.every(ax => ax?.coord != 'y')) allAxes.push({ coord: 'y' })
     return allAxes.map(({
@@ -290,7 +301,7 @@ const axes = computed(() => {
     }).filter(ax => ax != null)
 })
 const action = computed(() => {
-    return vnodes.action.map(c => ({ ...c.type.$_props, ...c.props }))
+    return vaction.value.map(c => ({ ...c.type.$_props, ...c.props }))
         .flatMap(props => {
             let res = []
             for (let a of ["select", "move", "nudge", "zoom"]) {
@@ -320,7 +331,7 @@ const action = computed(() => {
         })
 })
 const selections = computed(() => {
-    return vnodes.selection.map(c => ({ ...c.type.$_props, ...c.props }))
+    return vselection.value.map(c => ({ ...c.type.$_props, ...c.props }))
         .map(({
             once, move, dismissible, resize, x, y,
             xmin, xmax, ymin, ymax,
@@ -377,6 +388,14 @@ watch([w, h], ([w, h], [ow, oh]) => {
     if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
         emit('resize', { width: w, height: h })
 })
+const panelStyle = computed(() => {
+    return {
+        left: str_c(plotRef.value?.panel?.left, 'px'),
+        top: str_c(plotRef.value?.panel?.top, 'px'),
+        width: str_c(plotRef.value?.panel?.width, 'px'),
+        height: str_c(plotRef.value?.panel?.height, 'px'),
+    }
+})
 
 const wrapperClass = computed(() => {
     if ($props.resize == "x") {
@@ -399,8 +418,13 @@ const wrapperClass = computed(() => {
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
             v-bind="vBind.plot" :action="action" :clip="$props.clip" :legendTeleport="$props.legendTeleport" />
         <div class="absolute right-4 top-4 flex flex-row">
-            <slot name="toolbar"></slot>
+            <component v-for="c in vnodes.dom.toolbar" :is="c" />
         </div>
-        <slot name="tooltip"></slot>
+        <div class="absolute pointer-events-none" :style="panelStyle">
+            <div class="contents pointer-events-auto">
+                <component v-for="c in vnodes.dom.panel" :is="c" />
+            </div>
+        </div>
+        <component v-for="c in vdom" :is="c" />
     </div>
 </template>

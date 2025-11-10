@@ -72,7 +72,28 @@ const layers = useTemplateRef('layers')
 const { width, height } = useElementSize(svgRef)
 const gplot = computed(() => new GPlot(props.schema, props.layers))
 
-const outerRect = reactiveComputed(() => {
+/**
+  variable definition:
+                right
+  ┌─────────────────────────────┐
+   l,left                          r
+  ┌─────┐                       ┌─────┐
+  ┌───────────────svg─────────────────┐ ┐        ┐
+  │ plot margin                       │ │ top,t  │
+  │     .--------panel----------.     │ ┘        │
+  │     |                       |     │          │
+  │     |                       |     │          │
+  │     |                       |     │          │ bottom
+  │     |                       |     │          │
+  │     |                       |     │          │
+  │     |                       |     │          │
+  │     |                       |     │          │
+  │     '-----------------------'     │ ┐        ┘
+  │                                   │ │ b
+  └───────────────────────────────────┘ ┘
+ */
+
+const panel = reactiveComputed(() => {
     let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, props.axes.some(a => a.position == p) ? (theme.plot.padding[p] || 0) : 0]))
     let l = theme.plot.margin.left + padding.left,
         r = theme.plot.margin.right + padding.right,
@@ -94,27 +115,23 @@ const outerRect = reactiveComputed(() => {
         height: height.value - t - b,
     }
 })
-/**
- * layout variable definition:
- *               right
- * ┌─────────────────────────────┐
- *  l,left                          r
- * ┌─────┐                       ┌─────┐
- * ┌───────────────svg─────────────────┐ ┐        ┐
- * │ plot margin                       │ │ top,t │
- * │     .-------outerRect-------.     │ ┘        │
- * │     |                       |     │          │
- * │     |                       |     │          │
- * │     |                       |     │          │ bottom
- * │     |                       |     │          │
- * │     |                       |     │          │
- * │     |                       |     │          │
- * │     |                       |     │          │
- * │     '-----------------------'     │ ┐        ┘
- * │                                   │ │ b
- * └───────────────────────────────────┘ ┘
- */
 
+/**
+   variable definition:
+         right
+   ┌─────────────────┐
+    l,left              r
+   ┌─────┐           ┌─────┐
+   .--------panel--------. ┐       ┐
+   | axis expansion        | │ top,t │
+   |     .┄innerRect┄.     | ┘       │
+   |     ┆           ┆     |         │ bottom
+   |     ┆           ┆     |         │
+   |     ┆           ┆     |         │
+   |    0'┄┄┄┄┄┄┄┄┄┄┄'     | ┐       ┘
+   |     0                 | │ b
+   '-----------------------' ┘
+ */
 const transformBind = computed(() => {
     let transform = [], origin = null
     let tslX = translateH.value + innerRect.left,
@@ -125,29 +142,14 @@ const transformBind = computed(() => {
         sclY = transcaleV.value?.ratio ?? 1
     if (sclX != 1 || sclY != 1) {
         transform.push(`scale(${sclX}, ${sclY})`)
-        origin = `${(transcaleH.value?.origin ?? 0.5) * outerRect.width - innerRect.left} ${(transcaleV.value?.origin ?? 0.5) * outerRect.height - innerRect.top}`
+        origin = `${(transcaleH.value?.origin ?? 0.5) * panel.width - innerRect.left} ${(transcaleV.value?.origin ?? 0.5) * panel.height - innerRect.top}`
     }
     return {
         transform: transform.join(' '),
         'transform-origin': origin
     }
 })
-/**
- * variable definition:
- *       right
- * ┌─────────────────┐
- *  l,left              r
- * ┌─────┐           ┌─────┐
- * .-------outerRect-------. ┐       ┐
- * | axis expansion        | │ top,t │
- * |     .┄innerRect┄.     | ┘       │
- * |     ┆           ┆     |         │ bottom
- * |     ┆           ┆     |         │
- * |     ┆           ┆     |         │
- * |     '┄┄┄┄┄┄┄┄┄┄┄'     | ┐       ┘
- * |                       | │ b
- * '-----------------------' ┘
- */
+
 const vplot = computed(() => {
     return gplot.value
         .useScales(props.scales, props.levels)
@@ -157,7 +159,7 @@ const vplot = computed(() => {
             props.axes, props.coordScale.minRange
         )
 })
-defineExpose({ vplot })
+defineExpose({ vplot, panel })
 
 function _pos2coord(
     { value, min, max },
@@ -299,7 +301,7 @@ const innerRect = reactiveComputed(() => {
     let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
     let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
     let [pl, pr, pb, pt] = flip.value ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
-    let { width: w, height: h } = outerRect
+    let { width: w, height: h } = panel
     return {
         left: w * pl || 0,
         right: w * (1 - pr) || 0,
@@ -316,19 +318,19 @@ const innerRect = reactiveComputed(() => {
 })
 function getCoord(event) {
     let rect = svgRef.value.getBoundingClientRect()
-    let l = Math.trunc(event.clientX) - (rect.left + outerRect.left + innerRect.left),
-        t = Math.trunc(event.clientY) - (rect.top + outerRect.top + innerRect.top),
-        r = rect.left + outerRect.left + innerRect.right - Math.trunc(event.clientX),
-        b = rect.top + outerRect.top + innerRect.bottom - Math.trunc(event.clientY)
+    let l = Math.trunc(event.clientX) - (rect.left + panel.left + innerRect.left),
+        t = Math.trunc(event.clientY) - (rect.top + panel.top + innerRect.top),
+        r = rect.left + panel.left + innerRect.right - Math.trunc(event.clientX),
+        b = rect.top + panel.top + innerRect.bottom - Math.trunc(event.clientY)
     let { x, y } = pos2coord({ h: l, v: t })
     return { l, t, r, b, x, y }
 }
 function isInPlot(event) {
     let rect = svgRef.value.getBoundingClientRect()
-    return event.clientX > rect.left + outerRect.l &&
-        event.clientX < rect.right - outerRect.r &&
-        event.clientY > rect.top + outerRect.t &&
-        event.clientY < rect.bottom - outerRect.b
+    return event.clientX > rect.left + panel.l &&
+        event.clientX < rect.right - panel.r &&
+        event.clientY > rect.top + panel.t &&
+        event.clientY < rect.bottom - panel.b
 }
 
 let moveTimer
@@ -463,7 +465,7 @@ function applyTransform(act, event) {
             hmin = 0, hmax = innerRect.width
             if (transcaleH.value) {
                 let ratio = transcaleH.value.ratio,
-                    origin = transcaleH.value.origin * outerRect.width - innerRect.l
+                    origin = transcaleH.value.origin * panel.width - innerRect.l
                 hmin = hmin / ratio + (1 - 1 / ratio) * origin
                 hmax = hmax / ratio + (1 - 1 / ratio) * origin
             }
@@ -476,7 +478,7 @@ function applyTransform(act, event) {
             vmin = 0, vmax = innerRect.height
             if (transcaleV.value) {
                 let ratio = transcaleV.value.ratio,
-                    origin = transcaleV.value.origin * outerRect.height - innerRect.t
+                    origin = transcaleV.value.origin * panel.height - innerRect.t
                 vmin = vmin / ratio + (1 - 1 / ratio) * origin
                 vmax = vmax / ratio + (1 - 1 / ratio) * origin
             }
@@ -533,7 +535,7 @@ function wheel(act, pos, delta) {
             if (hmax - hmin > 0 && Math.abs(innerRect.width - (hmax - hmin)) > 1) {
                 transcaleH.value = {
                     ratio: innerRect.width / (hmax - hmin),
-                    origin: (innerRect.l + (hmin * innerRect.width) / (innerRect.width - hmax + hmin)) / outerRect.width
+                    origin: (innerRect.l + (hmin * innerRect.width) / (innerRect.width - hmax + hmin)) / panel.width
                 }
             }
         }
@@ -552,7 +554,7 @@ function wheel(act, pos, delta) {
             if (vmax - vmin > 0 && Math.abs(innerRect.height - (vmax - vmin)) > 1) {
                 transcaleV.value = {
                     ratio: innerRect.height / (vmax - vmin),
-                    origin: (innerRect.t + (vmin * innerRect.height) / (innerRect.height - vmax + vmin)) / outerRect.height
+                    origin: (innerRect.t + (vmin * innerRect.height) / (innerRect.height - vmax + vmin)) / panel.height
                 }
             }
         }
@@ -652,18 +654,18 @@ const axes = computed(() => {
     <svg ref="svg" width="100%" height="100%" v-on="svgVOn" v-bind="$attrs">
         <defs>
             <clipPath :id="`${vid}-plot-clip`">
-                <rect x="0" y="0" :width="outerRect.width" :height="outerRect.height" />
+                <rect x="0" y="0" :width="panel.width" :height="panel.height" />
             </clipPath>
         </defs>
-        <rect :transform="`translate(${outerRect.left}, ${outerRect.top})`" :width="outerRect.width"
-            :height="outerRect.height" :fill="theme.plot.background"></rect>
-        <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
+        <rect :transform="`translate(${panel.left}, ${panel.top})`" :width="panel.width" :height="panel.height"
+            :fill="theme.plot.background"></rect>
+        <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
                 :translate="translateV" :transcale="transcaleV" :coord2pos="coord2pos" />
             <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"
                 :translate="translateH" :transcale="transcaleH" :coord2pos="coord2pos" />
         </g>
-        <g :transform="`translate(${outerRect.left}, ${outerRect.top})`"
+        <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
@@ -675,7 +677,7 @@ const axes = computed(() => {
                     v-bind="activeSelection" />
             </g>
         </g>
-        <g :transform="`translate(${outerRect.left}, ${outerRect.top})`">
+        <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreAxis v-for="axis in axes.filter(a => a.orientation == 'v' || a.orientation == 'h')" v-bind="axis.bind"
                 v-on="axis.on" v-model:translateH="translateH" v-model:transcaleH="transcaleH"
                 v-model:translateV="translateV" v-model:transcaleV="transcaleV" />
