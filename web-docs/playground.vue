@@ -170,7 +170,7 @@ function doRender() {
             </div>
         </div>
 
-        <pre class="code leading-none">{{ `<VVPlot :width="${width}" :height="${height}" :data="${dataKey}">\n` }}<textarea
+        <pre class="bg-[#f8f8f8] p-4 rounded-xl leading-none">{{ `<VVPlot :width="${width}" :height="${height}" :data="${dataKey}">\n` }}<textarea
             ref="textarea" v-model="input" class="pl-[4ch] w-full resize-none"></textarea>{{ `\n</VVPlot>` }}</pre>
         <div class="flex justify-between">
             <div class="text-red-500">{{ errMessage }}</div>

@@ -40,23 +40,18 @@ ol {
     padding-left: 2em;
 }
 
-code,
-pre.code {
+:not(pre)>code {
     background: #f0f0f0;
-}
-
-code {
     padding-inline: 0.5ch;
     border-radius: 0.25em;
 }
 
-pre.code {
-    margin: 1em;
-    padding: 1em;
+pre code.hljs {
+    background: #f8f8f8;
+    margin-block: 1em;
     overflow: auto;
     border-radius: 1em;
-    overflow-x: auto;
-    word-break: break-all;
+    line-break: anywhere;
 }
 
 kbd {
