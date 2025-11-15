@@ -18,7 +18,7 @@ export default {
             throw new Error(`Missing aesthetics for GeomLine: "${missingAes.join('", "')}"`)
         let group = data.group ?? new Array(data.x.length).fill(null)
         let groups = Object.values(group.reduce((acc, cur, i) => {
-            if (acc[cur] == undefined) acc[cur] = []
+            acc[cur] ??= []
             acc[cur].push(i)
             return acc
         }, {}))
@@ -56,7 +56,7 @@ export default {
             throw new Error(`Missing aesthetics for GeomPath: "${missingAes.join('", "')}"`)
         let group = data.group ?? new Array(data.x.length).fill(null)
         let groups = Object.values(group.reduce((acc, cur, i) => {
-            if (acc[cur] == undefined) acc[cur] = []
+            acc[cur] ??= []
             acc[cur].push(i)
             return acc
         }, {}))

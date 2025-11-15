@@ -30,7 +30,7 @@ const binds = computed(() => {
             textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
         }
         let result = {
-            x: tx, y: ty, text: String(label), title: String(title),
+            x: tx, y: ty, text: String(label), title: String(title ?? label),
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
             anchorX, anchorY, dockX, dockY, textLength,

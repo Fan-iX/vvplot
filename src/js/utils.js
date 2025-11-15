@@ -97,26 +97,28 @@ export function obj_merge(arr) {
     return arr.reduce((a, c) => Object.assign(a, c), {})
 }
 
-export function str_c() {
-    let args = Array.from(arguments)
+/**
+ * concatenate strings, with special handling of `undefined` and `null`
+ * - if any argument is `undefined`, return `undefined`
+ * - else if any argument is `null`, return `null`
+ * - else return concatenated string
+ * @param  {...(string|undefined|null)} args
+ * @returns {string|undefined|null}
+ */
+export function str_c(...args) {
     if (args.some(x => x === undefined)) return undefined
     if (args.some(x => x === null)) return null
     return args.join('')
 }
 
+/**
+ * return unique values in an array
+ * @param {Array} arr 
+ * @returns {Array}
+ */
 export function unique(arr) {
     if (arr == null) return []
     return Array.from(new Set(arr))
-}
-
-export function getListeners(attrs) {
-    let listeners = {}
-    for (let key in attrs) {
-        if (key.startsWith('on')) {
-            listeners[key] = attrs[key]
-        }
-    }
-    return listeners
 }
 
 export function emitEvent(handlers, ...args) {
@@ -130,26 +132,61 @@ export function emitEvent(handlers, ...args) {
     handlers(...args)
     return true
 }
-
+/**
+ * turn out-of-bounds values to NaN
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
 export function oob_censor(value, { min, max }) {
     if (value < min || value > max) return NaN
     return value
 }
+/**
+ * turn out-of-bounds values to bounds
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
 export function oob_squish_any(value, { min, max }) {
     if (value < min) return min
     if (value > max) return max
     return value
 }
+/**
+ * turn infinite values to bounds
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
 export function oob_squish_infinite(value, { min, max }) {
     if (value == -Infinity) return min
     if (value == Infinity) return max
     return value
 }
 
+/**
+ * drop null/undefined values from an object
+ * @param {Object} obj 
+ * @returns {Object}
+ */
 export function dropNull(obj) {
+    if(typeof obj !== 'object' || obj == null) return obj
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
 }
 
+/**
+ * test deep equality between two values
+ * @param {*} a 
+ * @param {*} b 
+ * @returns 
+ */
 function deepEqual(a, b) {
     if (a === b) return true
     if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false
@@ -164,7 +201,8 @@ function deepEqual(a, b) {
 /**
  * Create a shallow categorical representation for a list of object.
  * @param  {object[]} array
- * @returns {number[]}
+ * @returns {number[]} result
+ * @returns {Array[]} result.categories
  */
 export function categorize(array) {
     if (!Array.isArray(array)) throw new Error('Argument must be an array')
@@ -214,7 +252,7 @@ export function interaction(...arrays) {
 
 /**
  * Create a categorical representation for lists of data.
- * @param {object} arrays
+ * @param {Object} arrays
  * @returns {number[]} result
  * @returns {object[]} result.categories
  */
@@ -242,6 +280,11 @@ export function intraaction(arrays) {
     return result
 }
 
+/**
+ * Turn dict of arrays into array of dicts
+ * @param {Object} arrays dict of arrays
+ * @returns {object[]} array of dicts
+ */
 export function intrazip(arrays) {
     if (Object.keys(arrays).length == 0) return []
     let length = Object.values(arrays).filter(x => Array.isArray(x)).reduce((l, arr) => {

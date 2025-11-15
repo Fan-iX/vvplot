@@ -27,16 +27,7 @@ watch(
 )
 const binds = computed(() => {
     let transform
-    if (anchorX != null || anchorY != null) {
-        let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
-            alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
-        if (isNaN(alnX)) alnX = 0.5
-        if (isNaN(alnY)) alnY = 0.5
-        let w = textBox.width, h = textBox.height,
-            dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
-            dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
-        transform = `rotate(${angle}) translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
-    } else if (dockX != null || dockY != null) {
+    if (dockX != null || dockY != null) {
         let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
         if (isNaN(alnX)) alnX = 0.5
@@ -45,6 +36,15 @@ const binds = computed(() => {
             h = textBox.width * Math.abs(Math.sin(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.cos(angle * Math.PI / 180)),
             dx = translateX, dy = translateY
         transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy}) rotate(${angle})`
+    } else {
+        let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+            alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+        if (isNaN(alnX)) alnX = 0.5
+        if (isNaN(alnY)) alnY = 0.5
+        let w = textBox.width, h = textBox.height,
+            dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
+            dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
+        transform = `rotate(${angle}) translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
     }
     return {
         x, y,
@@ -78,7 +78,7 @@ function parseLineType(linetype) {
     <text ref="ele" text-anchor="middle" dominant-baseline="central" v-bind="binds"
         :font-size="(fontSize ?? size * 4) || null">
         <slot>
-            <title v-if="title ?? text">{{ title ?? text }}</title>
+            <title v-if="title">{{ title }}</title>
             {{ text }}
         </slot>
     </text>

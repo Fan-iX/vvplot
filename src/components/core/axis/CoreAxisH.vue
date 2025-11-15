@@ -17,6 +17,7 @@ const translateH = defineModel('translateH', { type: Number, default: 0 })
 const translateV = defineModel('translateV', { type: Number, default: 0 })
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
+const transition = defineModel('transition')
 const transform = computed(() => {
     let translate = 0
     let aln = { bottom: "0%", center: "50%", top: "100%" }[position] ?? position
@@ -219,6 +220,7 @@ function axisWheel(e) {
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
     e.stopPropagation()
+    transition.value = 'transform 0.1s ease-out'
     wheelDelta += e.deltaY
     wheel(act, coord, wheelDelta)
     wheelTimer = setTimeout(() => {

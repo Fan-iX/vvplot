@@ -15,6 +15,11 @@ export const number_cut = {
     }
 }
 
+/**
+ * format as is
+ * @param {*} options
+ * @returns {function(number, index, array): string}
+ */
 function format_asis() {
     return function (x) {
         if (x == null) return ""

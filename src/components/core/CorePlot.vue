@@ -1,6 +1,6 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
-import { ref, computed, watch, useTemplateRef, useId } from 'vue'
+import { reactive, ref, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
 import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
@@ -11,9 +11,17 @@ import CoreLayer from './layer/CoreLayer.vue'
 import CoreSelection from './CoreSelection.vue'
 import CoreLegend from './CoreLegend.vue'
 const vid = useId()
-const props = defineProps({
+const {
+    schema, theme,
+    expandAdd, expandMult,
+    coordLevels, levels, scales,
+    flip, reverse,
+    ...props
+} = defineProps({
     schema: Object, layers: Array,
-    coordScale: Object, coordDisplay: Object, coordLevels: Object,
+    range: Object, minRange: Object, expandAdd: Object,
+    flip: Boolean, reverse: Object,
+    expandMult: Object, coordLevels: Object,
     levels: Object, scales: Object,
     axes: { type: Array, default: () => [] },
     theme: Object,
@@ -22,55 +30,25 @@ const props = defineProps({
     selections: { type: Array, default: () => [] },
     legendTeleport: null,
 })
-const range = defineModel('range')
 const emit = defineEmits([
     'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
     'select', 'move', 'zoom', 'rescale', 'nudge', 'rangechange',
     'update:xmin', 'update:xmax', 'update:ymin', 'update:ymax',
 ])
-const theme = reactiveComputed(() => props.theme)
 
-const coordExpandAdd = ref(props.coordScale?.expandAdd || {})
-watch(() => props.coordScale, (v) => {
-    range.value = v.range
-    coordExpandAdd.value = v.expandAdd
-}, { immediate: true })
+const range = reactive({ xmin: null, xmax: null, ymin: null, ymax: null })
+watch(() => props.range, v => Object.assign(range, dropNull(v)), { immediate: true })
+
 const activeSelection = defineModel('activeSelection')
 const translateH = defineModel('translateH', { type: Number, default: 0 })
 const translateV = defineModel('translateV', { type: Number, default: 0 })
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
-
-const expandAdd = reactiveComputed(() => {
-    let x = coordExpandAdd.value.x ?? 0
-    if (Array.isArray(x)) x = { min: x[0], max: x[1] }
-    else if (typeof x == 'number') x = { min: x, max: x }
-    let y = coordExpandAdd.value.y ?? 0
-    if (Array.isArray(y)) y = { min: y[0], max: y[1] }
-    else if (typeof y == 'number') y = { min: y, max: y }
-    return { x, y }
-})
-const expandMult = reactiveComputed(() => {
-    let x = props.coordDisplay?.expandMult?.x ?? 0
-    if (Array.isArray(x)) x = { min: x[0], max: x[1] }
-    else if (typeof x == 'number') x = { min: x, max: x }
-    let y = props.coordDisplay?.expandMult?.y ?? 0
-    if (Array.isArray(y)) y = { min: y[0], max: y[1] }
-    else if (typeof y == 'number') y = { min: y, max: y }
-    return { x, y }
-})
-const reverse = reactiveComputed(() => {
-    return {
-        x: props.coordDisplay?.reverse?.x ?? false,
-        y: props.coordDisplay?.reverse?.y ?? false,
-    }
-})
-const flip = computed(() => props.coordDisplay?.flip ?? false)
+const transition = ref(null)
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
 const { width, height } = useElementSize(svgRef)
-const gplot = computed(() => new GPlot(props.schema, props.layers))
 
 /**
   variable definition:
@@ -150,13 +128,14 @@ const transformBind = computed(() => {
     }
 })
 
+const gplot = computed(() => new GPlot(schema, props.layers))
 const vplot = computed(() => {
     return gplot.value
-        .useScales(props.scales, props.levels)
-        .useCoordLevels(props.coordLevels)
+        .useScales(scales, levels)
+        .useCoordLevels(coordLevels)
         .render(
-            range.value, expandAdd, expandMult,
-            props.axes, props.coordScale.minRange
+            range, expandAdd, expandMult,
+            props.axes, props.minRange
         )
 })
 defineExpose({ vplot, panel })
@@ -183,15 +162,15 @@ function pos2coord({
     let scales = vplot.value.coordScales
     let { width, height } = innerRect
     let result = {}
-    let [x, xmin, xmax] = flip.value ? [v, vmin, vmax] : [h, hmin, hmax]
-    let [y, ymin, ymax] = flip.value ? [h, hmin, hmax] : [v, vmin, vmax]
+    let [x, xmin, xmax] = flip ? [v, vmin, vmax] : [h, hmin, hmax]
+    let [y, ymin, ymax] = flip ? [h, hmin, hmax] : [v, vmin, vmax]
     if (x != null || xmin != null || xmax != null) {
         let { value, min, max } = _pos2coord(
             { value: x, min: xmin, max: xmax },
-            scales.x, flip.value != reverse.x, flip.value ? height : width
+            scales.x, flip != reverse.x, flip ? height : width
         )
         Object.assign(result, dropNull({ x: value, xmin: min, xmax: max }))
-        if (flip.value) {
+        if (flip) {
             Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
         } else {
             Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
@@ -200,10 +179,10 @@ function pos2coord({
     if (y != null || ymin != null || ymax != null) {
         let { value, min, max } = _pos2coord(
             { value: y, min: ymin, max: ymax },
-            scales.y, flip.value == reverse.y, flip.value ? width : height
+            scales.y, flip == reverse.y, flip ? width : height
         )
         Object.assign(result, dropNull({ y: value, ymin: min, ymax: max }))
-        if (flip.value) {
+        if (flip) {
             Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
         } else {
             Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
@@ -242,14 +221,14 @@ function coord2pos({
     let rangeH = { min: -l, max: width + r },
         rangeV = { min: -t, max: height + b }
     if (x != null || xmin != null || xmax != null) {
-        if (flip.value) {
+        if (flip) {
             [v, vmin, vmax] = [x, xmin, xmax]
         } else {
             [h, hmin, hmax] = [x, xmin, xmax]
         }
     }
     if (y != null || ymin != null || ymax != null) {
-        if (flip.value) {
+        if (flip) {
             [h, hmin, hmax] = [y, ymin, ymax]
         } else {
             [v, vmin, vmax] = [y, ymin, ymax]
@@ -259,8 +238,8 @@ function coord2pos({
         let { value, min, max } = _coord2pos(
             { value: h, min: hmin, max: hmax },
             { oob },
-            scales[flip.value ? 'y' : 'x'],
-            reverse[flip.value ? 'y' : 'x'],
+            scales[flip ? 'y' : 'x'],
+            reverse[flip ? 'y' : 'x'],
             width, rangeH
         )
         Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
@@ -269,8 +248,8 @@ function coord2pos({
         let { value, min, max } = _coord2pos(
             { value: v, min: vmin, max: vmax },
             { oob },
-            scales[flip.value ? 'x' : 'y'],
-            !reverse[flip.value ? 'x' : 'y'],
+            scales[flip ? 'x' : 'y'],
+            !reverse[flip ? 'x' : 'y'],
             height, rangeV
         )
         Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
@@ -300,7 +279,7 @@ const innerRect = reactiveComputed(() => {
     let mult = expandMult
     let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
     let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
-    let [pl, pr, pb, pt] = flip.value ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
+    let [pl, pr, pb, pt] = flip ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
     let { width: w, height: h } = panel
     return {
         left: w * pl || 0,
@@ -442,7 +421,7 @@ function svgPointerdown(e) {
             }
         e.target.onpointermove = (ev) => {
             let { x = false, y = false } = act
-            let [h, v] = flip.value ? [y, x] : [x, y]
+            let [h, v] = flip ? [y, x] : [x, y]
             if (h) translateH.value = oob_squish_any(translateH.value + ev.movementX, rangeH)
             if (v) translateV.value = oob_squish_any(translateV.value + ev.movementY, rangeV)
         }
@@ -457,7 +436,7 @@ function svgPointerdown(e) {
 }
 function applyTransform(act, event) {
     let { x = false, y = false } = act
-    let [h, v] = flip.value ? [y, x] : [x, y]
+    let [h, v] = flip ? [y, x] : [x, y]
     if (transcaleH.value != null || translateH.value ||
         transcaleV.value != null || translateV.value) {
         let hmin, hmax, vmin, vmax
@@ -506,6 +485,7 @@ function svgWheel(e) {
     if (!act || !act.x && !act.y) return
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
+    transition.value = 'transform 0.1s ease-out'
     wheelDelta += e.deltaY
     wheel(act, coord, wheelDelta)
     wheelTimer = setTimeout(() => {
@@ -513,11 +493,12 @@ function svgWheel(e) {
         wheelDelta = 0
     }, 300)
 }
+watch([translateH, translateV, transcaleH, transcaleV], ([dh, dv, sh, sv]) => { if (!dh && !dv && !sh && !sv) transition.value = null })
 function wheel(act, pos, delta) {
     if (act.action == "zoom") {
         let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0, sensitivity = 1.25 } = act
         let lvl = sensitivity ** (wheelDelta / 100)
-        let [h, v, mrh, mrv] = flip.value ? [y, x, mry, mrx] : [x, y, mrx, mry]
+        let [h, v, mrh, mrv] = flip ? [y, x, mry, mrx] : [x, y, mrx, mry]
         let maxpos = coord2pos(act, { unlimited: true })
         let hmin, hmax, vmin, vmax
         if (h) {
@@ -561,7 +542,7 @@ function wheel(act, pos, delta) {
     }
     if (act.action == "nudge") {
         let { x = false, y = false, sensitivity = 0.1 } = act
-        let [h, v] = flip.value ? [y, x] : [x, y]
+        let [h, v] = flip ? [y, x] : [x, y]
         let boundary = coord2pos(act, { unlimited: true })
         if (h) {
             let movement = sensitivity * innerRect.width * (-delta / 120)
@@ -597,20 +578,18 @@ const svgVOn = {
 
 function changerange(coord) {
     let { xmin, xmax, ymin, ymax } = coord
-    let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range.value
-    xmin = xmin ?? $xmin
-    xmax = xmax ?? $xmax
-    ymin = ymin ?? $ymin
-    ymax = ymax ?? $ymax
+    let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range
+    xmin = xmin != null ? xmin + expandAdd.x.min : $xmin
+    xmax = xmax != null ? xmax - expandAdd.x.max : $xmax
+    ymin = ymin != null ? ymin + expandAdd.y.min : $ymin
+    ymax = ymax != null ? ymax - expandAdd.y.max : $ymax
     if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
-    let newrange = { xmin, xmax, ymin, ymax }
-    if (xmin != null) emit('update:xmin', xmin + expandAdd.x.min)
-    if (xmax != null) emit('update:xmax', xmax - expandAdd.x.max)
-    if (ymin != null) emit('update:ymin', ymin + expandAdd.y.min)
-    if (ymax != null) emit('update:ymax', ymax - expandAdd.y.max)
-    range.value = newrange
-    emit('rangechange', dropNull(newrange))
-    coordExpandAdd.value = { x: 0, y: 0 }
+    if (xmin != $xmin) emit('update:xmin', xmin)
+    if (xmax != $xmax) emit('update:xmax', xmax)
+    if (ymin != $ymin) emit('update:ymin', ymin)
+    if (ymax != $ymax) emit('update:ymax', ymax)
+    emit('rangechange', { xmin, xmax, ymin, ymax }, { ...range })
+    Object.assign(range, { xmin, xmax, ymin, ymax })
 }
 
 const gridBreaks = computed(() => {
@@ -667,7 +646,7 @@ const axes = computed(() => {
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
-            <g v-bind="transformBind">
+            <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
@@ -680,7 +659,7 @@ const axes = computed(() => {
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreAxis v-for="axis in axes.filter(a => a.orientation == 'v' || a.orientation == 'h')" v-bind="axis.bind"
                 v-on="axis.on" v-model:translateH="translateH" v-model:transcaleH="transcaleH"
-                v-model:translateV="translateV" v-model:transcaleV="transcaleV" />
+                v-model:translateV="translateV" v-model:transcaleV="transcaleV" v-model:transition="transition" />
         </g>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">

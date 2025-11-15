@@ -6,7 +6,7 @@
 function break_number({ extend = 0, step, minor = false } = {}) {
     return function ({ min, max } = {}) {
         let interval = max - min
-        if (interval < 0) return []
+        if (isNaN(interval) || interval < 0) return []
         if (interval == 0) return [min]
         min -= interval * extend
         max += interval * extend
@@ -28,7 +28,7 @@ function break_number({ extend = 0, step, minor = false } = {}) {
 function break_datetime({ extend = 0 } = {}) {
     return function ({ min, max } = {}) {
         let interval = max - min
-        if (interval < 0) return []
+        if (isNaN(interval) || interval < 0) return []
         if (interval == 0) return [new Date(min)]
         let s = new Date(min - interval * extend),
             e = new Date(max + interval * extend)

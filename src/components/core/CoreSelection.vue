@@ -7,7 +7,7 @@ const { coord2pos, pos2coord, layout, theme, ...config } = defineProps({
     pos2coord: Function,
     layout: Object,
     theme: Object,
-    move: Boolean, resize: Boolean,
+    move: Boolean, resize: Boolean, dismissible: Boolean,
     xmin: Number, xmax: Number, ymin: Number, ymax: Number, x: Boolean, y: Boolean,
     ctrlKey: Boolean, shiftKey: Boolean, altKey: Boolean, metaKey: Boolean,
     buttons: Number,

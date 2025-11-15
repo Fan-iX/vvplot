@@ -7,13 +7,13 @@ import { numutils } from './utils'
 
 function compare(a, b) {
     if (typeof a != 'number' || typeof b != 'number')
-        return a.toString().localeCompare(b.toString())
+        return String(a).localeCompare(String(b))
     return a > b ? 1 : a < b ? -1 : 0
 }
 
 function naturalCompare(a, b) {
     if (typeof a != 'number' || typeof b != 'number')
-        return a.toString().localeCompare(b.toString(), undefined, { numeric: true })
+        return String(a).localeCompare(String(b), undefined, { numeric: true })
     return a > b ? 1 : a < b ? -1 : 0
 }
 
@@ -52,10 +52,10 @@ class GEnumLevel {
             x = Array.from(x)
         }
         if (Array.isArray(x)) {
-            let lvl = Array.from(new Set(x.map(x => x.toString()))).sort(naturalCompare)
+            let lvl = Array.from(new Set(x.map(x => String(x)))).sort(naturalCompare)
             return new this(lvl)
         } else if (typeof x === 'object') {
-            let lvl = Object.keys(x).map(x => x.toString()).sort((a, b) => compare(x[a], x[b]))
+            let lvl = Object.keys(x).map(x => String(x)).sort((a, b) => compare(x[a], x[b]))
             return new this(lvl)
         }
         throw new Error(`Invalid level values: ${x}`)
@@ -212,7 +212,8 @@ class GLayer {
             data = stat(data, $$args || {})
             data.$group = data.$group ?? data.group
             if (data.$group == null) {
-                let length = Object.values(data)?.[0]?.length ?? 0
+                let length = Object.values(data).filter(v => Array.isArray(v))
+                    .reduce((acc, cur) => Math.max(acc, cur.length), 0)
                 data.$group = new Array(length).fill(null)
             }
         } catch (e) {
