@@ -12,6 +12,7 @@ const paths = {
     diamond: s => `M0-${s * 0.707}L${s * 0.707},0L0,${s * 0.707}L-${s * 0.707},0Z`,
     square: s => `M-${s / 2}-${s / 2}H${s / 2}V${s / 2}H-${s / 2}Z`,
     plus: s => `M-${s / 10}-${s / 2}V-${s / 10}H-${s / 2}V${s / 10}H-${s / 10}V${s / 2}H${s / 10}V${s / 10}H${s / 2}V-${s / 10}H${s / 10}V-${s / 2}H-${s / 10}Z`,
+    corss: s => `M-${s * 0.283}-${s * 0.424}L-${s * 0.424}-${s * 0.283}L-${s * 0.141},0L-${s * 0.424},${s * 0.283}L-${s * 0.283},${s * 0.424}L0,${s * 0.141}L${s * 0.283},${s * 0.424}L${s * 0.424},${s * 0.283}L${s * 0.141},0L${s * 0.424},-${s * 0.283}L${s * 0.283},-${s * 0.424}L0,-${s * 0.141}Z`,
 }
 const vBind = computed(() => ({
     width: layout.fullWidth * (1 + extendX * 2),
@@ -35,7 +36,7 @@ const layerCanvas = computed(() => {
             shape, color, stroke, linewidth, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
-            const { x: cx, y: cy } = coord2pos({ x: x, y: y })
+            const { h: cx, v: cy } = coord2pos({ x, y })
             const path2d = new Path2D()
             if (String(shape).startsWith("path:")) {
                 path2d.addPath(

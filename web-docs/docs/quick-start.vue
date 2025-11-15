@@ -18,11 +18,11 @@ const render = ref('canvas')
                 VVPlot uses a Vue-based, <i>Grammar of Graphics</i> style syntax to build plots.
             </p>
             <hr>
-            <pre class="code">{{templates[1] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre><code class="html">{{templates[1] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Petal_Length" :color="d => d.Species" />
     <VVAxisX title="Petal Width" />
     <VVAxisY title="Petal Length" />
-</VVPlot>` }}</pre>
+</VVPlot>` }}</code></pre>
             <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             </hr>
@@ -42,8 +42,7 @@ const render = ref('canvas')
             </p>
             <details>
                 <summary>The <code>iris</code> data set</summary>
-                <pre
-                    class="code max-h-48">iris = [{{iris.map(d => '\n    ' + JSON.stringify(d)).join(',') + '\n'}}]</pre>
+                <pre><code class="javascript overflow-auto max-h-48">iris = [{{iris.map(d => '\n    ' + JSON.stringify(d)).join(',') + '\n'}}]</code></pre>
             </details>
             <h4>Layer declaration</h4>
             <p>
@@ -151,14 +150,14 @@ const render = ref('canvas')
                 The same applies to y-axis, which will be drawn at the left of the plot by default.
             </p>
             <hr>
-            <pre class="code">{{templates[2] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre><code class="html">{{templates[2] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" :alpha="0.5" bins="20"
         :scales="{ fill: vvscale.fill.hue({ l: 60 }) }"
         style="cursor: pointer;"/>
     <VVAxisX :limits="{min: 0}" :breaks="[0, 0.5, 1, 1.5, 2, 2.5]" />
     <VVAxisY :expand-mult="{max: 0.1}" primary />
     <VVAxisY position="right" />
-</VVPlot>` }}</pre>
+</VVPlot>` }}</code></pre>
             <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -214,7 +213,7 @@ const render = ref('canvas')
                     </ul>
                 </li>
                 <li>
-                    Two <strong>axis</strong> components <code>&lt;VVAxisY /&gt;</code> draws y-axes on the left and
+                    Two axis components <code>&lt;VVAxisY /&gt;</code> draws y-axes on the left and
                     right sides of the plot.
                     <ul>
                         <li>
@@ -247,14 +246,16 @@ const render = ref('canvas')
             <p>
                 To use a built-in theme, you need to import it from the <code>vvplot/theme</code> module.
             </p>
-            <pre class="code">import vvtheme from 'vvplot/theme'</pre>
+            <pre><code class="html">import vvtheme from 'vvplot/theme'</code></pre>
             <p>
-                Then pass the theme object to the <code>theme</code> property of <code>&lt;VVPlot&gt;</code>:
+                You can provide a single theme object or an array of theme objects to the <code>theme</code> property of
+                <code>&lt;VVPlot&gt;</code>:
             </p>
             <hr>
-            <pre class="code">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" :theme="vvtheme.gray">
+            <pre><code class="html">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" 
+    :theme="[vvtheme.gray, { axis_x: { line_color: 'blue' } }]">
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" bins="15"/>
-</VVPlot>` }}</pre>
+</VVPlot>` }}</code></pre>
             <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -265,19 +266,19 @@ const render = ref('canvas')
             <h3>Make the plot interactive</h3>
             <p>
                 VVPlot uses an declarative approach to add interactivity to plots.
-                The <strong>action component</strong> <code>&lt;VVAction /&gt;</code> is used to declare interactive
-                behaviors.
+                The <strong>action component</strong> <code>&lt;VVAction /&gt;</code> and
+                <strong>selection component</strong> <code>&lt;VVSelection /&gt;</code>
+                are used to declare interactive behaviors.
             </p>
             <p>
                 <code>&lt;VVAction /&gt;</code> can be placed inside the plot or within an axis.
             </p>
             <p>
-                There are 4 available <strong>plot actions</strong> and 4 available <strong>axis actions</strong>,
-                which are: <code>move</code>, <code>nudge</code>, <code>zoom</code>, <code>rescale</code> (axis only)
-                and <code>select</code> (plot only).
+                There are 3 available <strong>plot actions</strong> and 4 available <strong>axis actions</strong>,
+                which are: <code>move</code>, <code>nudge</code>, <code>zoom</code>, <code>rescale</code> (axis only).
             </p>
             <hr>
-            <pre class="code">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre><code class="html">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
     <VVAxisX position="center" :extend="1">
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
@@ -286,12 +287,12 @@ const render = ref('canvas')
     <VVAxisY :position="0" :extend="1">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
-    <VVAction select />
+    <VVSelection />
     <VVAction nudge shift x />
     <VVAction nudge y />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
     <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" ctrl />
-</VVPlot>` }}</pre>
+</VVPlot>` }}</code></pre>
             <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -330,9 +331,6 @@ const render = ref('canvas')
                     plot actions that are bound to the whole plot.
                     <ul>
                         <li>
-                            The <code>select</code> action allows the creation of a selection range for the plot.
-                        </li>
-                        <li>
                             The <code>nudge</code> action allows <strong>moving</strong> the plot view via mouse scroll.
                             The <code>x</code> and <code>y</code> propertys restrict the nudge direction to horizontal
                             and vertical respectively.
@@ -354,6 +352,10 @@ const render = ref('canvas')
                             action to be activated only when the right mouse button is held down.
                         </li>
                     </ul>
+                </li>
+                <li>
+                    The <code>&lt;VVSelection /&gt;</code> declaration allows the creation of a selection range for the
+                    plot.
                 </li>
             </ul>
             <p>
@@ -405,11 +407,11 @@ const render = ref('canvas')
                     <option value="svg">SVG</option>
                 </select>
             </label>
-            <pre class="code">{{templates[5] = `<VVPlot :width="600" :height="400">
+            <pre><code class="html">{{templates[5] = `<VVPlot :width="600" :height="400">
     <VVGeomPoint :data="Array.from({length: 30000}, ()=>({x:Math.random(),y:Math.random()}))"
         :x="d => d.x" :y="d => d.y" size="2" render="${render}"/>
     <VVAction zoom move />
-</VVPlot>` }}</pre>
+</VVPlot>` }}</code></pre>
             <component :is="{ template: templates[5], props: Object.keys(vBind).concat('render') }" v-bind="vBind"
                 :render="render" class="mx-auto" />
         </section>

@@ -18,15 +18,15 @@ const majorLines = computed(() => {
     let result = []
     for (let line of majorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ x: line.position }).x + layout.l + translate
+        let position = coord2pos({ h: line.position }).h + layout.l + translate
         if (transcale?.ratio != null)
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         result.push({
             y1: 0, y2: height.value,
             x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_major ?? theme.line_color,
-            'stroke-width': line.width ?? theme.line_width_major ?? theme.line_width,
+            'stroke': line.color ?? theme.line_color_major,
+            'stroke-width': line.width ?? theme.line_width_major ?? 0,
         })
     }
     return result.filter(l => l.stroke !== null)
@@ -35,23 +35,23 @@ const minorLines = computed(() => {
     let result = []
     for (let line of minorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ x: line.position }).x + layout.l + translate
+        let position = coord2pos({ h: line.position }).h + layout.l + translate
         if (transcale?.ratio != null)
             position = position * transcale.ratio + (1 - transcale.ratio) * (transcale.origin ?? 0.5) * width.value
         if (position < 0 || position > width.value) continue
         result.push({
             y1: 0, y2: height.value,
             x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_minor ?? theme.line_color,
-            'stroke-width': line.width ?? theme.line_width_minor ?? theme.line_width,
+            'stroke': line.color ?? theme.line_color_minor,
+            'stroke-width': line.width ?? theme.line_width_minor ?? 0,
         })
     }
-    return result.filter(l => l.stroke !== null)
+    return result.filter(l => l.stroke !== null && majorLines.value.every(ml => ml.x1 !== l.x1))
 })
 </script>
 <template>
     <g>
-        <line v-for="line in majorLines" v-bind="line" />
         <line v-for="line in minorLines" v-bind="line" />
+        <line v-for="line in majorLines" v-bind="line" />
     </g>
 </template>

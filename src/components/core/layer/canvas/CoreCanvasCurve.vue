@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
+import * as d3 from 'd3'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -25,21 +26,29 @@ const layerCanvas = computed(() => {
     let path_data = new Map()
     for (const group of data) {
         for (let {
-            x, y, xend, yend,
-            color, linewidth, alpha, linetype,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+            points, fill = "none", color = 'black', linewidth, linetype, alpha,
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
+            interpolate
         } of group) {
-            if (color === 'transparent') continue
-            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
-            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
+            points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
+            if (points.length === 0) continue
             const path2d = new Path2D()
-            path2d.moveTo(x1 + translateX, y1 + translateY)
-            path2d.lineTo(x2 + translateX, y2 + translateY)
+            let interpolatorFn = interpolators[interpolate] ?? d3.curveNatural
+            let interpolator = interpolatorFn(path2d)
+            interpolator.lineStart()
+            for (let i = 0; i < points.length; i++) {
+                interpolator.point(points[i].x + translateX, points[i].y + translateY)
+            }
+            interpolator.lineEnd()
             path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.setLineDash(parseLineType(linetype))
-            if (color !== "none") {
+            if (fill !== 'none') {
+                ctx.fillStyle = fill
+                ctx.fill(path2d)
+            }
+            if (color != null) {
                 ctx.strokeStyle = color
                 ctx.stroke(path2d)
             }
@@ -62,6 +71,12 @@ watch(layerCanvas, (node) => containerRef.value.replaceChildren(node))
 defineExpose({
     dispatchEvent: (event) => layerCanvas.value?.dispatchEvent?.(event)
 })
+const interpolators = {
+    cardinal: d3.curveCardinal,
+    catmullRom: d3.curveCatmullRom,
+    linear: d3.curveLinear,
+    natural: d3.curveNatural,
+}
 function parseLineType(linetype) {
     if (linetype == null) return []
     if (Array.isArray(linetype)) return linetype

@@ -47,7 +47,7 @@ const templates = {
     economics: `<VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
     <VVAction move rescale zoom />
 </VVAxisY>
-<VVAxisX position="10%" :theme="{ ticks_length: 3, text_angle: 45, ticks_anchor_x: 0 }"
+<VVAxisX position="10%" :theme="{ tick_length: 3, text_angle: 45, tick_anchor_x: 0 }"
     :show-grid="false" :extend="0.5">
     <VVAction move rescale zoom />
 </VVAxisX>
@@ -170,7 +170,7 @@ function doRender() {
             </div>
         </div>
 
-        <pre class="code leading-none">{{ `<VVPlot :width="${width}" :height="${height}" :data="${dataKey}">\n` }}<textarea
+        <pre class="bg-[#f8f8f8] p-4 rounded-xl leading-none">{{ `<VVPlot :width="${width}" :height="${height}" :data="${dataKey}">\n` }}<textarea
             ref="textarea" v-model="input" class="pl-[4ch] w-full resize-none"></textarea>{{ `\n</VVPlot>` }}</pre>
         <div class="flex justify-between">
             <div class="text-red-500">{{ errMessage }}</div>
@@ -182,12 +182,15 @@ function doRender() {
             <summary>data preview</summary>
             <div class="overflow-auto">
                 <table class="table-auto border-collapse">
-                    <tr>
-                        <th v-for="col in colnames" class="p-1 border border-slate-400">{{ col }}</th>
-                    </tr>
-                    <tr v-for="row in data.slice(0, 5)">
-                        <td v-for="col in colnames" class="p-1 border border-slate-400 text-center">{{ row[col] }}</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <th v-for="col in colnames" class="p-1 border border-slate-400">{{ col }}</th>
+                        </tr>
+                        <tr v-for="row in data.slice(0, 5)">
+                            <td v-for="col in colnames" class="p-1 border border-slate-400 text-center">{{ row[col] }}
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </details>

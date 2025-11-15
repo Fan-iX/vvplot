@@ -1,6 +1,15 @@
 <script setup>
 import '#base/style.css'
-import { ref } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
+import 'highlight.js/styles/github.css'
+import hljs from 'highlight.js/lib/core'
+import xml from 'highlight.js/lib/languages/xml'
+import javascript from 'highlight.js/lib/languages/javascript'
+import json from 'highlight.js/lib/languages/json'
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('json', json)
+
 const page = ref(window.location.hash.slice(1) || 'home')
 
 import playground from './playground.vue'
@@ -10,12 +19,18 @@ import layer from './docs/layer.vue'
 import theme from './docs/theme.vue'
 import gallery from './docs/gallery.vue'
 import axis from './docs/axis.vue'
+import scale from './docs/scale.vue'
 import action from './docs/action.vue'
 
-const pages = { home, quick_start, layer, theme, axis, action, gallery, playground }
+const pages = { home, quick_start, layer, theme, axis, scale, action, gallery, playground }
+
+onMounted(() => {
+    nextTick(() => hljs.highlightAll())
+})
 
 window.addEventListener('hashchange', () => {
     page.value = window.location.hash.slice(1) || 'home'
+    nextTick(() => hljs.highlightAll())
 })
 </script>
 <template>
@@ -46,5 +61,23 @@ select {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.doc-demo-table {
+    .vvplot {
+        width: 300px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding-inline: 8px;
+    }
+
+    th {
+        padding-block: 8px;
+    }
 }
 </style>

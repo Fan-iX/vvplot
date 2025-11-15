@@ -2,21 +2,21 @@
 import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
-    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontSize
+    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontSize, textLength
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
-    text: String, title: String, size: Number, color: String,
+    text: null, title: null, size: Number, color: String,
     stroke: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 },
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
     anchorX: Number, anchorY: Number, dockX: Number, dockY: Number,
-    fontSize: Number,
+    fontSize: Number, textLength: Number,
 })
 const ele = useTemplateRef('ele')
 const textBox = reactive({ width: 0, height: 0 })
 watch(
-    [ele, () => fontSize, () => size, () => text],
+    [ele, () => fontSize, () => size, () => text, () => textLength],
     async ([e]) => {
         if (!e) return
         await nextTick()
@@ -27,16 +27,7 @@ watch(
 )
 const binds = computed(() => {
     let transform
-    if (anchorX != null || anchorY != null) {
-        let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
-            alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
-        if (isNaN(alnX)) alnX = 0.5
-        if (isNaN(alnY)) alnY = 0.5
-        let w = textBox.width, h = textBox.height,
-            dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
-            dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
-        transform = `rotate(${angle}) translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
-    } else if (dockX != null || dockY != null) {
+    if (dockX != null || dockY != null) {
         let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
         if (isNaN(alnX)) alnX = 0.5
@@ -45,6 +36,15 @@ const binds = computed(() => {
             h = textBox.width * Math.abs(Math.sin(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.cos(angle * Math.PI / 180)),
             dx = translateX, dy = translateY
         transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy}) rotate(${angle})`
+    } else {
+        let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+            alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+        if (isNaN(alnX)) alnX = 0.5
+        if (isNaN(alnY)) alnY = 0.5
+        let w = textBox.width, h = textBox.height,
+            dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
+            dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
+        transform = `rotate(${angle}) translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
     }
     return {
         x, y,
@@ -55,6 +55,8 @@ const binds = computed(() => {
         'stroke-dasharray': parseLineType(linetype),
         'stroke-opacity': alpha,
         transform,
+        textLength,
+        lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
         'transform-origin': `${x} ${y}`,
     }
 })
@@ -76,7 +78,7 @@ function parseLineType(linetype) {
     <text ref="ele" text-anchor="middle" dominant-baseline="central" v-bind="binds"
         :font-size="(fontSize ?? size * 4) || null">
         <slot>
-            <title v-if="title ?? text">{{ title ?? text }}</title>
+            <title v-if="title">{{ title }}</title>
             {{ text }}
         </slot>
     </text>

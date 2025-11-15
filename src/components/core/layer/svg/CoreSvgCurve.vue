@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import CoreText from '../../element/CoreText.vue'
+import CoreCurve from '../../element/CoreCurve.vue'
 const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -14,26 +14,17 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        x, y, size = 4, label, title,
-        color, stroke, linewidth, linetype, alpha,
-        'anchor-x': anchorX, 'anchor-y': anchorY,
-        'dock-x': dockX, 'dock-y': dockY,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        angle, 'text-length': textLength, $raw
+        points, fill = "none", color = 'black', linewidth, linetype, alpha,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        const { h: tx, v: ty } = coord2pos({ x, y })
-        if (tx < xlim_min || tx > xlim_max || ty < ylim_min || ty > ylim_max) return null
-        if (typeof (textLength) == "object") {
-            let { x: lx = 0, y: ly = 0 } = textLength
-            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
-                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
-            textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
-        }
+        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
+        if (
+            points.every(p => p.x < xlim_min) || points.every(p => p.x > xlim_max) ||
+            points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)
+        ) return null
         let result = {
-            x: tx, y: ty, text: String(label), title: String(title ?? label),
-            size, color, stroke, linetype, linewidth, alpha,
-            angle, translateX, translateY,
-            anchorX, anchorY, dockX, dockY, textLength,
+            points, fill, color, linetype, linewidth, alpha,
+            translateX, translateY,
             onClick: (e) => emit('click', e, $raw),
             onContextmenu: (e) => emit('contextmenu', e, $raw),
             onPointerover: (e) => emit('pointerover', e, $raw),
@@ -46,13 +37,15 @@ const binds = computed(() => {
             onWheel: (e) => emit('wheel', e, $raw),
         }
         return result
-    }).filter(x => x?.text != null))
+    }).filter(x => x != null))
 })
 </script>
 <template>
     <g>
         <g v-for="group in binds">
-            <CoreText v-bind="item" v-for="item in group" />
+            <template v-for="item in group">
+                <CoreCurve v-bind="item" />
+            </template>
         </g>
     </g>
 </template>

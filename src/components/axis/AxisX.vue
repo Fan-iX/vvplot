@@ -1,6 +1,6 @@
 <script>
 export default {
     $_type: 'axis',
-    $_props: { type: 'x' }
+    $_props: { coord: 'x' }
 }
 </script>

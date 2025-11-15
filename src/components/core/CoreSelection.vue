@@ -1,79 +1,105 @@
 <script setup>
 import { computed } from 'vue'
-import { extractModifier } from '#base/js/utils'
-const selection = defineModel("selection")
-const { coord2pos, pos2coord, layout, action } = defineProps({
+import { oob_squish_any, dropNull } from '#base/js/utils'
+const model = defineModel({ default: () => ({}) })
+const { coord2pos, pos2coord, layout, theme, ...config } = defineProps({
     coord2pos: Function,
     pos2coord: Function,
     layout: Object,
-    action: Array,
+    theme: Object,
+    move: Boolean, resize: Boolean, dismissible: Boolean,
+    xmin: Number, xmax: Number, ymin: Number, ymax: Number, x: Boolean, y: Boolean,
+    ctrlKey: Boolean, shiftKey: Boolean, altKey: Boolean, metaKey: Boolean,
+    buttons: Number,
 })
 
 const borderBind = computed(() => {
-    if (selection.value == null || selection.value.hidden) return {}
-    if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => selection.value?.[k] == null)) return {}
+    if (model.value == null || model.value.hidden) return {}
+    if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => model.value?.[k] == null)) return {}
     let size = 10
-    let { xmin, xmax, ymin, ymax } = coord2pos(selection.value),
-        pos = coord2pos(selection.value, { unlimited: true })
-    if (xmin != null && xmax != null) [xmin, xmax] = [xmin, xmax].sort((a, b) => a - b)
-    if (ymin != null && ymax != null) [ymin, ymax] = [ymin, ymax].sort((a, b) => a - b)
-    let width = xmax - xmin, height = ymax - ymin
-    let binds = {
-        // tblr: { x: xmin, y: ymin, width, height, fill: "black", 'fill-opacity': 0.1, class: "cursor-move" },
-        "": { x: xmin, y: ymin, width, height, fill: "black", 'fill-opacity': 0.1, class: "pointer-events-none" }
+    let { hmin, hmax, vmin, vmax } = coord2pos(model.value, { limited: true }),
+        pos = coord2pos(model.value)
+    if (hmin != null && hmax != null) [hmin, hmax] = [hmin, hmax].sort((a, b) => a - b)
+    if (vmin != null && vmax != null) [vmin, vmax] = [vmin, vmax].sort((a, b) => a - b)
+    let width = hmax - hmin, height = vmax - vmin
+    let binds = {}
+    binds[config.move ? "tblr" : ""] = {
+        x: hmin, y: vmin, width, height,
+        fill: theme?.background ?? "#00000020",
+        'fill-opacity': theme?.opacity,
+        stroke: theme?.line_color ?? "transparent",
+        'stroke-width': theme?.line_width,
+        'stroke-opacity': theme?.opacity,
+        class: config.move ? "cursor-move" : "pointer-events-none"
     }
-    if (action == null) return binds
-    if (pos.xmin != null)
-        binds.l = { x: xmin - size / 2, y: ymin, width: size, height, class: "cursor-ew-resize" }
-    if (pos.xmax != null)
-        binds.r = { x: xmax - size / 2, y: ymin, width: size, height, class: "cursor-ew-resize" }
-    if (pos.ymin != null)
-        binds.t = { x: xmin, y: ymin - size / 2, width, height: size, class: "cursor-ns-resize" }
-    if (pos.ymax != null)
-        binds.b = { x: xmin, y: ymax - size / 2, width, height: size, class: "cursor-ns-resize" }
-    if (pos.xmin != null && pos.ymin != null)
-        binds.tl = { x: xmin - size / 2, y: ymin - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
-    if (pos.xmax != null && pos.ymin != null)
-        binds.tr = { x: xmax - size / 2, y: ymin - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
-    if (pos.xmin != null && pos.ymax != null)
-        binds.bl = { x: xmin - size / 2, y: ymax - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
-    if (pos.xmax != null && pos.ymax != null)
-        binds.br = { x: xmax - size / 2, y: ymax - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
+    if (config.resize) {
+        if (pos.hmin != null)
+            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, class: "cursor-ew-resize" }
+        if (pos.hmax != null)
+            binds.r = { x: hmax - size / 2, y: vmin, width: size, height, class: "cursor-ew-resize" }
+        if (pos.vmin != null)
+            binds.t = { x: hmin, y: vmin - size / 2, width, height: size, class: "cursor-ns-resize" }
+        if (pos.vmax != null)
+            binds.b = { x: hmin, y: vmax - size / 2, width, height: size, class: "cursor-ns-resize" }
+        if (pos.hmin != null && pos.vmin != null)
+            binds.tl = { x: hmin - size / 2, y: vmin - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
+        if (pos.hmax != null && pos.vmin != null)
+            binds.tr = { x: hmax - size / 2, y: vmin - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
+        if (pos.hmin != null && pos.vmax != null)
+            binds.bl = { x: hmin - size / 2, y: vmax - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
+        if (pos.hmax != null && pos.vmax != null)
+            binds.br = { x: hmax - size / 2, y: vmax - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
+    }
     return binds
 })
 
 const emit = defineEmits(['select', 'selecting'])
 function selPointerdown(e, dir) {
-    let act = action.find(a => a.action == "select" && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
-    if (!act) return
+    if (!["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => config[k] == e[k])) return
     e.stopPropagation()
     e.preventDefault()
     e.target.setPointerCapture(e.pointerId)
-    let pos0 = coord2pos(selection.value, { unlimited: true })
-    let { xmin: x1, xmax: x2, ymin: y1, ymax: y2 } = pos0
+    let pos0 = coord2pos(model.value, { unlimited: true })
+    let { hmin: hmin0, hmax: hmax0, vmin: vmin0, vmax: vmax0 } = pos0
+    let pointerMoved = false
+    let boundary = coord2pos(config, { unlimited: true }),
+        hboundary = { min: boundary.hmin, max: boundary.hmax },
+        vboundary = { min: boundary.vmin, max: boundary.vmax }
+    let movementX = 0, movementY = 0, h1, h2, v1, v2
     e.target.onpointermove = (ev) => {
-        if (dir.includes('l') && x1 != null) x1 += ev.movementX
-        if (dir.includes('r') && x2 != null) x2 += ev.movementX
-        if (dir.includes('t') && y1 != null) y1 += ev.movementY
-        if (dir.includes('b') && y2 != null) y2 += ev.movementY
-        let [xmin, xmax] = x1 > x2 ? [x2, x1] : [x1, x2]
-        let [ymin, ymax] = y1 > y2 ? [y2, y1] : [y1, y2]
-        let coord = { xmin, xmax, ymin, ymax }
-        emit('selecting', pos2coord(coord))
+        pointerMoved = true
+        movementX += ev.movementX
+        movementY += ev.movementY
+        if (dir == "tblr") {
+            let dh = oob_squish_any(movementX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
+            let dv = oob_squish_any(movementY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
+            if (hmin0 != null) h1 = hmin0 + dh
+            if (hmax0 != null) h2 = hmax0 + dh
+            if (vmin0 != null) v1 = vmin0 + dv
+            if (vmax0 != null) v2 = vmax0 + dv
+        } else {
+            h1 = dir.includes('l') && hmin0 != null ? oob_squish_any(hmin0 + movementX, hboundary) : hmin0
+            h2 = dir.includes('r') && hmax0 != null ? oob_squish_any(hmax0 + movementX, hboundary) : hmax0
+            v1 = dir.includes('t') && vmin0 != null ? oob_squish_any(vmin0 + movementY, vboundary) : vmin0
+            v2 = dir.includes('b') && vmax0 != null ? oob_squish_any(vmax0 + movementY, vboundary) : vmax0
+        }
+        let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: h1, hmax: h2, vmin: v1, vmax: v2 })
+        emit('selecting', { modelValue: { xmin, xmax, ymin, ymax }, theme })
     }
-    e.target.onpointerup = (ev) => {
-        e.target.onpointermove = null
-        e.target.onpointerup = null
-        let [xmin, xmax] = x1 > x2 ? [x2, x1] : [x1, x2]
-        let [ymin, ymax] = y1 > y2 ? [y2, y1] : [y1, y2]
-        let coord = { xmin, xmax, ymin, ymax }
-        let pos = pos2coord(coord)
-        selection.value = pos
-        let res = extractModifier(ev)
-        res.type = "resize"
-        Object.assign(res, pos)
+    e.target.onclick = (ev) => {
+        ev.currentTarget.onpointermove = null
+        ev.currentTarget.onclick = null
+        if (!pointerMoved) return
+        let [hmin, hmax] = h1 > h2 ? [h2, h1] : [h1, h2]
+        let [vmin, vmax] = v1 > v2 ? [v2, v1] : [v1, v2]
+        let { xmin, xmax, ymin, ymax } = pos2coord({ hmin, hmax, vmin, vmax })
+        let xreverse = Boolean((h1 > h2) ^ model.value.xreverse),
+            yreverse = Boolean((v1 > v2) ^ model.value.yreverse)
+        let res = { xmin, xmax, xreverse, ymin, ymax, yreverse },
+            event = new PointerEvent("select", e)
+        model.value = dropNull(res)
         emit('selecting', null)
-        emit('select', res)
+        emit('select', dropNull(res), event)
     }
 }
 </script>

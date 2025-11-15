@@ -1,7 +1,24 @@
 import * as d3 from 'd3'
+import { oob_censor, oob_squish_any, oob_squish_infinite } from './utils.js'
+
+export const oob = {
+    censor: oob_censor,
+    squish(value, { min, max }) {
+        if (!isFinite(value)) return value
+        if (value < min) return min
+        if (value > max) return max
+        return value
+    },
+    squish_any: oob_squish_any,
+    squish_infinite: oob_squish_infinite,
+    discard(value, { min, max }) {
+        if (value < min || value > max) return null
+        return value
+    },
+}
 
 function manual_scale({
-    values,
+    values = {},
     na_value = null,
     title, ...etc
 } = {}) {
@@ -19,46 +36,48 @@ function manual_scale({
 }
 
 function continuous_scale({
-    limits,
+    limits, oob = oob_censor,
     range = [0, 1],
     na_value = null, null_value = null,
     title, ...etc
 } = {}) {
     let fn = function (arr) {
-        let scale_min = this?.limits?.[0] ?? arr.extent?.[0],
-            scale_max = this?.limits?.[1] ?? arr.extent?.[1],
+        let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
+            scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
             scale_interval = scale_max - scale_min,
-            [range_min, range_max] = range, range_interval = range_max - range_min
+            range_min = range?.min ?? range[0], range_max = range?.max ?? range[1],
+            range_interval = range_max - range_min
         return arr.map(v => {
+            v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
             if (isNaN(v)) return na_value
             return range_min + (v - scale_min) / scale_interval * range_interval
         })
     }
-    return Object.assign(fn, { title }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_hue({
     h = [15, 375], c = 100, l = 65, h_start = 0,
     direction = 1,
-    limits,
-    na_value = "#7f7f7f",
+    limits, oob = oob_censor,
+    na_value = "#7f7f7f", null_value = null,
     title, ...etc
 } = {}) {
     let fn = function (arr) {
-        let scale_min = this?.limits?.[0] ?? arr.extent?.[0],
-            scale_max = this?.limits?.[1] ?? arr.extent?.[1],
+        let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
+            scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
             scale_interval = scale_max - scale_min,
-            [h_min, h_max] = h, h_interval = h_max - h_min
+            h_min = h?.min ?? h[0], h_max = h?.max ?? h[1],
+            h_interval = h_max - h_min
         return arr.map(v => {
-            if (isNaN(v)) {
-                return na_value
-            } else {
-                return d3.hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l).toString()
-            }
+            v = this.oob(v, { min: scale_min, max: scale_max })
+            if (v === null) return null_value
+            if (isNaN(v)) return na_value
+            return d3.hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l).toString()
         })
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_manual({
@@ -72,15 +91,17 @@ function palette_scale_manual({
 function palette_scale_gradient({
     low = "#132B43",
     high = "#56B1F7",
-    limits,
-    na_value = "#7f7f7f",
+    limits, oob = oob_censor,
+    na_value = "#7f7f7f", null_value = null,
     title, ...etc
 } = {}) {
     let fn = function (arr) {
-        let scale_min = this?.limits?.[0] ?? arr.extent?.[0],
-            scale_max = this?.limits?.[1] ?? arr.extent?.[1],
+        let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
+            scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
             scale = d3.interpolateLab(low, high)
         return arr.map(v => {
+            v = this.oob(v, { min: scale_min, max: scale_max })
+            if (v === null) return null_value
             if (isNaN(v)) return na_value
             if (scale_min === scale_max) return scale(0.5)
             if (v > scale_max) return high
@@ -88,7 +109,7 @@ function palette_scale_gradient({
             return scale((v - scale_min) / (scale_max - scale_min))
         })
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_gradient2({
@@ -96,17 +117,19 @@ function palette_scale_gradient2({
     mid = "white",
     high = "#3A3A98",
     midpoint = 0,
-    limits,
-    na_value = "#7f7f7f",
+    limits, oob = oob_censor,
+    na_value = "#7f7f7f", null_value = null,
     title, ...etc
 } = {}) {
     let fn = function (arr) {
-        let scale_min = this?.limits?.[0] ?? arr.extent?.[0],
-            scale_max = this?.limits?.[1] ?? arr.extent?.[1],
+        let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
+            scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
             scale_mid = midpoint ?? (scale_min + scale_max) / 2,
             scale_low = d3.interpolateLab(low, mid),
             scale_high = d3.interpolateLab(mid, high)
         return arr.map(v => {
+            v = this.oob(v, { min: scale_min, max: scale_max })
+            if (v === null) return null_value
             if (isNaN(v)) return na_value
             if (v < scale_mid) {
                 return scale_low((v - scale_min) / (scale_mid - scale_min))
@@ -115,31 +138,37 @@ function palette_scale_gradient2({
             }
         })
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_gradientn({
     colors = [],
-    breaks,
-    limits,
-    na_value = "#7f7f7f",
+    values, anchors,
+    limits, oob = oob_censor,
+    na_value = "#7f7f7f", null_value = null,
     title, ...etc
 } = {}) {
     let fn = function (arr) {
-        let scale_min = this?.limits?.[0] ?? arr.extent?.[0],
-            scale_max = this?.limits?.[1] ?? arr.extent?.[1],
-            anchors = breaks || Array(colors.length).fill(0).map((_, i) => scale_min + (scale_max - scale_min) * i / (colors.length - 1)),
-            scale = d3.scaleLinear(anchors, colors)
+        let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
+            scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1]
+        let domain = anchors
+        if (domain == null && values != null)
+            domain = values.map(v => scale_min + (scale_max - scale_min) * v)
+        if (domain == null)
+            domain = Array(colors.length).fill(0).map((_, i) => scale_min + (scale_max - scale_min) * i / (colors.length - 1))
+        let scale = d3.scaleLinear(domain, colors)
         return arr.map(v => {
+            v = this.oob(v, { min: scale_min, max: scale_max })
+            if (v === null) return null_value
             if (isNaN(v)) return na_value
             return scale(v)
         })
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_auto({
-    limits,
+    limits, oob = oob_censor,
     title, ...etc
 } = {}) {
     let color_hue = palette_scale_hue(),
@@ -151,12 +180,12 @@ function palette_scale_auto({
             return color_gradient.call(this, arr)
         }
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 function palette_scale_dynamic({
     discrete, continuous,
-    limits,
+    limits, oob = oob_censor,
     title, ...etc
 } = {}) {
     if (discrete == null) discrete = palette_scale_hue()
@@ -168,7 +197,7 @@ function palette_scale_dynamic({
             return continuous.call(this, arr)
         }
     }
-    return Object.assign(fn, { title, limits }, etc)
+    return Object.assign(fn, { title, limits, oob }, etc)
 }
 
 const palette_scales = {
@@ -249,7 +278,7 @@ export default {
     },
     shape: {
         identity: scale_identity_string,
-        shape: shape_scale_discrete,
+        discrete: shape_scale_discrete,
         default: shape_scale_discrete,
     },
     custom(func, { title, ...etc } = {}) {

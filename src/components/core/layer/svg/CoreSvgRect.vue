@@ -6,7 +6,7 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -18,14 +18,14 @@ const binds = computed(() => {
         fill = 'black', color, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        ({ xmin, xmax, ymin, ymax } = coord2pos({ xmin, xmax, ymin, ymax }))
+        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
         if (
-            xmin < xlim_min && xmax < xlim_min || xmin > xlim_max && xmax > xlim_max ||
-            ymin < ylim_min && ymax < ylim_min || ymin > ylim_max && ymax > ylim_max
+            x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
+            y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
         let result = {
-            x: (xmin + xmax) / 2, width: xmax - xmin,
-            y: (ymin + ymax) / 2, height: ymax - ymin,
+            x: (x1 + x2) / 2, width: x2 - x1,
+            y: (y1 + y2) / 2, height: y2 - y1,
             fill, color, linetype, linewidth, alpha,
             translateX, translateY,
             onClick: (e) => emit('click', e, $raw),
@@ -37,6 +37,7 @@ const binds = computed(() => {
             onPointerdown: (e) => emit('pointerdown', e, $raw),
             onPointerup: (e) => emit('pointerup', e, $raw),
             onPointermove: (e) => emit('pointermove', e, $raw),
+            onWheel: (e) => emit('wheel', e, $raw),
         }
         return result
     }).filter(x => x != null))
@@ -45,9 +46,7 @@ const binds = computed(() => {
 <template>
     <g>
         <g v-for="group in binds">
-            <template v-for="item in group">
-                <CoreTile v-bind="item" />
-            </template>
+            <CoreTile v-bind="item" v-for="item in group" />
         </g>
     </g>
 </template>

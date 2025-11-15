@@ -9,6 +9,29 @@ export const numutils = {
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
     },
+    mean(arr, { na_rm = true, infinity_rm = true } = {}) {
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        if (arr.length == 0) return NaN
+        return Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
+    },
+    sd(arr, { na_rm = true, infinity_rm = true } = {}) {
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        if (arr.length <= 1) return NaN
+        let mean = Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
+        return Math.sqrt(Array.from(arr).reduce((a, v) => a + (v - mean) ** 2, 0) / (arr.length - 1))
+    },
+    quantile(arr, p, { na_rm = true, infinity_rm = true } = {}) {
+        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        if (arr.length == 0) return NaN
+        arr = Array.from(arr).sort((a, b) => a - b)
+        let idx = (arr.length - 1) * p,
+            lo = Math.floor(idx), hi = Math.ceil(idx)
+        if (lo == hi) return arr[lo]
+        return arr[lo] * (hi - idx) + arr[hi] * (idx - lo)
+    },
     extent(arr, { na_rm = true, infinity_rm = true } = {}) {
         if (arr.length == 0) return []
         if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
@@ -20,6 +43,7 @@ export const numutils = {
 }
 
 export const vecutils = {
+    /* vectorized summation of numbers */
     sum(...values) {
         if (values.some(x => x == null)) return null
         if (values.some(x => !Array.isArray(x) && typeof x != 'number'))
@@ -35,6 +59,7 @@ export const vecutils = {
             throw new Error('Arrays must have the same length')
         return Array.from({ length }, (_, i) => values.reduce((s, a) => +a[i] + s, nums))
     },
+    /* vectorized opposite of numbers */
     opposite(value) {
         if (value == null) return null
         if (!Array.isArray(value) && typeof value != 'number')
@@ -43,6 +68,7 @@ export const vecutils = {
             return value.map(v => v == null ? v : -v)
         return -value
     },
+    /* vectorized concat of strings */
     concat(...values) {
         if (values.some(x => x == null)) return null
         let arrs = values.filter(x => Array.isArray(x))
@@ -65,44 +91,102 @@ export const vecutils = {
  */
 export function obj_merge(arr) {
     arr = arr.filter(x => x !== undefined)
+    if (arr.length == 0) return undefined
     arr = arr.slice(arr.findIndex(x => x == null) + 1)
     if (arr.length == 0) return null
     return arr.reduce((a, c) => Object.assign(a, c), {})
 }
 
-export function str_c() {
-    let args = Array.from(arguments)
+/**
+ * concatenate strings, with special handling of `undefined` and `null`
+ * - if any argument is `undefined`, return `undefined`
+ * - else if any argument is `null`, return `null`
+ * - else return concatenated string
+ * @param  {...(string|undefined|null)} args
+ * @returns {string|undefined|null}
+ */
+export function str_c(...args) {
     if (args.some(x => x === undefined)) return undefined
     if (args.some(x => x === null)) return null
     return args.join('')
 }
 
+/**
+ * return unique values in an array
+ * @param {Array} arr 
+ * @returns {Array}
+ */
 export function unique(arr) {
     if (arr == null) return []
     return Array.from(new Set(arr))
 }
 
-export function getListeners(attrs) {
-    let listeners = {}
-    for (let key in attrs) {
-        if (key.startsWith('on')) {
-            listeners[key] = attrs[key]
-        }
+export function emitEvent(handlers, ...args) {
+    if (Array.isArray(handlers)) {
+        handlers = handlers.filter(h => typeof h === "function")
+        if (handlers.length === 0) return false
+        handlers.forEach(h => h(...args))
+        return true
     }
-    return listeners
+    if (typeof handlers !== "function") return false
+    handlers(...args)
+    return true
+}
+/**
+ * turn out-of-bounds values to NaN
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
+export function oob_censor(value, { min, max }) {
+    if (value < min || value > max) return NaN
+    return value
+}
+/**
+ * turn out-of-bounds values to bounds
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
+export function oob_squish_any(value, { min, max }) {
+    if (value < min) return min
+    if (value > max) return max
+    return value
+}
+/**
+ * turn infinite values to bounds
+ * @param {number} value 
+ * @param {Object} option 
+ * @param {number} option.min lower bound
+ * @param {number} option.max upper bound
+ * @returns {number}
+ */
+export function oob_squish_infinite(value, { min, max }) {
+    if (value == -Infinity) return min
+    if (value == Infinity) return max
+    return value
 }
 
-export function extractModifier(event) {
-    return {
-        shiftKey: event.shiftKey,
-        ctrlKey: event.ctrlKey,
-        altKey: event.altKey,
-        metaKey: event.metaKey,
-        button: event.button,
-        buttons: event.buttons,
-    }
+/**
+ * drop null/undefined values from an object
+ * @param {Object} obj 
+ * @returns {Object}
+ */
+export function dropNull(obj) {
+    if(typeof obj !== 'object' || obj == null) return obj
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
 }
 
+/**
+ * test deep equality between two values
+ * @param {*} a 
+ * @param {*} b 
+ * @returns 
+ */
 function deepEqual(a, b) {
     if (a === b) return true
     if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false
@@ -117,7 +201,8 @@ function deepEqual(a, b) {
 /**
  * Create a shallow categorical representation for a list of object.
  * @param  {object[]} array
- * @returns {number[]}
+ * @returns {number[]} result
+ * @returns {Array[]} result.categories
  */
 export function categorize(array) {
     if (!Array.isArray(array)) throw new Error('Argument must be an array')
@@ -138,25 +223,25 @@ export function categorize(array) {
 
 /**
  * Create a categorical representation for lists of data.
- * @param  {...any} values
+ * @param  {...any} arrays
  * @returns {number[]} result
  * @returns {Array[]} result.categories
  */
-export function interaction(...values) {
-    if (values.length == 0) return null
-    let length = values.filter(x => Array.isArray(x)).reduce((l, val) => {
-        if (Array.isArray(val)) {
-            if (l == null) return val.length
-            if (l != val.length) throw new Error('Arrays must have the same length')
+export function interaction(...arrays) {
+    if (arrays.length == 0) return null
+    let length = arrays.filter(x => Array.isArray(x)).reduce((l, arr) => {
+        if (Array.isArray(arr)) {
+            if (l == null) return arr.length
+            if (l != arr.length) throw new Error('Arrays must have the same length')
         }
         return l
     }, null) ?? 0
     let categories = [], result = []
     for (let i = 0; i < length; i++) {
-        let val = values.map(x => Array.isArray(x) ? x[i] : x)
-        let idx = categories.findIndex(x => x.every((v, j) => v === val[j]))
+        let arr = arrays.map(x => Array.isArray(x) ? x[i] : x)
+        let idx = categories.findIndex(x => x.every((v, j) => v === arr[j]))
         if (idx === -1) {
-            categories.push(val)
+            categories.push(arr)
             idx = categories.length - 1
         }
         result.push(idx)
@@ -167,30 +252,47 @@ export function interaction(...values) {
 
 /**
  * Create a categorical representation for lists of data.
- * @param {object} values
+ * @param {Object} arrays
  * @returns {number[]} result
  * @returns {object[]} result.categories
  */
-export function intraaction(values) {
-    if (Object.keys(values).length == 0) return null
-    let length = Object.values(values).filter(x => Array.isArray(x)).reduce((l, val) => {
-        if (Array.isArray(val)) {
-            if (l == null) return val.length
-            if (l != val.length) throw new Error('Arrays must have the same length')
+export function intraaction(arrays) {
+    if (Object.keys(arrays).length == 0) return null
+    let length = Object.values(arrays).filter(x => Array.isArray(x)).reduce((l, arr) => {
+        if (Array.isArray(arr)) {
+            if (l == null) return arr.length
+            if (l != arr.length) throw new Error('Arrays must have the same length')
         }
         return l
     }, null) ?? 0
-    let keys = Object.keys(values)
+    let keys = Object.keys(arrays)
     let categories = [], result = []
     for (let i = 0; i < length; i++) {
-        let val = Object.fromEntries(keys.map(k => [k, Array.isArray(values[k]) ? values[k][i] : values[k]]))
-        let idx = categories.findIndex(x => keys.every(k => x[k] === val[k]))
+        let arr = Object.fromEntries(keys.map(k => [k, Array.isArray(arrays[k]) ? arrays[k][i] : arrays[k]]))
+        let idx = categories.findIndex(x => keys.every(k => x[k] === arr[k]))
         if (idx === -1) {
-            categories.push(val)
+            categories.push(arr)
             idx = categories.length - 1
         }
         result.push(idx)
     }
     result.categories = categories
     return result
+}
+
+/**
+ * Turn dict of arrays into array of dicts
+ * @param {Object} arrays dict of arrays
+ * @returns {object[]} array of dicts
+ */
+export function intrazip(arrays) {
+    if (Object.keys(arrays).length == 0) return []
+    let length = Object.values(arrays).filter(x => Array.isArray(x)).reduce((l, arr) => {
+        if (Array.isArray(arr)) {
+            if (l == null) return arr.length
+            if (l != arr.length) throw new Error('Arrays must have the same length')
+        }
+        return l
+    }, null) ?? 0
+    return Array.from({ length }, (_, i) => Object.fromEntries(Object.keys(arrays).map(k => [k, Array.isArray(arrays[k]) ? arrays[k][i] : arrays[k]])))
 }

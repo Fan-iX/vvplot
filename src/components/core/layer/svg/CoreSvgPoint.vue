@@ -6,7 +6,7 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -18,7 +18,7 @@ const binds = computed(() => {
         color, stroke, linetype, linewidth, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
     }) => {
-        let { x: cx, y: cy } = coord2pos({ x, y })
+        const { h: cx, v: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
         let result = {
             x: cx, y: cy, shape, size, color, stroke, linetype, linewidth, alpha,
@@ -32,6 +32,7 @@ const binds = computed(() => {
             onPointerdown: (e) => emit('pointerdown', e, $raw),
             onPointerup: (e) => emit('pointerup', e, $raw),
             onPointermove: (e) => emit('pointermove', e, $raw),
+            onWheel: (e) => emit('wheel', e, $raw),
         }
         return result
     }).filter(x => x != null))
@@ -40,9 +41,7 @@ const binds = computed(() => {
 <template>
     <g>
         <g v-for="group in binds">
-            <template v-for="item in group">
-                <CorePoint v-bind="item" />
-            </template>
+            <CorePoint v-bind="item" v-for="item in group" />
         </g>
     </g>
 </template>

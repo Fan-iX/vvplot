@@ -6,7 +6,7 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -18,8 +18,8 @@ const binds = computed(() => {
         color = 'black', linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
-        let { x: x1, y: y1 } = coord2pos({ x: x, y: y })
-        let { x: x2, y: y2 } = coord2pos({ x: xend, y: yend })
+        const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+        const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
@@ -36,6 +36,7 @@ const binds = computed(() => {
             onPointerdown: (e) => emit('pointerdown', e, $raw),
             onPointerup: (e) => emit('pointerup', e, $raw),
             onPointermove: (e) => emit('pointermove', e, $raw),
+            onWheel: (e) => emit('wheel', e, $raw),
         }
         return result
     }).filter(x => x != null))
@@ -44,9 +45,7 @@ const binds = computed(() => {
 <template>
     <g>
         <g v-for="group in binds">
-            <template v-for="item in group">
-                <CoreLine v-bind="item" />
-            </template>
+            <CoreLine v-bind="item" v-for="item in group" />
         </g>
     </g>
 </template>
