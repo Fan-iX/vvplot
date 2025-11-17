@@ -25,7 +25,7 @@ const layerCanvas = computed(() => {
     let path_data = new Map()
     for (const group of data) {
         for (let {
-            x, xend, y, yend, size = 4, label, title,
+            x, xend, y, yend, size = 4, label = "", title,
             color, stroke, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0,
             'text-length': textLength, $raw

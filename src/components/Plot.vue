@@ -3,7 +3,7 @@ import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounte
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
-import { str_c } from '../js/utils'
+import { str_c, serializeSVG } from '../js/utils'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from './core/CorePlot.vue'
@@ -22,7 +22,7 @@ function _isFalse(v) {
 }
 function _isPropTruthy(v) {
     if (v == null) return v
-    return v == "" || Boolean(v)
+    return v === "" || Boolean(v)
 }
 
 const emit = defineEmits(['resize'])
@@ -107,7 +107,7 @@ const vlayer = computed(() => Object.values(vnodes.layer).flat())
 const vaxis = computed(() => Object.values(vnodes.axis).flat())
 const vaction = computed(() => Object.values(vnodes.action).flat())
 const vselection = computed(() => Object.values(vnodes.selection).flat())
-const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'toolbar' || k == 'panel' ? [] : vnodes.dom[k]))
+const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'panel' ? [] : vnodes.dom[k]))
 
 const vBind = computed(() => {
     let plot = {}
@@ -417,20 +417,21 @@ const wrapperClass = computed(() => {
     } else if (resize == true || resize == "both" || resize == "") {
         return ["resize", "overflow-auto"]
     }
-    return []
+    return ["overflow-hidden"]
+})
+
+defineExpose({
+    serialize() { return serializeSVG(plotRef.value.svg) }
 })
 </script>
 <template>
-    <div ref="wrapper" class="vvplot relative overflow-hidden" :class="wrapperClass" v-bind="vBind.wrapper">
+    <div ref="wrapper" class="vvplot relative" :class="wrapperClass" v-bind="vBind.wrapper">
         <CorePlot ref="plot" :schema="schema" :layers="layers" :range="range" :min-range="minRange"
             :expand-add="expandAdd" :expand-mult="expandMult" :reverse="reverse" :flip="flip"
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
             v-bind="vBind.plot" :action="action" :clip="clip" :legendTeleport="legendTeleport" />
-        <div class="absolute right-4 top-4 flex flex-row">
-            <component v-for="c in vnodes.dom.toolbar" :is="c" />
-        </div>
         <div class="absolute pointer-events-none" :style="panelStyle">
             <div class="contents pointer-events-auto">
                 <component v-for="c in vnodes.dom.panel" :is="c" />

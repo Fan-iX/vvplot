@@ -14,8 +14,8 @@ const { coord2pos, pos2coord, layout, theme, ...config } = defineProps({
 })
 
 const borderBind = computed(() => {
-    if (model.value == null || model.value.hidden) return {}
-    if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => model.value?.[k] == null)) return {}
+    if (model.value == null || model.value.hidden) return null
+    if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => model.value?.[k] == null)) return null
     let size = 10
     let { hmin, hmax, vmin, vmax } = coord2pos(model.value, { limited: true }),
         pos = coord2pos(model.value)
@@ -104,7 +104,7 @@ function selPointerdown(e, dir) {
 }
 </script>
 <template>
-    <g class="vv-interactive">
+    <g class="vv-interactive" v-if="borderBind">
         <rect v-for="bind, k in borderBind" fill="transparent" v-bind="bind" @pointerdown="selPointerdown($event, k)" />
     </g>
 </template>

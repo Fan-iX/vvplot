@@ -99,8 +99,7 @@ const render = ref('svg')
                             <td rowspan="2">line</td>
                             <td rowspan="2">none</td>
                             <td rowspan="2">
-                                <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]"
-                                    :width="200" :height="120">
+                                <VVPlot :data="[{ xmin: 1, xmax: 3, y: 'a' }, { xmin: 2.5, xmax: 4, y: 'b' }]">
                                     <VVGeomLinerange :xmin="d => d.xmin" :xmax="d => d.xmax" :y="d => d.y" :render />
                                 </VVPlot>
                             </td>

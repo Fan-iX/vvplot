@@ -13,7 +13,7 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        x, xend, y, yend, size = 4, label, title,
+        x, xend, y, yend, size = 4, label = "", title,
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         'text-length': textLength, $raw
