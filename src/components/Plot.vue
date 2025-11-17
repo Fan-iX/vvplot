@@ -17,9 +17,6 @@ const components = {
     VVAction, VVSelection,
 }
 
-function _isFalse(v) {
-    return v == null || v === false
-}
 function _isPropTruthy(v) {
     if (v == null) return v
     return v === "" || Boolean(v)
@@ -141,8 +138,8 @@ const primaryAxis = reactiveComputed(() => {
     let xAxes = allAxes.filter(c => c.coord === 'x')
     let yAxes = allAxes.filter(c => c.coord === 'y')
     return {
-        x: xAxes.find(c => _isPropTruthy(c.primary)) ?? xAxes.find(c => c.primary == null && _isFalse(c.secondary)),
-        y: yAxes.find(c => _isPropTruthy(c.primary)) ?? yAxes.find(c => c.primary == null && _isFalse(c.secondary))
+        x: xAxes.find(c => _isPropTruthy(c.primary)) ?? xAxes.find(c => c.primary == null && !_isPropTruthy(c.secondary)),
+        y: yAxes.find(c => _isPropTruthy(c.primary)) ?? yAxes.find(c => c.primary == null && !_isPropTruthy(c.secondary))
     }
 })
 const actionBoundary = reactiveComputed(() => {
@@ -305,7 +302,7 @@ const axes = computed(() => {
             })
         return {
             coord, orientation, position, title, breaks, labels, minorBreaks,
-            showGrid: position !== "none" && showGrid !== false,
+            showGrid: _isPropTruthy(showGrid) ?? position !== "none",
             extend: extend ?? primaryAxis?.[coord]?.extend,
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),
             action, ...etc,
@@ -352,7 +349,7 @@ const selections = computed(() => {
             theme: $$theme = [], ...etc
         }) => {
             let xy = x == null && y == null
-            if (!_isFalse(once)) {
+            if (_isPropTruthy(once)) {
                 modelValue = reactive({})
                 onUpdate = null
             } else if (onUpdate == null) {
@@ -363,16 +360,16 @@ const selections = computed(() => {
                 }
             }
             return {
-                move: !_isFalse(move),
+                move: Boolean(_isPropTruthy(move)),
                 dismissible: dismissible == undefined ? undefined : dismissible !== false,
                 resize: resize !== false,
-                x: xy || !_isFalse(x),
-                y: xy || !_isFalse(y),
+                x: xy || Boolean(_isPropTruthy(x)),
+                y: xy || Boolean(_isPropTruthy(y)),
                 xmin, xmax, ymin, ymax,
-                ctrlKey: !_isFalse(ctrl),
-                shiftKey: !_isFalse(shift),
-                altKey: !_isFalse(alt),
-                metaKey: !_isFalse(meta),
+                ctrlKey: Boolean(_isPropTruthy(ctrl)),
+                shiftKey: Boolean(_isPropTruthy(shift)),
+                altKey: Boolean(_isPropTruthy(alt)),
+                metaKey: Boolean(_isPropTruthy(meta)),
                 buttons: buttons ?? buttonsMap[button] ?? 1,
                 modelValue, "onUpdate:modelValue": onUpdate,
                 theme: Object.assign({}, ...[theme.value?.selection].concat($$theme)),
@@ -432,7 +429,7 @@ defineExpose({
             :selections="selections" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
             v-bind="vBind.plot" :action="action" :clip="clip" :legendTeleport="legendTeleport" />
-        <div class="absolute pointer-events-none" :style="panelStyle">
+        <div class="absolute pointer-events-none" :style="panelStyle" v-if="vnodes.dom.panel?.length">
             <div class="contents pointer-events-auto">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
