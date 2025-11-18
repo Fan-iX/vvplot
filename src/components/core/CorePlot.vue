@@ -37,14 +37,14 @@ const emit = defineEmits([
 ])
 
 const range = reactive({ xmin: null, xmax: null, ymin: null, ymax: null })
-watch(() => props.range, v => Object.assign(range, dropNull(v)), { immediate: true })
+watch(() => props.range, v => Object.assign(range, v), { immediate: true })
 
 const activeSelection = defineModel('activeSelection')
 const translateH = defineModel('translateH', { type: Number, default: 0 })
 const translateV = defineModel('translateV', { type: Number, default: 0 })
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
-const transition = ref(null)
+const transition = defineModel('transition')
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
@@ -138,7 +138,7 @@ const vplot = computed(() => {
             props.axes, props.minRange
         )
 })
-defineExpose({ vplot, panel })
+defineExpose({ vplot, panel, svg: svgRef })
 
 function _pos2coord(
     { value, min, max },
@@ -637,7 +637,7 @@ const axes = computed(() => {
             </clipPath>
         </defs>
         <rect :transform="`translate(${panel.left}, ${panel.top})`" :width="panel.width" :height="panel.height"
-            :fill="theme.plot.background"></rect>
+            :fill="theme.plot.background" v-if="theme.plot.background"></rect>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
                 :translate="translateV" :transcale="transcaleV" :coord2pos="coord2pos" />

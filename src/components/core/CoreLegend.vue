@@ -28,7 +28,7 @@ function getGuideType(scale) {
 }
 </script>
 <template>
-    <div v-if="scales" class="flex flex-col" :style="{ gap: theme.spacing + 'px' }">
+    <div v-if="scales" class="vvplot-legend" :style="{ gap: theme.spacing + 'px' }">
         <CoreGuide :key :type :scales v-for="[[key, type], scales] in guides" />
     </div>
 </template>

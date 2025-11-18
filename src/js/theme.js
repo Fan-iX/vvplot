@@ -233,7 +233,7 @@ export function themeBuild(theme) {
                     .map(k => theme?.plot?.[k])
                     .findLast(x => x !== undefined) ?? 0,
             },
-            background: theme?.plot?.background ?? 'none'
+            background: theme?.plot?.background
         },
         selection: theme?.selection ?? {},
         legend: {

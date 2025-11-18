@@ -177,7 +177,7 @@ export function oob_squish_infinite(value, { min, max }) {
  * @returns {Object}
  */
 export function dropNull(obj) {
-    if(typeof obj !== 'object' || obj == null) return obj
+    if (typeof obj !== 'object' || obj == null) return obj
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
 }
 
@@ -295,4 +295,44 @@ export function intrazip(arrays) {
         return l
     }, null) ?? 0
     return Array.from({ length }, (_, i) => Object.fromEntries(Object.keys(arrays).map(k => [k, Array.isArray(arrays[k]) ? arrays[k][i] : arrays[k]])))
+}
+
+export function serializeSVG(svgElement) {
+    if (!(svgElement instanceof SVGElement)) return null
+    function removeComments(node) {
+        let i = node.childNodes.length;
+        while (i--) {
+            const child = node.childNodes[i];
+            if (child.nodeType === Node.COMMENT_NODE) {
+                node.removeChild(child);
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                removeComments(child);
+            }
+        }
+    }
+    let svgClone = svgElement.cloneNode(true)
+    let foreignElements = Array.from(svgElement.querySelectorAll('foreignObject')),
+        foreignClones = Array.from(svgClone.querySelectorAll('foreignObject'))
+    for (let i = 0; i < foreignElements.length; i++) {
+        let foreignElement = foreignElements[i], foreignClone = foreignClones[i]
+        let canvas = foreignElements[i].querySelector('canvas')
+        if (!canvas) continue
+        let img = svgClone.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'image')
+        img.setAttribute('href', canvas.toDataURL())
+        img.setAttribute('x', foreignElement.getAttribute('x'))
+        img.setAttribute('y', foreignElement.getAttribute('y'))
+        img.setAttribute('width', foreignElement.getAttribute('width'))
+        img.setAttribute('height', foreignElement.getAttribute('height'))
+        foreignClone.parentNode.replaceChild(img, foreignClone)
+    }
+    for (let node of svgClone.querySelectorAll('.vvplot-interactive')) node.remove()
+    removeComments(svgClone)
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    svgClone.setAttribute('version', '1.1')
+    svgClone.setAttribute('width', svgElement.scrollWidth)
+    svgClone.setAttribute('height', svgElement.scrollHeight)
+    svgClone.setAttribute('viewBox', `0 0 ${svgElement.scrollWidth} ${svgElement.scrollHeight}`)
+    const serializer = new XMLSerializer()
+    return serializer.serializeToString(svgClone)
 }

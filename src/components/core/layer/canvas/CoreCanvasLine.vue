@@ -76,5 +76,5 @@ function parseLineType(linetype) {
 }
 </script>
 <template>
-    <foreignObject v-bind="vBind" ref="container" class="pointer-events-none"></foreignObject>
+    <foreignObject v-bind="vBind" ref="container"></foreignObject>
 </template>

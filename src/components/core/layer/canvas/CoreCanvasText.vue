@@ -26,7 +26,7 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             x, y,
-            color, size = 4, label, title, stroke, linewidth, linetype, alpha,
+            color, size = 4, label = "", title, stroke, linewidth, linetype, alpha,
             'anchor-x': anchorX, 'anchor-y': anchorY,
             'dock-x': dockX, 'dock-y': dockY,
             'translate-x': translateX = 0, 'translate-y': translateY = 0,
@@ -112,5 +112,5 @@ function parseLineType(linetype) {
 }
 </script>
 <template>
-    <foreignObject v-bind="vBind" ref="container" class="pointer-events-none"></foreignObject>
+    <foreignObject v-bind="vBind" ref="container"></foreignObject>
 </template>

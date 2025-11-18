@@ -14,7 +14,7 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        x, y, size = 4, label, title,
+        x, y, size = 4, label = "", title,
         color, stroke, linewidth, linetype, alpha,
         'anchor-x': anchorX, 'anchor-y': anchorY,
         'dock-x': dockX, 'dock-y': dockY,

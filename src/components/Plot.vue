@@ -3,7 +3,7 @@ import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounte
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
-import { str_c } from '../js/utils'
+import { str_c, serializeSVG } from '../js/utils'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from './core/CorePlot.vue'
@@ -17,12 +17,9 @@ const components = {
     VVAction, VVSelection,
 }
 
-function _isFalse(v) {
-    return v == null || v === false
-}
 function _isPropTruthy(v) {
     if (v == null) return v
-    return v == "" || Boolean(v)
+    return v === "" || Boolean(v)
 }
 
 const emit = defineEmits(['resize'])
@@ -45,6 +42,7 @@ const translateH = defineModel('translateH')
 const translateV = defineModel('translateV')
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
+const transition = defineModel('transition')
 
 function expandFragment(componentList) {
     if (componentList == null) return []
@@ -107,7 +105,7 @@ const vlayer = computed(() => Object.values(vnodes.layer).flat())
 const vaxis = computed(() => Object.values(vnodes.axis).flat())
 const vaction = computed(() => Object.values(vnodes.action).flat())
 const vselection = computed(() => Object.values(vnodes.selection).flat())
-const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'toolbar' || k == 'panel' ? [] : vnodes.dom[k]))
+const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'panel' ? [] : vnodes.dom[k]))
 
 const vBind = computed(() => {
     let plot = {}
@@ -141,8 +139,8 @@ const primaryAxis = reactiveComputed(() => {
     let xAxes = allAxes.filter(c => c.coord === 'x')
     let yAxes = allAxes.filter(c => c.coord === 'y')
     return {
-        x: xAxes.find(c => _isPropTruthy(c.primary)) ?? xAxes.find(c => c.primary == null && _isFalse(c.secondary)),
-        y: yAxes.find(c => _isPropTruthy(c.primary)) ?? yAxes.find(c => c.primary == null && _isFalse(c.secondary))
+        x: xAxes.find(c => _isPropTruthy(c.primary)) ?? xAxes.find(c => c.primary == null && !_isPropTruthy(c.secondary)),
+        y: yAxes.find(c => _isPropTruthy(c.primary)) ?? yAxes.find(c => c.primary == null && !_isPropTruthy(c.secondary))
     }
 })
 const actionBoundary = reactiveComputed(() => {
@@ -305,7 +303,7 @@ const axes = computed(() => {
             })
         return {
             coord, orientation, position, title, breaks, labels, minorBreaks,
-            showGrid: position !== "none" && showGrid !== false,
+            showGrid: _isPropTruthy(showGrid) ?? position !== "none",
             extend: extend ?? primaryAxis?.[coord]?.extend,
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),
             action, ...etc,
@@ -352,7 +350,7 @@ const selections = computed(() => {
             theme: $$theme = [], ...etc
         }) => {
             let xy = x == null && y == null
-            if (!_isFalse(once)) {
+            if (_isPropTruthy(once)) {
                 modelValue = reactive({})
                 onUpdate = null
             } else if (onUpdate == null) {
@@ -363,16 +361,16 @@ const selections = computed(() => {
                 }
             }
             return {
-                move: !_isFalse(move),
+                move: Boolean(_isPropTruthy(move)),
                 dismissible: dismissible == undefined ? undefined : dismissible !== false,
                 resize: resize !== false,
-                x: xy || !_isFalse(x),
-                y: xy || !_isFalse(y),
+                x: xy || Boolean(_isPropTruthy(x)),
+                y: xy || Boolean(_isPropTruthy(y)),
                 xmin, xmax, ymin, ymax,
-                ctrlKey: !_isFalse(ctrl),
-                shiftKey: !_isFalse(shift),
-                altKey: !_isFalse(alt),
-                metaKey: !_isFalse(meta),
+                ctrlKey: Boolean(_isPropTruthy(ctrl)),
+                shiftKey: Boolean(_isPropTruthy(shift)),
+                altKey: Boolean(_isPropTruthy(alt)),
+                metaKey: Boolean(_isPropTruthy(meta)),
                 buttons: buttons ?? buttonsMap[button] ?? 1,
                 modelValue, "onUpdate:modelValue": onUpdate,
                 theme: Object.assign({}, ...[theme.value?.selection].concat($$theme)),
@@ -398,7 +396,7 @@ watch([w, h], ([w, h], [ow, oh]) => {
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
     if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
-        emit('resize', { width: w, height: h })
+        emit('resize', { width: w, height: h }, { width: ow, height: oh })
 })
 const panelStyle = computed(() => {
     return {
@@ -409,30 +407,33 @@ const panelStyle = computed(() => {
     }
 })
 
-const wrapperClass = computed(() => {
+const wrapperStyle = computed(() => {
+    let style = { overflow: 'hidden', boxSizing: 'border-box' }
     if (resize == "x") {
-        return ["resize-x", "overflow-auto"]
+        Object.assign(style, { resize: "horizontal" })
     } else if (resize == "y") {
-        return ["resize-y", "overflow-auto"]
+        Object.assign(style, { resize: "vertical" })
     } else if (resize == true || resize == "both" || resize == "") {
-        return ["resize", "overflow-auto"]
+        Object.assign(style, { resize: "both" })
     }
-    return []
+    return style
+})
+
+defineExpose({
+    serialize() { return serializeSVG(plotRef.value.svg) }
 })
 </script>
 <template>
-    <div ref="wrapper" class="vvplot relative overflow-hidden" :class="wrapperClass" v-bind="vBind.wrapper">
+    <div ref="wrapper" class="vvplot" :style="wrapperStyle" v-bind="vBind.wrapper">
         <CorePlot ref="plot" :schema="schema" :layers="layers" :range="range" :min-range="minRange"
             :expand-add="expandAdd" :expand-mult="expandMult" :reverse="reverse" :flip="flip"
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
-            v-bind="vBind.plot" :action="action" :clip="clip" :legendTeleport="legendTeleport" />
-        <div class="absolute right-4 top-4 flex flex-row">
-            <component v-for="c in vnodes.dom.toolbar" :is="c" />
-        </div>
-        <div class="absolute pointer-events-none" :style="panelStyle">
-            <div class="contents pointer-events-auto">
+            v-model:transition="transition" v-bind="vBind.plot" :action="action" :clip="clip"
+            :legendTeleport="legendTeleport" />
+        <div class="vvplot-panel-container" :style="panelStyle" v-if="vnodes.dom.panel?.length">
+            <div class="vvplot-panel">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>
