@@ -8,6 +8,9 @@ import tailwindcss from '@tailwindcss/vite'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production')
+  },
   plugins: [
     vue(),
     dts({ rollupTypes: true }),
@@ -19,6 +22,7 @@ export default defineConfig({
     }
   },
   build: {
+    minify: false,
     lib: {
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
@@ -35,6 +39,8 @@ export default defineConfig({
     rollupOptions: {
       external: ['vue'],
       output: {
+        chunkFileNames: '[name].js',
+        minifyInternalExports: false,
         globals: {
           vue: 'Vue',
         },

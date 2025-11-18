@@ -6,6 +6,7 @@ const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = 
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,
     layout: Object,
+    coord: String, majorBreaks: Array, minorBreaks: Array, // drop from attribute inheritance
     theme: { type: Object, default: () => ({}) },
     action: { type: Array, default: () => [] },
     position: null
@@ -302,15 +303,16 @@ const axisVOn = {
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <CoreText v-for="tick in tickTexts" v-bind="tick" />
-        <g class="vv-interactive" fill="transparent">
+        <g class="vvplot-interactive" fill="transparent">
             <rect :width="width" :height="10" :y="-5" v-on="axisVOn"
-                :class="{ 'cursor-grab': action.some?.(a => a.action == 'move') }" />
+                :class="{ 'vvplot-cursor-grab': action.some?.(a => a.action == 'move') }" />
         </g>
-        <g v-if="action.some?.(a => a.action == 'rescale')" class="vv-interactive" fill="transparent">
-            <rect :width="20" :height="10" :y="-5" class="cursor-ew-resize" @pointerdown="axisRescaleLeftPointerdown" />
-            <rect :width="20" :height="10" :y="-5" :x="width - 20" class="cursor-ew-resize"
+        <g v-if="action.some?.(a => a.action == 'rescale')" class="vvplot-interactive" fill="transparent">
+            <rect :width="20" :height="10" :y="-5" style="cursor:ew-resize;"
+                @pointerdown="axisRescaleLeftPointerdown" />
+            <rect :width="20" :height="10" :y="-5" :x="width - 20" style="cursor:ew-resize;"
                 @pointerdown="axisRescaleRightPointerdown" />
         </g>
-        <CoreText v-bind="axisTitle" />
+        <CoreText v-bind="axisTitle" v-if="axisTitle.text" />
     </g>
 </template>

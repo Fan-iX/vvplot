@@ -1,3 +1,22 @@
-@import "tailwindcss";
-@tailwind utilities;
-@source 'components/';
+.vvplot {
+    position: relative;
+}
+
+.vvplot-panel-container {
+    position: absolute;
+    pointer-events: none;
+}
+
+.vvplot-panel {
+    display: contents;
+    pointer-events: auto;
+}
+
+.vvplot-legend {
+    display: flex;
+    flex-direction: column;
+}
+
+.vvplot-cursor-grab {
+    cursor: grab;
+}

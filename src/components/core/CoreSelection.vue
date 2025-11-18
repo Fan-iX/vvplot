@@ -30,25 +30,25 @@ const borderBind = computed(() => {
         stroke: theme?.line_color ?? "transparent",
         'stroke-width': theme?.line_width,
         'stroke-opacity': theme?.opacity,
-        class: config.move ? "cursor-move" : "pointer-events-none"
+        style: config.move ? "cursor:move;" : "pointer:events-none;"
     }
     if (config.resize) {
         if (pos.hmin != null)
-            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, class: "cursor-ew-resize" }
+            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
         if (pos.hmax != null)
-            binds.r = { x: hmax - size / 2, y: vmin, width: size, height, class: "cursor-ew-resize" }
+            binds.r = { x: hmax - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
         if (pos.vmin != null)
-            binds.t = { x: hmin, y: vmin - size / 2, width, height: size, class: "cursor-ns-resize" }
+            binds.t = { x: hmin, y: vmin - size / 2, width, height: size, style: "cursor:ns-resize;" }
         if (pos.vmax != null)
-            binds.b = { x: hmin, y: vmax - size / 2, width, height: size, class: "cursor-ns-resize" }
+            binds.b = { x: hmin, y: vmax - size / 2, width, height: size, style: "cursor:ns-resize;" }
         if (pos.hmin != null && pos.vmin != null)
-            binds.tl = { x: hmin - size / 2, y: vmin - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
+            binds.tl = { x: hmin - size / 2, y: vmin - size / 2, width: size, height: size, style: "cursor:nwse-resize;" }
         if (pos.hmax != null && pos.vmin != null)
-            binds.tr = { x: hmax - size / 2, y: vmin - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
+            binds.tr = { x: hmax - size / 2, y: vmin - size / 2, width: size, height: size, style: "cursor:nesw-resize;" }
         if (pos.hmin != null && pos.vmax != null)
-            binds.bl = { x: hmin - size / 2, y: vmax - size / 2, width: size, height: size, class: "cursor-nesw-resize" }
+            binds.bl = { x: hmin - size / 2, y: vmax - size / 2, width: size, height: size, style: "cursor:nesw-resize;" }
         if (pos.hmax != null && pos.vmax != null)
-            binds.br = { x: hmax - size / 2, y: vmax - size / 2, width: size, height: size, class: "cursor-nwse-resize" }
+            binds.br = { x: hmax - size / 2, y: vmax - size / 2, width: size, height: size, style: "cursor:nwse-resize;" }
     }
     return binds
 })
@@ -104,7 +104,7 @@ function selPointerdown(e, dir) {
 }
 </script>
 <template>
-    <g class="vv-interactive" v-if="borderBind">
+    <g class="vvplot-interactive" v-if="borderBind">
         <rect v-for="bind, k in borderBind" fill="transparent" v-bind="bind" @pointerdown="selPointerdown($event, k)" />
     </g>
 </template>

@@ -44,7 +44,7 @@ const translateH = defineModel('translateH', { type: Number, default: 0 })
 const translateV = defineModel('translateV', { type: Number, default: 0 })
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
-const transition = ref(null)
+const transition = defineModel('transition')
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')

@@ -110,5 +110,5 @@ function splitLabel(label) {
 }
 </script>
 <template>
-    <foreignObject v-bind="vBind" ref="container" class="pointer-events-none"></foreignObject>
+    <foreignObject v-bind="vBind" ref="container"></foreignObject>
 </template>

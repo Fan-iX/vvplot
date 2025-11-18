@@ -42,6 +42,7 @@ const translateH = defineModel('translateH')
 const translateV = defineModel('translateV')
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
+const transition = defineModel('transition')
 
 function expandFragment(componentList) {
     if (componentList == null) return []
@@ -395,7 +396,7 @@ watch([w, h], ([w, h], [ow, oh]) => {
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
     if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
-        emit('resize', { width: w, height: h })
+        emit('resize', { width: w, height: h }, { width: ow, height: oh })
 })
 const panelStyle = computed(() => {
     return {
@@ -406,15 +407,16 @@ const panelStyle = computed(() => {
     }
 })
 
-const wrapperClass = computed(() => {
+const wrapperStyle = computed(() => {
+    let style = { overflow: 'hidden', boxSizing: 'border-box' }
     if (resize == "x") {
-        return ["resize-x", "overflow-auto"]
+        Object.assign(style, { resize: "horizontal" })
     } else if (resize == "y") {
-        return ["resize-y", "overflow-auto"]
+        Object.assign(style, { resize: "vertical" })
     } else if (resize == true || resize == "both" || resize == "") {
-        return ["resize", "overflow-auto"]
+        Object.assign(style, { resize: "both" })
     }
-    return ["overflow-hidden"]
+    return style
 })
 
 defineExpose({
@@ -422,15 +424,16 @@ defineExpose({
 })
 </script>
 <template>
-    <div ref="wrapper" class="vvplot relative" :class="wrapperClass" v-bind="vBind.wrapper">
+    <div ref="wrapper" class="vvplot" :style="wrapperStyle" v-bind="vBind.wrapper">
         <CorePlot ref="plot" :schema="schema" :layers="layers" :range="range" :min-range="minRange"
             :expand-add="expandAdd" :expand-mult="expandMult" :reverse="reverse" :flip="flip"
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:active-selection="activeSelection" v-model:transcale-h="transcaleH"
             v-model:transcale-v="transcaleV" v-model:translate-h="translateH" v-model:translate-v="translateV"
-            v-bind="vBind.plot" :action="action" :clip="clip" :legendTeleport="legendTeleport" />
-        <div class="absolute pointer-events-none" :style="panelStyle" v-if="vnodes.dom.panel?.length">
-            <div class="contents pointer-events-auto">
+            v-model:transition="transition" v-bind="vBind.plot" :action="action" :clip="clip"
+            :legendTeleport="legendTeleport" />
+        <div class="vvplot-panel-container" :style="panelStyle" v-if="vnodes.dom.panel?.length">
+            <div class="vvplot-panel">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>
