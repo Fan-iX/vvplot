@@ -1,6 +1,6 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
-import { reactive, ref, computed, watch, useTemplateRef, useId } from 'vue'
+import { reactive, computed, watch, useTemplateRef, useId } from 'vue'
 import { GPlot } from '#base/js/plot'
 import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
@@ -193,19 +193,19 @@ function pos2coord({
 function _coord2pos(
     { value, min, max } = {},
     { oob = oob_squish_infinite } = {},
-    scale, rev, length, range
+    scale, rev, length, boundary
 ) {
     let result = {}
     if (value != null) {
-        result.value = oob(length * (rev ? 1 - scale(value) : scale(value)), range)
+        result.value = oob(length * (rev ? 1 - scale(value) : scale(value)), boundary)
     }
     if (min == null && max == null) return result
     if (rev) {
-        if (max != null) result.min = oob(length * (1 - scale(max)), range)
-        if (min != null) result.max = oob(length * (1 - scale(min)), range)
+        if (max != null) result.min = oob(length * (1 - scale(max)), boundary)
+        if (min != null) result.max = oob(length * (1 - scale(min)), boundary)
     } else {
-        if (min != null) result.min = oob(length * scale(min), range)
-        if (max != null) result.max = oob(length * scale(max), range)
+        if (min != null) result.min = oob(length * scale(min), boundary)
+        if (max != null) result.max = oob(length * scale(max), boundary)
     }
     return result
 }
@@ -218,8 +218,8 @@ function coord2pos({
     let { width, height, l, r, t, b } = innerRect
     let result = {}
     let scales = vplot.value.coordScales
-    let rangeH = { min: -l, max: width + r },
-        rangeV = { min: -t, max: height + b }
+    let boundaryH = { min: -l, max: width + r },
+        boundaryV = { min: -t, max: height + b }
     if (x != null || xmin != null || xmax != null) {
         if (flip) {
             [v, vmin, vmax] = [x, xmin, xmax]
@@ -240,7 +240,7 @@ function coord2pos({
             { oob },
             scales[flip ? 'y' : 'x'],
             reverse[flip ? 'y' : 'x'],
-            width, rangeH
+            width, boundaryH
         )
         Object.assign(result, dropNull({ h: value, hmin: min, hmax: max }))
     }
@@ -250,15 +250,15 @@ function coord2pos({
             { oob },
             scales[flip ? 'x' : 'y'],
             !reverse[flip ? 'x' : 'y'],
-            height, rangeV
+            height, boundaryV
         )
         Object.assign(result, dropNull({ v: value, vmin: min, vmax: max }))
     }
     if (limited) {
-        if (result.hmin == null) result.hmin = rangeH.min
-        if (result.hmax == null) result.hmax = rangeH.max
-        if (result.vmin == null) result.vmin = rangeV.min
-        if (result.vmax == null) result.vmax = rangeV.max
+        if (result.hmin == null) result.hmin = boundaryH.min
+        if (result.hmax == null) result.hmax = boundaryH.max
+        if (result.vmin == null) result.vmin = boundaryV.min
+        if (result.vmax == null) result.vmax = boundaryV.max
     }
     return result
 }
@@ -411,19 +411,19 @@ function svgPointerdown(e) {
         svg.style.userSelect = 'none'
         moveTimer = clearTimeout(moveTimer)
         let boundary = coord2pos(act, { unlimited: true })
-        let rangeH = {
+        let boundaryH = {
             min: boundary.hmax == null ? -Infinity : innerRect.width - boundary.hmax,
             max: boundary.hmin == null ? Infinity : - boundary.hmin,
         },
-            rangeV = {
+            boundaryV = {
                 min: boundary.vmax == null ? -Infinity : innerRect.height - boundary.vmax,
                 max: boundary.vmin == null ? Infinity : - boundary.vmin,
             }
         e.target.onpointermove = (ev) => {
             let { x = false, y = false } = act
             let [h, v] = flip ? [y, x] : [x, y]
-            if (h) translateH.value = oob_squish_any(translateH.value + ev.movementX, rangeH)
-            if (v) translateV.value = oob_squish_any(translateV.value + ev.movementY, rangeV)
+            if (h) translateH.value = oob_squish_any(translateH.value + ev.movementX, boundaryH)
+            if (v) translateV.value = oob_squish_any(translateV.value + ev.movementY, boundaryV)
         }
         e.target.onpointerup = (ev) => {
             ev.currentTarget.onpointerup = null
@@ -546,19 +546,19 @@ function wheel(act, pos, delta) {
         let boundary = coord2pos(act, { unlimited: true })
         if (h) {
             let movement = sensitivity * innerRect.width * (-delta / 120)
-            let range = {
+            let boundaryH = {
                 min: boundary.hmax == null ? -Infinity : innerRect.width - boundary.hmax,
                 max: boundary.hmin == null ? Infinity : - boundary.hmin,
             }
-            translateH.value = oob_squish_any(movement, range)
+            translateH.value = oob_squish_any(movement, boundaryH)
         }
         if (v) {
             let movement = sensitivity * innerRect.height * (-delta / 120)
-            let range = {
+            let boundaryV = {
                 min: boundary.vmax == null ? -Infinity : innerRect.height - boundary.vmax,
                 max: boundary.vmin == null ? Infinity : - boundary.vmin,
             }
-            translateV.value = oob_squish_any(movement, range)
+            translateV.value = oob_squish_any(movement, boundaryV)
         }
     }
 }
@@ -579,10 +579,10 @@ const svgVOn = {
 function changerange(coord) {
     let { xmin, xmax, ymin, ymax } = coord
     let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range
-    xmin = xmin != null ? xmin + expandAdd.x.min : $xmin
-    xmax = xmax != null ? xmax - expandAdd.x.max : $xmax
-    ymin = ymin != null ? ymin + expandAdd.y.min : $ymin
-    ymax = ymax != null ? ymax - expandAdd.y.max : $ymax
+    xmin = xmin != null ? typeof xmin == "number" ? xmin + expandAdd.x.min : new xmin.constructor(+xmin + expandAdd.x.min) : $xmin
+    xmax = xmax != null ? typeof xmin == "number" ? xmax - expandAdd.x.max : new xmax.constructor(+xmax - expandAdd.x.max) : $xmax
+    ymin = ymin != null ? typeof xmin == "number" ? ymin + expandAdd.y.min : new ymin.constructor(+ymin + expandAdd.y.min) : $ymin
+    ymax = ymax != null ? typeof xmin == "number" ? ymax - expandAdd.y.max : new ymax.constructor(+ymax - expandAdd.y.max) : $ymax
     if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
     if (xmin != $xmin) emit('update:xmin', xmin)
     if (xmax != $xmax) emit('update:xmax', xmax)
