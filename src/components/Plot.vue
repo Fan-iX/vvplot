@@ -409,12 +409,12 @@ const panelStyle = computed(() => {
 
 const wrapperStyle = computed(() => {
     let style = { overflow: 'hidden', boxSizing: 'border-box' }
-    if (resize == "x") {
-        Object.assign(style, { resize: "horizontal" })
-    } else if (resize == "y") {
-        Object.assign(style, { resize: "vertical" })
-    } else if (resize == true || resize == "both" || resize == "") {
+    if (resize === "both" || resize === true || resize === "") {
         Object.assign(style, { resize: "both" })
+    } else if (resize === "horizontal" || resize === "x" && !flip || resize === "y" && flip) {
+        Object.assign(style, { resize: "horizontal" })
+    } else if (resize === "vertical" || resize === "y" && !flip || resize === "x" && flip) {
+        Object.assign(style, { resize: "vertical" })
     }
     return style
 })
