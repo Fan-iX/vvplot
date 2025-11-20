@@ -120,13 +120,13 @@ export default {
         },
         get_range(ds, orientation) {
             if (orientation == 'x') {
-                let xmin = (ds.x ?? []).map((v, i) => +v - ds.width[i] / 2),
-                    xmax = (ds.x ?? []).map((v, i) => +v + ds.width[i] / 2)
+                let xmin = (ds.x ?? []).map((v, i) => +v - (ds.width?.[i] ?? 0) / 2),
+                    xmax = (ds.x ?? []).map((v, i) => +v + (ds.width?.[i] ?? 0) / 2)
                 return xmin.concat(xmax)
             }
             if (orientation == 'y') {
-                let ymin = (ds.y ?? []).map((v, i) => +v - ds.height[i] / 2),
-                    ymax = (ds.y ?? []).map((v, i) => +v + ds.height[i] / 2)
+                let ymin = (ds.y ?? []).map((v, i) => +v - (ds.height?.[i] ?? 0) / 2),
+                    ymax = (ds.y ?? []).map((v, i) => +v + (ds.height?.[i] ?? 0) / 2)
                 return ymin.concat(ymax)
             }
         },

@@ -125,46 +125,46 @@ const vBind = {
             </div>
             <hr>
             <pre><code class="html">{{templates[9] = `<VVPlot :data="economics" :theme="{ plot: { margin_right: 50 } }">
-        <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate"
-            :theme="{ title_color: 'gray' }">
-            <VVAction move rescale zoom />
-        </VVAxisY>
-        <VVAxisX position="10%"
-            :theme="{ tick_length: 3, title_position: 'right', title_size: 16, text_angle: 45, tick_anchor_x: 0 }"
-            :show-grid="false" title="date" :extend="0.5">
-            <VVAction move rescale zoom />
-        </VVAxisX>
-        <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
-    </VVPlot>`}}</code></pre>
+    <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate"
+        :theme="{ title_color: 'gray' }">
+        <VVAction move rescale zoom />
+    </VVAxisY>
+    <VVAxisX position="10%"
+        :theme="{ tick_length: 3, title_position: 'right', title_size: 16, text_angle: 45, tick_anchor_x: 0 }"
+        :show-grid="false" title="date" :extend="0.5">
+        <VVAction move rescale zoom />
+    </VVAxisX>
+    <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
+</VVPlot>`}}</code></pre>
             <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
             <pre><code class="html">{{templates[10] = `<VVPlot :data="economics">
-        <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
-        <VVAxisY position="left" primary />
-        <VVAxisY position="right" />
-        <VVAxisX position="bottom" secondary />
-        <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
-    </VVPlot>`}}</code></pre>
+    <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
+    <VVAxisY position="left" primary />
+    <VVAxisY position="right" />
+    <VVAxisX position="bottom" secondary />
+    <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
+</VVPlot>`}}</code></pre>
             <component :is="{ template: templates[10], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
             <pre><code class="html">{{templates[11] = `<VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
-        <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x"
-            :theme="{ title_position: 'right', title_size: 16 }">
-            <VVAction move rescale zoom />
-        </VVAxisX>
-        <VVAxisY :position="0" :expand-mult="1" :extend="1" title="y"
-            :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
-            <VVAction move rescale zoom />
-        </VVAxisY>
-        <VVGeomPoint :x="d => d.x" :y="d => d.y" />
-    </VVPlot>`}}</code></pre>
+    <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x"
+        :theme="{ title_position: 'right', title_size: 16 }">
+        <VVAction move rescale zoom />
+    </VVAxisX>
+    <VVAxisY :position="0" :expand-mult="1" :extend="1" title="y"
+        :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
+        <VVAction move rescale zoom />
+    </VVAxisY>
+    <VVGeomPoint :x="d => d.x" :y="d => d.y" />
+</VVPlot>`}}</code></pre>
             <component :is="{ template: templates[11], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
             <pre><code class="html">{{templates[12] = `<VVPlot :data="letters">
-        <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
-        <VVAxisY position="center" :theme="{ tick_anchor_y: 1 }" />
-        <VVGeomBar :x="d => d" />
-    </VVPlot>`}}</code></pre>
+    <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
+    <VVAxisY position="center" :theme="{ tick_anchor_y: 1 }" />
+    <VVGeomBar :x="d => d" />
+</VVPlot>`}}</code></pre>
             <component :is="{ template: templates[12], props: Object.keys(vBind) }" v-bind="vBind" />
         </section>
     </article>
