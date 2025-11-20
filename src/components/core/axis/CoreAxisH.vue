@@ -147,13 +147,13 @@ function axisMovePointerdown(e) {
     e.stopPropagation()
     e.target.style.cursor = 'grabbing'
     let boundary = coord2pos(act, { unlimited: true })
-    let range = {
+    let boundaryH = {
         min: boundary.hmax == null ? -Infinity : layout.width - boundary.hmax,
         max: boundary.hmin == null ? Infinity : - boundary.hmin
     }
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        translateH.value = oob_squish_any(translateH.value + ev.movementX, range)
+        translateH.value = oob_squish_any(translateH.value + ev.movementX, boundaryH)
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -256,11 +256,11 @@ function wheel(act, pos, delta) {
         let { sensitivity = 0.1 } = act
         let movement = sensitivity * layout.width * (-delta / 120)
         let boundary = coord2pos(act, { unlimited: true })
-        let range = {
+        let boundaryH = {
             min: boundary.hmax == null ? -Infinity : layout.width - boundary.hmax,
             max: boundary.hmin == null ? Infinity : - boundary.hmin,
         }
-        translateH.value = oob_squish_any(movement, range)
+        translateH.value = oob_squish_any(movement, boundaryH)
     }
 }
 function applyTransform(act, event) {

@@ -34,7 +34,7 @@ window.addEventListener('hashchange', () => {
 })
 </script>
 <template>
-    <div class="content">
+    <div class="content" :class="{ 'h-screen': page == 'playground' }">
         <nav class="flex flex-row gap-4 p-4 sticky top-0 bg-white border-b border-gray-200 z-20">
             <a :href="'#' + k" :key="k" v-for="(v, k) in pages">{{ k.replace(/_/g, " ") }}</a>
         </nav>

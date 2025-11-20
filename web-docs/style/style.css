@@ -33,6 +33,15 @@ p {
     margin-block-start: 0.5em;
 }
 
+button {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 2px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: small;
+}
+
 ul {
     list-style-type: disc;
     padding-left: 2em;
