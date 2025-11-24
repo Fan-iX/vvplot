@@ -2,14 +2,13 @@
 import { computed, useTemplateRef } from 'vue'
 import { oob_squish_any, emitEvent } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
-const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
+const { ticks, title, coord2pos, pos2coord, layout, theme, action, position, transition } = defineProps({
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,
     layout: Object,
-    coord: String, majorBreaks: Array, minorBreaks: Array, // drop from attribute inheritance
     theme: { type: Object, default: () => ({}) },
     action: { type: Array, default: () => [] },
-    position: null
+    position: null, transition: String,
 })
 const width = computed(() => layout.width + layout.l + layout.r)
 const height = computed(() => layout.height + layout.t + layout.b)
@@ -18,7 +17,6 @@ const translateH = defineModel('translateH', { type: Number, default: 0 })
 const translateV = defineModel('translateV', { type: Number, default: 0 })
 const transcaleH = defineModel('transcaleH')
 const transcaleV = defineModel('transcaleV')
-const transition = defineModel('transition')
 const transform = computed(() => {
     let translate = 0
     let aln = { bottom: "0%", center: "50%", top: "100%" }[position] ?? position
@@ -36,8 +34,8 @@ const axisTitle = computed(() => {
         dockX = theme.title_dock_x, dockY = theme.title_dock_y, offset = 0
     if (typeof pos != "number") {
         aln = { left: 0, bottom: 0.5, top: 0.5, right: 1 }[pos] ?? 0.5
-        dockX = dockX ?? { left: 1, right: 0 }[pos] ?? 0.5
-        dockY = dockY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+        dockX ??= { left: 1, right: 0 }[pos] ?? 0.5
+        dockY ??= { top: 0, bottom: 1 }[pos] ?? 0.5
         offset = ({ top: -1, bottom: 1 }[pos] ?? 0) * (theme.title_offset ?? 0)
     }
     return {
@@ -62,16 +60,21 @@ const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
-        let position = coord2pos({ h: tick.position }).h + layout.l + translateH.value
-        if (transcaleH.value?.ratio != null)
-            position = position * transcaleH.value.ratio + (1 - transcaleH.value.ratio) * (transcaleH.value.origin ?? 0.5) * width.value
-        if (position < 0 || position > width.value) continue
+        let position = coord2pos({ h: tick.position }).h + layout.l
+        let tsl = translateH.value
+        if (transcaleH.value?.ratio != null) {
+            tsl += (1 - transcaleH.value.ratio) * ((transcaleH.value.origin ?? 0.5) * width.value - position)
+        }
+        if (position + tsl < 0 || position + tsl > width.value) continue
         let offset = (theme.tick_position == "top" ? -1 : 1) * (tick.length ?? theme.tick_length)
         result.push({
+            key: "line-" + tick.position,
             y1: 0, y2: offset,
             x1: position, x2: position,
             'stroke': tick.color ?? theme.tick_color,
             'stroke-width': tick.width ?? theme.tick_width,
+            transform: tsl ? `translate(${tsl},0)` : null,
+            style: { transition },
         })
     }
     return result.filter(t => t.stroke != null)
@@ -81,10 +84,12 @@ const tickTexts = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick, label: tick }
-        let position = coord2pos({ h: tick.position }).h + layout.l + translateH.value
-        if (transcaleH.value?.ratio != null)
-            position = position * transcaleH.value.ratio + (1 - transcaleH.value.ratio) * (transcaleH.value.origin ?? 0.5) * width.value
-        if (position < 0 || position > width.value) continue
+        let position = coord2pos({ h: tick.position }).h + layout.l
+        let tsl = translateH.value
+        if (transcaleH.value?.ratio != null) {
+            tsl += (1 - transcaleH.value.ratio) * ((transcaleH.value.origin ?? 0.5) * width.value - position)
+        }
+        if (position + tsl < 0 || position + tsl > width.value) continue
         let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.tick_length) + 3)
         let anchorX, anchorY, dockX, dockY
         if (theme.tick_anchor_x != null || theme.tick_anchor_y != null) {
@@ -95,17 +100,24 @@ const tickTexts = computed(() => {
             dockY = theme.tick_dock_y ?? (isTop ? 0 : 1)
         }
         result.push({
-            x: position,
-            y: offset,
-            angle: theme.text_angle,
-            anchorX, anchorY, dockX, dockY,
-            text: tick.label,
-            title: tick.title ?? tick.label,
-            fontSize: tick.size ?? theme.label_size,
-            'fill': tick.color ?? theme.label_color,
+            wrapper: {
+                key: "text-" + tick.position,
+                transform: tsl ? `translate(${tsl},0)` : null,
+                style: { transition },
+            },
+            text: {
+                x: position,
+                y: offset,
+                angle: theme.text_angle,
+                anchorX, anchorY, dockX, dockY,
+                text: tick.label,
+                title: tick.title ?? tick.label,
+                fontSize: tick.size ?? theme.label_size,
+                'fill': tick.color ?? theme.label_color
+            },
         })
     }
-    return result.filter(t => t.fill != null)
+    return result.filter(t => t.text.fill != null)
 })
 
 const iRef = useTemplateRef("i")
@@ -121,7 +133,8 @@ function getCoord(event) {
 }
 const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
-    'move', 'zoom', 'rescale', 'nudge', 'rangechange'
+    'move', 'zoom', 'rescale', 'nudge', 'rangechange',
+    'update:transition'
 ])
 function axisMovePointerdown(e) {
     let coord = getCoord(e)
@@ -221,7 +234,7 @@ function axisWheel(e) {
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
     e.stopPropagation()
-    transition.value = 'transform 0.1s ease-out'
+    emit('update:transition', 'transform 0.1s ease-out')
     wheelDelta += e.deltaY
     wheel(act, coord, wheelDelta)
     wheelTimer = setTimeout(() => {
@@ -299,10 +312,12 @@ const axisVOn = {
 }
 </script>
 <template>
-    <g :transform="transform">
+    <g :transform="transform" :style="{ transition }">
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
-        <CoreText v-for="tick in tickTexts" v-bind="tick" />
+        <g v-for="tick in tickTexts" v-bind="tick.wrapper">
+            <CoreText v-bind="tick.text" />
+        </g>
         <g class="vvplot-interactive" fill="transparent">
             <rect :width="width" :height="10" :y="-5" v-on="axisVOn"
                 :class="{ 'vvplot-cursor-grab': action.some?.(a => a.action == 'move') }" />

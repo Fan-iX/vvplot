@@ -171,13 +171,13 @@ function palette_scale_auto({
     limits, oob = oob_censor,
     title, ...etc
 } = {}) {
-    let color_hue = palette_scale_hue(),
-        color_gradient = palette_scale_gradient()
+    let scale_hue = palette_scale_hue(),
+        scale_gradient = palette_scale_gradient()
     let fn = function (arr) {
         if (arr.level != null) {
-            return color_hue.call(this, arr)
+            return scale_hue.call(this, arr)
         } else {
-            return color_gradient.call(this, arr)
+            return scale_gradient.call(this, arr)
         }
     }
     return Object.assign(fn, { title, limits, oob }, etc)

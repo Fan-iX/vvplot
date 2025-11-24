@@ -3,124 +3,11 @@ import vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
-import { numutils } from './utils'
-
-function compare(a, b) {
-    if (typeof a != 'number' || typeof b != 'number')
-        return String(a).localeCompare(String(b))
-    return a > b ? 1 : a < b ? -1 : 0
-}
-
-function naturalCompare(a, b) {
-    if (typeof a != 'number' || typeof b != 'number')
-        return String(a).localeCompare(String(b), undefined, { numeric: true })
-    return a > b ? 1 : a < b ? -1 : 0
-}
+import { numutils, GEnumLevel } from './utils'
 
 function object_map(obj, expr) {
     if (obj == null) return {}
     return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, expr(k, v)]))
-}
-
-class GEnumElement {
-    constructor(label, value, level) {
-        this.label = label
-        this.value = value
-        this.level = level
-    }
-    toString() {
-        return this.label
-    }
-    valueOf() {
-        return this.value
-    }
-}
-
-class GEnumLevel {
-    /**
-     * return:
-     *   x if x is a GEnumLevel
-     *   new GEnumLevel from distinct values of x, ordered by natural order, if x is an array
-     *   new GEnumLevel from keys of x, orderd by coresponing values, if x is an object
-     * @param {*} x
-     * @param {function} [sortkey]
-     * @returns {GEnumLevel}
-     */
-    static from(x) {
-        if (x instanceof this) return x
-        if (x instanceof Set) {
-            x = Array.from(x)
-        }
-        if (Array.isArray(x)) {
-            let lvl = Array.from(new Set(x.map(x => String(x)))).sort(naturalCompare)
-            return new this(lvl)
-        } else if (typeof x === 'object') {
-            let lvl = Object.keys(x).map(x => String(x)).sort((a, b) => compare(x[a], x[b]))
-            return new this(lvl)
-        }
-        throw new Error(`Invalid level values: ${x}`)
-    }
-    /**
-     * build a GEnumLevel from a string list
-     * @param {string[]} level
-     */
-    constructor(level) {
-        if (level instanceof this.constructor) return level
-        if (level instanceof Set) {
-            level = Array.from(level)
-        }
-        if (!Array.isArray(level)) {
-            throw new Error('level must be an array')
-        }
-        let lvl = level.map(x => x.toString()).map((k, i) => new GEnumElement(k, i, this))
-        this.level = lvl
-        this.mapping = Object.fromEntries(lvl.map(fct => [fct, fct]))
-        this.length = lvl.length
-    }
-    [Symbol.iterator]() {
-        return this.level[Symbol.iterator]()
-    }
-    /**
-     * get the level instance by index or key
-     * @param {(number|string)} idx 
-     * @returns {GEnumElement}
-     */
-    getItem(idx) {
-        if (typeof idx === 'number' || idx instanceof Number) {
-            return this.level[idx]
-        } else {
-            return this.mapping[idx]
-        }
-    }
-    /**
-     * convert an array to a GEnum array
-     * @param {string[]} arr array to be converted, preferably a string array (items of other types will be converted to string)
-     * @returns {GEnumElement[]}
-     */
-    apply(arr) {
-        let result = arr.map(x => this.mapping[x])
-        result.level = this
-        return result
-    }
-}
-
-/**
- * convert an array to enum array
- * @param {Array} arr
- * @param {(string[]|Function)} [level]
- * @returns {GEnumElement[]}
- */
-function as_enum(arr, level) {
-    if (level instanceof GEnumLevel) {
-        return level.apply(arr)
-    }
-    let lvl
-    if (Array.isArray(level)) {
-        lvl = new GEnumLevel(level)
-    } else {
-        lvl = GEnumLevel.from(arr, level)
-    }
-    return lvl.apply(arr)
 }
 
 /**
@@ -210,7 +97,7 @@ class GLayer {
         // apply stat function
         try {
             data = stat(data, $$args || {})
-            data.$group = data.$group ?? data.group
+            data.$group ??= data.group
             if (data.$group == null) {
                 let length = Object.values(data).filter(v => Array.isArray(v))
                     .reduce((acc, cur) => Math.max(acc, cur.length), 0)
@@ -357,7 +244,7 @@ export class GPlot {
     useCoordLevels(levels = {}) {
         for (const aes of ['x', 'y']) {
             if (levels[aes]) {
-                this.levels[aes] = new GEnumLevel(levels[aes])
+                this.levels[aes] = new GEnumLevel(...levels[aes])
             } else {
                 let values = this.layers.flatMap(layer => {
                     let fn = vvgeom[layer.geom].get_values ?? vvgeom[layer.geom].get_range
@@ -443,19 +330,10 @@ export class GPlot {
         return result
     }
 
-    getAxes(coordScales, expandMult, axes = []) {
-        coordScales = {
-            x: coordScales.x.expand(expandMult?.x),
-            y: coordScales.y.expand(expandMult?.y)
-        }
-        return axes.filter(a => a.coord in coordScales).map(ax => new GAxis(ax, coordScales[ax.coord]))
-    }
-
-    render(range, expandAdd, expandMult, axes, minRange) {
+    render(range, expandAdd, minRange) {
         let coordScales = this.getCoordScales(range, expandAdd, minRange)
         return {
             layers: this.getComputedLayers(),
-            axes: this.getAxes(coordScales, expandMult, axes),
             coordScales,
             scales: this.scales,
         }
@@ -474,16 +352,16 @@ export class Scale extends Function {
         return scale
     }
     set extent({ min, max, 0: rmin, 1: rmax } = {}) {
-        min = min ?? rmin
-        max = max ?? rmax
+        min ??= rmin
+        max ??= rmax
         this._limits = { 0: min, 1: max, length: 2, min, max }
     }
     get extent() {
         return this.limits
     }
     set limits({ min, max, 0: rmin, 1: rmax } = {}) {
-        min = min ?? rmin
-        max = max ?? rmax
+        min ??= rmin
+        max ??= rmax
         this.$limits = { 0: min, 1: max, length: 2, min, max }
     }
     get limits() {
@@ -497,6 +375,7 @@ class DiscreteCoordScale extends Function {
     constructor(level, { min, max } = {}) {
         const scale = min == max ? x => 0 : x => (+x - min) / (max - min)
         scale.range = { min, max }
+        scale.limits = { min, max }
         scale.level = level
         scale.invert = w => w * (max - min) + min
         Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
@@ -511,9 +390,12 @@ class DiscreteCoordScale extends Function {
         scale.range = this.range
         scale.level = this.level
         scale.title = this.title
+        scale.limits = { min, max }
         Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
         return scale
     }
+    get breaks() { return Array.from(this.level) }
+    get minorBreaks() { return [] }
 }
 class ContinuousCoordScale extends Function {
     constructor(domain) {
@@ -542,6 +424,8 @@ class ContinuousCoordScale extends Function {
         let { min, max } = this.limits
         return w * (max - min) + min
     }
+    get breaks() { return vvbreak.number() }
+    get minorBreaks() { return vvbreak.number({ minor: true }) }
 }
 class DatetimeCoordScale extends ContinuousCoordScale {
     constructor(domain) {
@@ -558,67 +442,51 @@ class DatetimeCoordScale extends ContinuousCoordScale {
         let { min, max } = this.limits
         return new Date(w * (max - min) + min)
     }
+    get breaks() { return vvbreak.datetime() }
+    get minorBreaks() { return [] }
 }
 
-class GAxis {
-    constructor(config = {}, scale) {
-        let { breaks, extend, labels, minorBreaks, showGrid, ...etc } = config
-        Object.assign(this, etc)
-        if (scale.level) {
-            let level = scale.level.level.sort((a, b) => a - b)
-            breaks = breaks ?? level.map(x => +x) ?? []
-            if (typeof breaks == 'function') breaks = breaks(level)
-            if (Array.isArray(labels)) {
-                if (labels.length != breaks.length) {
-                    throw new Error('Length of labels must be the same as breaks')
-                }
-            } else if (typeof labels === 'function') {
-                labels = level.map(labels)
-            } else {
-                labels = level.map(x => String(x))
-            }
-            this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
-            this.majorBreaks = showGrid ? breaks : []
-            this.minorBreaks = []
-        } else if (scale instanceof DatetimeCoordScale) {
-            breaks = breaks ?? vvbreak.datetime({ extend }) ?? []
-            if (typeof breaks == 'function') breaks = breaks(scale.limits)
-            labels = labels ?? vvlabel.datetime()
-            if (!Array.isArray(breaks)) breaks = []
-            if (Array.isArray(labels)) {
-                if (labels.length != breaks.length) {
-                    throw new Error('Length of labels must be the same as breaks')
-                }
-            } else if (typeof labels === 'function') {
-                labels = breaks.map(labels)
-            } else {
-                labels = breaks.map(b => String(b))
-            }
-            let titles = breaks.map(b => new Date(b).toISOString())
-            this.ticks = breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
-                .sort((a, b) => a.position - b.position)
-            this.majorBreaks = showGrid ? breaks.sort() : []
-            this.minorBreaks = []
-        } else {
-            breaks = breaks ?? vvbreak.number({ extend }) ?? []
-            if (typeof breaks == 'function') breaks = breaks(scale.limits)
-            minorBreaks = minorBreaks ?? vvbreak.number({ extend, minor: true }) ?? []
-            if (typeof minorBreaks == 'function') minorBreaks = minorBreaks(scale.limits)
-            labels = labels ?? vvlabel.number()
-            if (!Array.isArray(breaks)) breaks = []
-            if (Array.isArray(labels)) {
-                if (labels.length != breaks.length) {
-                    throw new Error('Length of labels must be the same as breaks')
-                }
-            } else if (typeof labels === 'function') {
-                labels = breaks.map(labels)
-            } else {
-                labels = breaks.map(b => String(b))
-            }
-            this.ticks = breaks.map((position, i) => ({ position, label: labels[i] }))
-                .sort((a, b) => a.position - b.position)
-            this.majorBreaks = showGrid ? breaks.sort() : []
-            this.minorBreaks = showGrid ? minorBreaks.sort() : []
+export class GAxis {
+    constructor(scale, { extend, breaks, labels, minorBreaks, titles } = {}) {
+        this.scale = scale
+        this.limits = scale?.limits
+        this.extend = extend ?? 0
+        this.breaks = breaks ?? scale.breaks
+        this.labels = labels ?? vvlabel.auto()
+        this.titles = titles ?? vvlabel.asis()
+        this.minorBreaks = minorBreaks ?? scale.minorBreaks
+    }
+    getBindings({ limits = this.limits, extend = this.extend } = {}) {
+        let breaks = this.breaks, minorBreaks = this.minorBreaks
+        let { min, max } = limits, interval = max - min || 0
+        min = min == null ? min : min - extend * interval
+        max = max == null ? max : max + extend * interval
+
+        if (typeof breaks == 'function') breaks = breaks(limits)
+        breaks = Array.isArray(breaks) ? breaks.sort((a, b) => a - b) : []
+
+        if (typeof minorBreaks == 'function') minorBreaks = minorBreaks(limits)
+        minorBreaks = Array.isArray(minorBreaks) ? minorBreaks.sort((a, b) => a - b) : []
+
+        let labels = this.labels, titles = this.titles
+
+        if (typeof labels === 'function') labels = breaks.map(labels)
+        if (!Array.isArray(labels)) {
+            labels = []
+        } else if (labels.length != breaks.length) {
+            throw new Error('Length of labels must be the same as breaks')
+        }
+
+        if (typeof titles === 'function') titles = breaks.map(titles)
+        if (!Array.isArray(titles)) {
+            titles = []
+        } else if (titles.length != titles.length) {
+            throw new Error('Length of titles must be the same as breaks')
+        }
+
+        return {
+            majorBreaks: breaks, minorBreaks,
+            ticks: breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
         }
     }
 }

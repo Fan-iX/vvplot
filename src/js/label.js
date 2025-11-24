@@ -1,3 +1,21 @@
+import { GEnumElement } from './utils'
+
+let $datetime_fn = {
+    y: d => d.getUTCFullYear(),
+    M: d => d.getUTCMonth() + 1,
+    d: d => d.getUTCDate(),
+    h: d => d.getUTCHours(),
+    m: d => d.getUTCMinutes(),
+    s: d => d.getUTCSeconds()
+}
+function $datetime_format(date, fmt = 'yyyy-MM-dd hh:mm:ss') {
+    return fmt.replace(/(y|M|d|h|m|s)\1*/g, (m, f) => {
+        let s = String($datetime_fn[f](date)), l = m.length
+        if (f == 'y') return s.slice(-l)
+        return s.padStart(l, '0')
+    })
+}
+
 export const number_cut = {
     default: {
         '': 1, 'k': 1e3, 'M': 1e6, 'G': 1e9, 'T': 1e12, 'P': 1e15, 'E': 1e18, 'Z': 1e21, 'Y': 1e24,
@@ -23,6 +41,7 @@ export const number_cut = {
 function format_asis() {
     return function (x) {
         if (x == null) return ""
+        if (x instanceof Date) return $datetime_format(x)
         return String(x)
     }
 }
@@ -63,8 +82,6 @@ function format_number({
         return pre + num + suf
     }
 }
-
-
 /**
  * format timestamp into date string
  * @param {*} options
@@ -73,26 +90,11 @@ function format_number({
 function format_datetime({
     format,
 } = {}) {
-    let $fn = {
-        y: d => d.getUTCFullYear(),
-        M: d => d.getUTCMonth() + 1,
-        d: d => d.getUTCDate(),
-        h: d => d.getUTCHours(),
-        m: d => d.getUTCMinutes(),
-        s: d => d.getUTCSeconds()
-    }
     let $cut = { y: 31536000, M: 2678400, d: 86400, h: 3600, m: 60, s: 1 }
-    function $format(date, fmt) {
-        return fmt.replace(/(y|M|d|h|m|s)\1*/g, (m, f) => {
-            let s = String($fn[f](date)), l = m.length
-            if (f == 'y') return s.slice(-l)
-            return s.padStart(l, '0')
-        })
-    }
     let offset_left = { y: 0, M: 5, d: 8, h: 11, m: 14, s: 17 }
     let offset_right = { y: 4, M: 7, d: 10, h: 13, m: 16, s: 19 }
     return function (x, i, arr = [x]) {
-        if (arr.length <= 1) return $format(new Date(x), format ?? 'yyyy-MM-dd hh:mm:ss')
+        if (arr.length <= 1) return $datetime_format(new Date(x), format)
         if (format == null) {
             let a = Array.from(arr).sort((a, b) => a - b)
             let minInterval = a.slice(1).map((v, j) => v - a[j])
@@ -102,7 +104,17 @@ function format_datetime({
             let maxCut = maxInterval > 2678400 ? "y" : maxInterval > 86400 ? "M" : "h"
             format = 'yyyy-MM-dd hh:mm:ss'.slice(offset_left[maxCut], offset_right[minCut])
         }
-        return $format(new Date(x), format)
+        return $datetime_format(new Date(x), format)
+    }
+}
+
+function format_auto(opts) {
+    let formatter_number = format_number(opts),
+        formatter_datetime = format_datetime(opts)
+    return function (x, i, arr = [x]) {
+        if (x instanceof GEnumElement) return String(x)
+        if (x instanceof Date) return formatter_datetime(x, i, arr)
+        return formatter_number(x, i, arr)
     }
 }
 
@@ -111,7 +123,8 @@ export default {
     datetime: format_datetime,
     timestamp: format_datetime,
     asis: format_asis,
+    auto: format_auto,
     default: function (opts) {
-        return format_number({ scale_cut: number_cut.default, ...opts })
+        return format_auto({ scale_cut: number_cut.default, ...opts })
     },
 }

@@ -1,3 +1,77 @@
+export class GEnumElement {
+    constructor(label, value, level) {
+        this.label = label
+        this.value = value
+        this.level = level
+    }
+    toString() {
+        return this.label
+    }
+    valueOf() {
+        return this.value
+    }
+    toJSON() {
+        return this.label
+    }
+}
+
+export class GEnumLevel extends Array {
+    /**
+     * return:
+     *   x if x is a GEnumLevel
+     *   new GEnumLevel from distinct values of x, ordered by natural order, if x is iterable
+     *   new GEnumLevel from keys of x, orderd by coresponing values, if x is an object
+     * @param {*} x
+     * @param {function} [sortkey]
+     * @returns {GEnumLevel}
+     */
+    static from(x) {
+        if (x instanceof this) return x
+        if (x[Symbol.iterator]) {
+            let lvl = unique(Array.from(x).map(x => String(x))).sort((a, b) => compare(a, b, { numeric: true }))
+            return new this(...lvl)
+        } else if (typeof x === 'object') {
+            let lvl = Object.keys(x).map(x => String(x)).sort((a, b) => compare(x[a], x[b]))
+            return new this(...lvl)
+        }
+        throw new Error(`Invalid level values: ${x}`)
+    }
+    /**
+     * build a GEnumLevel
+     * @param {string[]} level
+     */
+    constructor(...level) {
+        level = level.map((x, i) => new GEnumElement(String(x), i))
+        level.forEach(l => l.level = level)
+        level.mapping = Object.fromEntries(level.map(fct => [fct, fct]))
+        Object.setPrototypeOf(level, GEnumLevel.prototype)
+        return level
+    }
+    /**
+     * get the level instance by index or key
+     * @param {(number|string)} idx 
+     * @returns {GEnumElement}
+     */
+    getItem(idx) {
+        if (typeof idx === 'number' || idx instanceof Number) {
+            return this[idx]
+        } else {
+            return this.mapping[idx]
+        }
+    }
+    /**
+     * convert an array to a GEnum array
+     * @param {string[]} arr array to be converted, preferably a string array (items of other types will be converted to string)
+     * @returns {GEnumElement[]}
+     */
+    apply(arr) {
+        let result = arr.map(x => this.mapping[x])
+        result.level = this
+        return result
+    }
+}
+
+
 export const numutils = {
     min(arr, { na_rm = true, infinity_rm = true } = {}) {
         if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
@@ -119,6 +193,18 @@ export function str_c(...args) {
 export function unique(arr) {
     if (arr == null) return []
     return Array.from(new Set(arr))
+}
+
+/**
+ * natural comparation of two item
+ * @param {*} a 
+ * @param {*} b 
+ * @returns {number}
+ */
+function compare(a, b, { numeric = false } = {}) {
+    if (typeof a != 'number' || typeof b != 'number')
+        return String(a).localeCompare(String(b), undefined, { numeric })
+    return a - b
 }
 
 export function emitEvent(handlers, ...args) {
@@ -307,6 +393,8 @@ export function serializeSVG(svgElement) {
                 node.removeChild(child);
             } else if (child.nodeType === Node.ELEMENT_NODE) {
                 removeComments(child);
+                if (child.getAttribute("style") == "") child.removeAttribute('style')
+                if (child.getAttribute("class") == "") child.removeAttribute('class')
             }
         }
     }

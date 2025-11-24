@@ -1,7 +1,7 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
 import { reactive, computed, watch, useTemplateRef, useId } from 'vue'
-import { GPlot } from '#base/js/plot'
+import { GPlot, GAxis } from '#base/js/plot'
 import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent } from '#base/js/utils'
 import { reactiveComputed, useElementSize } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
@@ -50,6 +50,16 @@ const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
 const { width, height } = useElementSize(svgRef)
 
+const gplot = computed(() => new GPlot(schema, props.layers))
+const vplot = computed(() => {
+    return gplot.value
+        .useScales(scales, levels)
+        .useCoordLevels(coordLevels)
+        .render(
+            range, expandAdd, props.minRange
+        )
+})
+
 /**
   variable definition:
                 right
@@ -70,7 +80,6 @@ const { width, height } = useElementSize(svgRef)
   │                                   │ │ b
   └───────────────────────────────────┘ ┘
  */
-
 const panel = reactiveComputed(() => {
     let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, props.axes.some(a => a.position == p) ? (theme.plot.padding[p] || 0) : 0]))
     let l = theme.plot.margin.left + padding.left,
@@ -110,35 +119,47 @@ const panel = reactiveComputed(() => {
    |     0                 | │ b
    '-----------------------' ┘
  */
-const transformBind = computed(() => {
-    let transform = [], origin = null
-    let tslX = translateH.value + innerRect.left,
-        tslY = translateV.value + innerRect.top
-    if (tslX != 0 || tslY != 0)
-        transform.push(`translate(${tslX}, ${tslY})`)
-    let sclX = transcaleH.value?.ratio ?? 1,
-        sclY = transcaleV.value?.ratio ?? 1
-    if (sclX != 1 || sclY != 1) {
-        transform.push(`scale(${sclX}, ${sclY})`)
-        origin = `${(transcaleH.value?.origin ?? 0.5) * panel.width - innerRect.left} ${(transcaleV.value?.origin ?? 0.5) * panel.height - innerRect.top}`
-    }
+const innerRect = reactiveComputed(() => {
+    let scales = vplot.value.coordScales
+    let mult = expandMult
+    let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
+    let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
+    let [pl, pr, pb, pt] = flip ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
+    let { width: w, height: h } = panel
     return {
-        transform: transform.join(' '),
-        'transform-origin': origin
+        left: w * pl || 0,
+        right: w * (1 - pr) || 0,
+        top: h * pt || 0,
+        bottom: h * (1 - pb) || 0,
+        l: w * pl || 0,
+        r: w * pr || 0,
+        t: h * pt || 0,
+        b: h * pb || 0,
+        width: w * (1 - pl - pr),
+        height: h * (1 - pt - pb),
+        fullWidth: w, fullHeight: h,
     }
 })
 
-const gplot = computed(() => new GPlot(schema, props.layers))
-const vplot = computed(() => {
-    return gplot.value
-        .useScales(scales, levels)
-        .useCoordLevels(coordLevels)
-        .render(
-            range, expandAdd, expandMult,
-            props.axes, props.minRange
-        )
-})
 defineExpose({ vplot, panel, svg: svgRef })
+
+const transformBind = computed(() => {
+    let transform = [], origin = null
+    let tslH = translateH.value + innerRect.left,
+        tslV = translateV.value + innerRect.top,
+        sclH = transcaleH.value?.ratio ?? 1,
+        sclV = transcaleV.value?.ratio ?? 1
+    if (tslH != 0 || tslV != 0)
+        transform.push(`translate(${tslH}, ${tslV})`)
+    if (sclH != 1 || sclV != 1) {
+        transform.push(`scale(${sclH}, ${sclV})`)
+        origin = `${(transcaleH.value?.origin ?? 0.5) * panel.width - innerRect.left} ${(transcaleV.value?.origin ?? 0.5) * panel.height - innerRect.top}`
+    }
+    return {
+        transform: transform.join(' ') || null,
+        'transform-origin': origin
+    }
+})
 
 function _pos2coord(
     { value, min, max },
@@ -274,27 +295,6 @@ function getPadding({ min: $min, max: $max } = {}, { min: mmin = 0, max: mmax = 
     }
 }
 
-const innerRect = reactiveComputed(() => {
-    let scales = vplot.value.coordScales
-    let mult = expandMult
-    let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
-    let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
-    let [pl, pr, pb, pt] = flip ? [ymin, ymax, xmin, xmax] : [xmin, xmax, ymin, ymax]
-    let { width: w, height: h } = panel
-    return {
-        left: w * pl || 0,
-        right: w * (1 - pr) || 0,
-        top: h * pt || 0,
-        bottom: h * (1 - pb) || 0,
-        l: w * pl || 0,
-        r: w * pr || 0,
-        t: h * pt || 0,
-        b: h * pb || 0,
-        width: w * (1 - pl - pr),
-        height: h * (1 - pt - pb),
-        fullWidth: w, fullHeight: h,
-    }
-})
 function getCoord(event) {
     let rect = svgRef.value.getBoundingClientRect()
     let l = Math.trunc(event.clientX) - (rect.left + panel.left + innerRect.left),
@@ -363,12 +363,24 @@ function svgPointerdown(e) {
             }
             activeSelection.value = { modelValue: res, theme: sel.theme }
         }
-        e.target.onclick = (ev) => {
-            ev.currentTarget.onclick = null
+        e.target.onpointerup = (ev) => {
+            ev.currentTarget.onpointerup = null
             ev.currentTarget.onpointermove = null
             svg.style.userSelect = null
             activeSelection.value = null
             if (pointerMoved && (x || y)) {
+                if (sel.buttons & 1) {
+                    ev.currentTarget.onclick = (event) => {
+                        event.currentTarget.onclick = null
+                        emitEvent(sel["onClick"], event)
+                    }
+                }
+                if (sel.buttons & 2) {
+                    ev.currentTarget.oncontextmenu = (event) => {
+                        event.currentTarget.oncontextmenu = null
+                        emitEvent(sel["onContextmenu"], event)
+                    }
+                }
                 let coordEnd = getCoord(ev)
                 let res = {}, event = new PointerEvent("select", e)
                 if (x) {
@@ -592,9 +604,31 @@ function changerange(coord) {
     Object.assign(range, { xmin, xmax, ymin, ymax })
 }
 
+const gaxes = computed(() => {
+    let coordScales = {
+        x: vplot.value.coordScales.x.expand(expandMult?.x),
+        y: vplot.value.coordScales.y.expand(expandMult?.y)
+    }
+    return props.axes.filter(a => a.coord in coordScales)
+        .filter(a => ["h", "v"].includes(a.orientation))
+        .map(({
+            coord, breaks, extend, labels, minorBreaks, ...etc
+        }) => ({
+            axis: new GAxis(coordScales[coord], { breaks, extend, labels, minorBreaks }), etc
+        }))
+})
+const vaxes = computed(() => gaxes.value.map(({ axis, etc }) => {
+    let { majorBreaks, minorBreaks, ticks } = axis.getBindings()
+    let { showGrid, orientation, ...bind } = etc
+    return {
+        majorBreaks, minorBreaks, ticks,
+        showGrid, orientation,
+        bind
+    }
+}))
 const gridBreaks = computed(() => {
-    let hAxes = vplot.value.axes.filter(a => a.orientation == "v"),
-        vAxes = vplot.value.axes.filter(a => a.orientation == "h")
+    let hAxes = vaxes.value.filter(a => a.showGrid && a.orientation == "v"),
+        vAxes = vaxes.value.filter(a => a.showGrid && a.orientation == "h")
     return {
         h: {
             majorBreaks: unique(hAxes.flatMap(a => a.majorBreaks)),
@@ -607,8 +641,7 @@ const gridBreaks = computed(() => {
     }
 })
 const axes = computed(() => {
-    return vplot.value.axes.map(axis => {
-        let { position, title, ticks, action, orientation, ...bind } = axis
+    return vaxes.value.map(({ orientation, bind, ticks }) => {
         let {
             onMove: move = (...args) => emit('move', ...args),
             onZoom: zoom = (...args) => emit('zoom', ...args),
@@ -619,7 +652,7 @@ const axes = computed(() => {
         return {
             orientation,
             bind: {
-                title, ticks, action, orientation, position,
+                orientation, ticks,
                 layout: innerRect,
                 coord2pos, pos2coord,
                 ...etc
@@ -640,9 +673,9 @@ const axes = computed(() => {
             :fill="theme.plot.background" v-if="theme.plot.background"></rect>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
-                :translate="translateV" :transcale="transcaleV" :coord2pos="coord2pos" />
+                :translate="translateV" :transcale="transcaleV" :coord2pos="coord2pos" :transition="transition" />
             <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"
-                :translate="translateH" :transcale="transcaleH" :coord2pos="coord2pos" />
+                :translate="translateH" :transcale="transcaleH" :coord2pos="coord2pos" :transition="transition" />
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
@@ -657,9 +690,9 @@ const axes = computed(() => {
             </g>
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
-            <CoreAxis v-for="axis in axes.filter(a => a.orientation == 'v' || a.orientation == 'h')" v-bind="axis.bind"
-                v-on="axis.on" v-model:translateH="translateH" v-model:transcaleH="transcaleH"
-                v-model:translateV="translateV" v-model:transcaleV="transcaleV" v-model:transition="transition" />
+            <CoreAxis v-for="axis in axes" v-bind="axis.bind" v-on="axis.on" v-model:translateH="translateH"
+                v-model:transcaleH="transcaleH" v-model:translateV="translateV" v-model:transcaleV="transcaleV"
+                v-model:transition="transition" />
         </g>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">

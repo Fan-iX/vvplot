@@ -53,8 +53,9 @@ const borderBind = computed(() => {
     return binds
 })
 
-const emit = defineEmits(['select', 'selecting'])
+const emit = defineEmits(['select', 'selecting', 'click', 'contextmenu'])
 function selPointerdown(e, dir) {
+    if (!dir) return
     if (!["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => config[k] == e[k])) return
     e.stopPropagation()
     e.preventDefault()
@@ -86,9 +87,21 @@ function selPointerdown(e, dir) {
         let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: h1, hmax: h2, vmin: v1, vmax: v2 })
         emit('selecting', { modelValue: { xmin, xmax, ymin, ymax }, theme })
     }
-    e.target.onclick = (ev) => {
+    e.target.onpointerup = (ev) => {
+        ev.currentTarget.onpointerup = null
         ev.currentTarget.onpointermove = null
-        ev.currentTarget.onclick = null
+        if (config.buttons & 1) {
+            ev.currentTarget.onclick = (event) => {
+                event.currentTarget.onclick = null
+                emit("click", event)
+            }
+        }
+        if (config.buttons & 2) {
+            ev.currentTarget.oncontextmenu = (event) => {
+                event.currentTarget.onclick = null
+                emit("contextmenu", event)
+            }
+        }
         if (!pointerMoved) return
         let [hmin, hmax] = h1 > h2 ? [h2, h1] : [h1, h2]
         let [vmin, vmax] = v1 > v2 ? [v2, v1] : [v1, v2]
