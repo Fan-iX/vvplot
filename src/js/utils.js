@@ -71,33 +71,41 @@ export class GEnumLevel extends Array {
     }
 }
 
+function isContinuous(x) {
+    return typeof x === 'number' || x instanceof Number || x instanceof Date
+}
+export function plus(a, b = 0) {
+    if (b == 0 || a == null) return a
+    if (a instanceof Date) return new a.constructor(+a + b)
+    return +a + b
+}
 
 export const numutils = {
     min(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity)
     },
     max(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
     },
     mean(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length == 0) return NaN
         return Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
     },
     sd(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length <= 1) return NaN
         let mean = Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
         return Math.sqrt(Array.from(arr).reduce((a, v) => a + (v - mean) ** 2, 0) / (arr.length - 1))
     },
     quantile(arr, p, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length == 0) return NaN
         arr = Array.from(arr).sort((a, b) => a - b)
@@ -108,7 +116,7 @@ export const numutils = {
     },
     extent(arr, { na_rm = true, infinity_rm = true } = {}) {
         if (arr.length == 0) return []
-        if (na_rm) arr = arr.filter(x => typeof x == 'number' || x instanceof Date)
+        if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         let min = Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity),
             max = Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)

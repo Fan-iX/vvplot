@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-const { majorBreaks, minorBreaks, coord2pos, layout, theme, translate, transcale, transition } = defineProps({
+const { majorBreaks, minorBreaks, coord2pos, layout, theme, activeTransform, transition } = defineProps({
     majorBreaks: { type: Array, default: () => [] },
     minorBreaks: { type: Array, default: () => [] },
     coord2pos: Function,
@@ -8,8 +8,7 @@ const { majorBreaks, minorBreaks, coord2pos, layout, theme, translate, transcale
     layout: Object,
     theme: { type: Object, default: () => ({}) },
     action: { type: Object, default: () => ({}) },
-    translate: { type: Number, default: 0 },
-    transcale: Object, transition: String,
+    activeTransform: Object, transition: String,
 })
 const width = computed(() => layout.width + layout.l + layout.r)
 const height = computed(() => layout.height + layout.t + layout.b)
@@ -18,10 +17,9 @@ const majorLines = computed(() => {
     let result = []
     for (let line of majorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ v: line.position }).v + layout.t
-        let tsl = translate
-        if (transcale?.ratio != null)
-            tsl += (1 - transcale.ratio) * ((transcale.origin ?? 0.5) * height.value - position)
+        let pos = coord2pos({ v: line.position }).v
+        let tsl = pos * (activeTransform.scaleV - 1) + activeTransform.translateV
+        let position = pos + layout.t
         if (position + tsl < 0 || position + tsl > height.value) continue
         result.push({
             key: 'major-' + line.position,
@@ -39,10 +37,9 @@ const minorLines = computed(() => {
     let result = []
     for (let line of minorBreaks) {
         if (line?.position == null) line = { position: +line }
-        let position = coord2pos({ v: line.position }).v + layout.t
-        let tsl = translate
-        if (transcale?.ratio != null)
-            tsl += (1 - transcale.ratio) * ((transcale.origin ?? 0.5) * height.value - position)
+        let pos = coord2pos({ v: line.position }).v
+        let tsl = pos * (activeTransform.scaleV - 1) + activeTransform.translateV
+        let position = pos + layout.t
         if (position + tsl < 0 || position + tsl > height.value) continue
         result.push({
             key: 'minor-' + line.position,

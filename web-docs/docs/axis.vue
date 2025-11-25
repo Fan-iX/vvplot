@@ -42,11 +42,6 @@ const templates = ref({})
                 plot explicitly.
             </p>
             <p>
-                The <code>limits</code> property is an alternative to set both <code>min</code> and <code>max</code> at
-                once.
-                It can be a two-element array or an object with <code>min</code> and <code>max</code> properties.
-            </p>
-            <p>
                 If not set, the coordinate range will be determined by the data range of the mapped aesthetic
                 attributes.
             </p>
@@ -56,7 +51,6 @@ const templates = ref({})
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX :min="0" :max="5" />
-    <VVAxisY :limits="{min: 0, max: 5}" />
 </VVPlot>` }}</code></pre>
                 <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
@@ -71,7 +65,6 @@ const templates = ref({})
         :y="d => d.Petal_Width"
         :color="d => d.Species" />
     <VVAxisX :levels="['virginica', 'setosa']" />
-    <VVAxisY :limits="[0, 5]" />
 </VVPlot>` }}</code></pre>
                 <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
@@ -92,7 +85,7 @@ const templates = ref({})
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX :expand-mult="{ min:0, max:0.5 }"/>
-    <VVAxisY :limits="[1, 7]" :expand-add="1" />
+    <VVAxisY :min="1" :max="7" :expand-add="1" />
 </VVPlot>` }}</code></pre>
                 <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
@@ -111,8 +104,8 @@ const templates = ref({})
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
-    <VVAxisX :limits="[1.5, 2]" />
-    <VVAxisY :limits="[4, 5]" :extend="2"/>
+    <VVAxisX :min="1.5" :max="2" />
+    <VVAxisY :min="4" :max="5" :extend="2"/>
     <VVAction move />
 </VVPlot>` }}</code></pre>
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -217,17 +210,15 @@ const templates = ref({})
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>limits</code></td>
+                            <td><code>min</code>,<code>max</code></td>
                             <td>
-                                <code>{ <br> min: &lt;Number&gt;, <br> max: &lt;Number&gt; <br> }</code>
-                                | <br>
-                                <code>[&lt;Number&gt;, &lt;Number&gt;]</code>
+                                <code>&lt;Number&gt;</code>
                             </td>
                             <td>Range limit by coordinate</td>
                             <td>
                                 <VVPlot :data="demo_point">
                                     <VVGeomPoint :x="d => d.x" :y="d => d.y" />
-                                    <VVAxisX :limits="{ min: 0, max: 4 }" />
+                                    <VVAxisX :min="0" :max="4" />
                                 </VVPlot>
                             </td>
                         </tr>

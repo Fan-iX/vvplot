@@ -79,7 +79,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
     <VVSelection v-model="selection" ${Object.entries(selectConfigs).map(([k, v]) => `:${k}="${v}"`).join(' ')}
         ${Object.entries(selectModifiers).map(([k, v]) => `:${k}="${v}"`).join(' ')} button="${selectButton.value}"
-        :xmin="0.5" :xmax="2" :theme="{ line_color: 'gray' }" />
+        :xmin="0.5" :xmax="2" :theme="{ line_color: 'gray' }" :min-range-x="0.5" />
 </VVPlot>`)
 </script>
 <template>
@@ -210,8 +210,12 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 can be used to control when the selection can be made or canceled.
             </p>
             <p>
-                limits of the selection region can be set via properties <code>xmin</code>, <code>xmax</code>,
-                <code>ymin</code> and <code>ymax</code>.
+                limits of the selection region can be set via properties
+                <code>xmin</code>, <code>xmax</code>, <code>ymin</code> and <code>ymax</code>.
+            </p>
+            <p>
+                The minimum size of the selection region can be set via properties
+                <code>min-range-x</code> and <code>min-range-y</code>.
             </p>
             <p>
                 The selection region can be styled via the <code>theme</code> property.
@@ -238,7 +242,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <div class="flex flex-row">
                 <VVPlot :data="iris" :width="600" :height="400">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-                    <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2"
+                    <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2" :min-range-x="0.5"
                         :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }"
                         @select="e => plotSelectArg = e" @cancel="e => plotSelectArg = e" />
                 </VVPlot>

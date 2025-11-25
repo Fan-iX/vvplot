@@ -3,9 +3,9 @@
  * @param {*} options
  * @returns {function({min:number, max:number}): Array}
  */
-function break_number({ step, minor = false } = {}) {
+function break_number({ step: $step, minor = false } = {}) {
     return function ({ min, max } = {}) {
-        let interval = max - min
+        let interval = max - min, step = $step
         if (isNaN(interval) || interval < 0) return []
         if (interval == 0) return [min]
         let exp = 10 ** Math.floor(Math.log10(interval) - 1),
