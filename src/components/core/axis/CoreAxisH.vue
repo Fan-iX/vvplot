@@ -1,33 +1,27 @@
 <script setup>
-import { computed, useTemplateRef } from 'vue'
-import { oob_squish_any, emitEvent } from '#base/js/utils'
+import { computed, inject, useTemplateRef } from 'vue'
+import { oob_squish_any, emitEvent, dropNull } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
-const { ticks, title, coord2pos, pos2coord, layout, theme, action, position } = defineProps({
+const { coord, ticks, title, coord2pos, pos2coord, layout, theme, action, position, activeTransform, transition } = defineProps({
+    coord: String,
     ticks: { type: Array, default: () => [] }, title: String,
     coord2pos: Function, pos2coord: Function,
     layout: Object,
-    coord: String, majorBreaks: Array, minorBreaks: Array, // drop from attribute inheritance
     theme: { type: Object, default: () => ({}) },
     action: { type: Array, default: () => [] },
-    position: null
+    position: null, activeTransform: Object, transition: String,
 })
 const width = computed(() => layout.width + layout.l + layout.r)
 const height = computed(() => layout.height + layout.t + layout.b)
 
-const translateH = defineModel('translateH', { type: Number, default: 0 })
-const translateV = defineModel('translateV', { type: Number, default: 0 })
-const transcaleH = defineModel('transcaleH')
-const transcaleV = defineModel('transcaleV')
-const transition = defineModel('transition')
+const rangePreview = inject('rangePreview')
 const transform = computed(() => {
     let translate = 0
     let aln = { bottom: "0%", center: "50%", top: "100%" }[position] ?? position
     if (typeof aln == "string" && aln.endsWith("%")) {
         translate = height.value * (1 - aln.slice(0, -1) / 100)
     } else {
-        translate = translateV.value + coord2pos({ v: +aln }).v + layout.top
-        if (transcaleV.value?.ratio != null)
-            translate = translate * transcaleV.value.ratio + (1 - transcaleV.value.ratio) * (transcaleV.value.origin ?? 0.5) * height.value
+        translate = activeTransform.translateV + coord2pos({ v: +aln }).v * activeTransform.scaleV + layout.top
     }
     return `translate(0, ${translate})`
 })
@@ -36,8 +30,8 @@ const axisTitle = computed(() => {
         dockX = theme.title_dock_x, dockY = theme.title_dock_y, offset = 0
     if (typeof pos != "number") {
         aln = { left: 0, bottom: 0.5, top: 0.5, right: 1 }[pos] ?? 0.5
-        dockX = dockX ?? { left: 1, right: 0 }[pos] ?? 0.5
-        dockY = dockY ?? { top: 0, bottom: 1 }[pos] ?? 0.5
+        dockX ??= { left: 1, right: 0 }[pos] ?? 0.5
+        dockY ??= { top: 0, bottom: 1 }[pos] ?? 0.5
         offset = ({ top: -1, bottom: 1 }[pos] ?? 0) * (theme.title_offset ?? 0)
     }
     return {
@@ -62,16 +56,19 @@ const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
-        let position = coord2pos({ h: tick.position }).h + layout.l + translateH.value
-        if (transcaleH.value?.ratio != null)
-            position = position * transcaleH.value.ratio + (1 - transcaleH.value.ratio) * (transcaleH.value.origin ?? 0.5) * width.value
-        if (position < 0 || position > width.value) continue
+        let pos = coord2pos({ h: tick.position }).h
+        let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
+        let position = pos + layout.l
+        if (position + tsl < 0 || position + tsl > width.value) continue
         let offset = (theme.tick_position == "top" ? -1 : 1) * (tick.length ?? theme.tick_length)
         result.push({
+            key: "line-" + tick.position,
             y1: 0, y2: offset,
             x1: position, x2: position,
             'stroke': tick.color ?? theme.tick_color,
             'stroke-width': tick.width ?? theme.tick_width,
+            transform: tsl ? `translate(${tsl},0)` : null,
+            style: { transition },
         })
     }
     return result.filter(t => t.stroke != null)
@@ -81,10 +78,10 @@ const tickTexts = computed(() => {
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick, label: tick }
-        let position = coord2pos({ h: tick.position }).h + layout.l + translateH.value
-        if (transcaleH.value?.ratio != null)
-            position = position * transcaleH.value.ratio + (1 - transcaleH.value.ratio) * (transcaleH.value.origin ?? 0.5) * width.value
-        if (position < 0 || position > width.value) continue
+        let pos = coord2pos({ h: tick.position }).h
+        let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
+        let position = pos + layout.l
+        if (position + tsl < 0 || position + tsl > width.value) continue
         let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.tick_length) + 3)
         let anchorX, anchorY, dockX, dockY
         if (theme.tick_anchor_x != null || theme.tick_anchor_y != null) {
@@ -95,21 +92,28 @@ const tickTexts = computed(() => {
             dockY = theme.tick_dock_y ?? (isTop ? 0 : 1)
         }
         result.push({
-            x: position,
-            y: offset,
-            angle: theme.text_angle,
-            anchorX, anchorY, dockX, dockY,
-            text: tick.label,
-            title: tick.title ?? tick.label,
-            fontSize: tick.size ?? theme.label_size,
-            'fill': tick.color ?? theme.label_color,
+            wrapper: {
+                key: "text-" + tick.position,
+                transform: tsl ? `translate(${tsl},0)` : null,
+                style: { transition },
+            },
+            text: {
+                x: position,
+                y: offset,
+                angle: theme.text_angle,
+                anchorX, anchorY, dockX, dockY,
+                text: tick.label,
+                title: tick.title ?? tick.label,
+                fontSize: tick.size ?? theme.label_size,
+                'fill': tick.color ?? theme.label_color
+            },
         })
     }
-    return result.filter(t => t.fill != null)
+    return result.filter(t => t.text.fill != null)
 })
 
 const iRef = useTemplateRef("i")
-function getCoord(event) {
+function getPosition(event) {
     let rect = iRef.value.getBoundingClientRect()
     let l = Math.trunc(event.clientX) - rect.left - layout.left,
         r = rect.left + layout.left + layout.width - Math.trunc(event.clientX)
@@ -121,11 +125,13 @@ function getCoord(event) {
 }
 const emit = defineEmits([
     'click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel', 'singleclick',
-    'move', 'zoom', 'rescale', 'nudge', 'rangechange'
+    'move', 'zoom', 'rescale', 'nudge', 'rangechange',
+    'update:transition'
 ])
+let moveTimer, movementX = 0
 function axisMovePointerdown(e) {
-    let coord = getCoord(e)
-    emit('pointerdown', e, coord)
+    let position = getPosition(e)
+    emit('pointerdown', e, position)
     let pointerMoved = false
     function detectMove(ev) {
         if (Math.abs(ev.screenX - e.screenX) > 3 || Math.abs(ev.screenY - e.screenY) > 3) {
@@ -137,8 +143,8 @@ function axisMovePointerdown(e) {
     e.target.addEventListener('pointerup', function (ev) {
         e.target.removeEventListener('pointermove', detectMove)
         if (!pointerMoved) {
-            let coord = getCoord(ev)
-            emit('singleclick', new PointerEvent("singleclick", ev), coord)
+            let position = getPosition(ev)
+            emit('singleclick', new PointerEvent("singleclick", ev), position)
         }
     }, { once: true })
     let act = action.find(a => a.action == "move")
@@ -146,20 +152,24 @@ function axisMovePointerdown(e) {
     e.preventDefault()
     e.stopPropagation()
     e.target.style.cursor = 'grabbing'
-    let boundary = coord2pos(act, { unlimited: true })
-    let boundaryH = {
-        min: boundary.hmax == null ? -Infinity : layout.width - boundary.hmax,
-        max: boundary.hmin == null ? Infinity : - boundary.hmin
-    }
+    moveTimer = clearTimeout(moveTimer)
+    let hmin0 = 0, hmax0 = layout.width
+    let boundary = coord2pos(act)
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        translateH.value = oob_squish_any(translateH.value + ev.movementX, boundaryH)
+        movementX += ev.movementX
+        let dh = oob_squish_any(-movementX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
+        let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: hmin0 + dh, hmax: hmax0 + dh })
+        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
         e.target.onpointerup = null
         e.target.style.cursor = null
-        applyTransform(act, ev)
+        moveTimer = setTimeout(() => {
+            applyTransform(act, ev)
+            movementX = 0
+        }, 300)
     }
 }
 function axisRescaleLeftPointerdown(e) {
@@ -167,19 +177,23 @@ function axisRescaleLeftPointerdown(e) {
     if (!act) return
     e.preventDefault()
     e.stopPropagation()
-    let { hmin, hmax, "min-range-h": mrh = 0 } = act
-    let { hmin: hmin0, hmax: hmax0 } = pos2coord({ hmin: layout.left, hmax: layout.left + layout.width })
-    let h = e.clientX - iRef.value.getBoundingClientRect().left - layout.left
-    let scalemin = layout.width / (layout.width - (coord2pos({ hmin, hmax }, { unlimited: true }).hmin ?? Infinity))
-    let scalemax = layout.width / Math.abs(layout.width - (coord2pos({ hmin: hmax0 - mrh, hmax: hmin0 + mrh }).hmin))
-    let dh = 0
+    let { "min-range-h": mrh = 0 } = act
+    let position = getPosition(e), h = coord2pos(position).h,
+        hmin = h - position.l, hmax = h + position.r
+    let coord0 = pos2coord({ hmin, hmax })
+    let boundary = {
+        min: coord2pos(act).hmin,
+        max: coord2pos({ hmin: coord0.hmax - mrh, hmax: coord0.hmin + mrh }).hmin,
+    }
+    let movementX = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        dh += ev.movementX
-        let ratio = 1 - dh / (layout.width - h)
-        if (ratio < scalemin) ratio = scalemin
-        if (ratio > scalemax) ratio = scalemax
-        transcaleH.value = { ratio, origin: (layout.left + layout.width) / width.value }
+        movementX += ev.movementX
+        let { xmin, xmax, ymin, ymax } = pos2coord({
+            hmin: oob_squish_any(hmax - (hmax - hmin) * position.r / Math.max(position.r - movementX, 1), boundary),
+            hmax,
+        })
+        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -192,19 +206,23 @@ function axisRescaleRightPointerdown(e) {
     if (!act) return
     e.preventDefault()
     e.stopPropagation()
-    let { hmin, hmax, "min-range-h": mrh = 0 } = act
-    let { hmin: hmin0, hmax: hmax0 } = pos2coord({ hmin: layout.left, hmax: layout.left + layout.width })
-    let h = e.clientX - iRef.value.getBoundingClientRect().left - layout.left
-    let scalemin = layout.width / (coord2pos({ hmin, hmax }, { unlimited: true }).hmax ?? Infinity)
-    let scalemax = layout.width / Math.abs(coord2pos({ hmin: hmax0 - mrh, hmax: hmin0 + mrh }).hmax)
-    let dh = 0
+    let { "min-range-h": mrh = 0 } = act
+    let position = getPosition(e), h = coord2pos(position).h,
+        hmin = h - position.l, hmax = h + position.r
+    let coord0 = pos2coord({ hmin, hmax })
+    let boundary = {
+        min: coord2pos({ hmin: coord0.hmax - mrh, hmax: coord0.hmin + mrh }).hmax,
+        max: coord2pos(act).hmax,
+    }
+    let movementX = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
-        dh += ev.movementX
-        let ratio = 1 + dh / h
-        if (ratio < scalemin) ratio = scalemin
-        if (ratio > scalemax) ratio = scalemax
-        transcaleH.value = { ratio, origin: layout.left / width.value }
+        movementX += ev.movementX
+        let { xmin, xmax, ymin, ymax } = pos2coord({
+            hmin,
+            hmax: oob_squish_any(hmin + (hmax - hmin) * position.l / Math.max(position.l + movementX, 1), boundary),
+        })
+        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
     e.target.onpointerup = (ev) => {
         e.target.onpointermove = null
@@ -214,16 +232,16 @@ function axisRescaleRightPointerdown(e) {
 }
 let wheelDelta = 0, wheelTimer
 function axisWheel(e) {
-    let coord = getCoord(e)
-    emit('wheel', e, coord)
+    let position = getPosition(e)
+    emit('wheel', e, position)
     let act = action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act) return
     wheelTimer = clearTimeout(wheelTimer)
     e.preventDefault()
     e.stopPropagation()
-    transition.value = 'transform 0.1s ease-out'
+    emit('update:transition', 'transform 0.1s ease-out')
     wheelDelta += e.deltaY
-    wheel(act, coord, wheelDelta)
+    wheel(act, position, wheelDelta)
     wheelTimer = setTimeout(() => {
         applyTransform(act, e)
         wheelDelta = 0
@@ -233,76 +251,58 @@ function wheel(act, pos, delta) {
     if (act.action == "zoom") {
         let { "min-range-h": mrh = 0, sensitivity = 1.25 } = act
         let lvl = sensitivity ** (delta / 100)
-        let maxpos = coord2pos(act, { unlimited: true })
-        let hmin = Math.max(pos.l - pos.l * lvl, maxpos.hmin ?? -Infinity),
-            hmax = Math.min(pos.l + pos.r * lvl, maxpos.hmax ?? Infinity)
-        if (lvl < 1) {
-            let { hmin: min, hmax: max } = pos2coord({ hmin, hmax })
+        let boundary = coord2pos(act)
+        let hmin = Math.max(pos.l - Math.max(pos.l, 0) * lvl, boundary.hmin ?? -Infinity),
+            hmax = Math.min(pos.l + Math.max(pos.r, 0) * lvl, boundary.hmax ?? Infinity)
+        let { [coord + 'min']: min, [coord + 'max']: max } = pos2coord({ hmin, hmax })
+        if (lvl < 1 && max - min < mrh) {
             let c = (max + min) / 2
-            if (max - min < mrh) {
-                min = c - mrh / 2
-                max = c + mrh / 2
-            }
-            ({ hmin, hmax } = coord2pos({ hmin: min, hmax: max }))
+            min = c - mrh / 2
+            max = c + mrh / 2
         }
-        if (hmax - hmin > 0 && Math.abs(layout.width - (hmax - hmin)) > 1) {
-            transcaleH.value = {
-                ratio: layout.width / (hmax - hmin),
-                origin: (layout.l + (hmin * layout.width) / (layout.width - hmax + hmin)) / width.value
-            }
-        }
+        rangePreview[coord + 'min'] = min
+        rangePreview[coord + 'max'] = max
     }
     if (act.action == "nudge") {
         let { sensitivity = 0.1 } = act
+        let boundary = coord2pos(act)
+        let hmin0 = 0, hmax0 = layout.width
         let movement = sensitivity * layout.width * (-delta / 120)
-        let boundary = coord2pos(act, { unlimited: true })
-        let boundaryH = {
-            min: boundary.hmax == null ? -Infinity : layout.width - boundary.hmax,
-            max: boundary.hmin == null ? Infinity : - boundary.hmin,
-        }
-        translateH.value = oob_squish_any(movement, boundaryH)
+        let dh = oob_squish_any(-movement, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
+        let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: hmin0 + dh, hmax: hmax0 + dh })
+        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
 }
 function applyTransform(act, event) {
-    if (transcaleH.value == null && translateH.value == 0) return
-    let hmin = 0, hmax = layout.width
-    if (transcaleH.value) {
-        let ratio = transcaleH.value.ratio,
-            origin = transcaleH.value.origin * width.value - layout.l
-        hmin = hmin / ratio + (1 - 1 / ratio) * origin
-        hmax = hmax / ratio + (1 - 1 / ratio) * origin
+    if (!Object.keys(dropNull(rangePreview) ?? {}).length) return
+    if (!emitEvent(act.emit, rangePreview, event)) {
+        emit(act.action, rangePreview, event)
     }
-    if (translateH.value) {
-        hmin -= translateH.value
-        hmax -= translateH.value
-    }
-    let { hmin: min, hmax: max, ...coord } = pos2coord({ hmin, hmax })
-    if (!emitEvent(act.emit, coord, event)) {
-        emit(act.action, coord, event)
-    }
-    emit('rangechange', coord)
-    translateH.value = 0
-    transcaleH.value = null
+    emit('rangechange', rangePreview)
+    let xmin, xmax, ymin, ymax
+    Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
 }
 const axisVOn = {
-    pointerup(e) { emit('pointerup', e, getCoord(e)) },
-    pointerover(e) { emit('pointerover', e, getCoord(e)) },
-    pointerout(e) { emit('pointerout', e, getCoord(e)) },
-    pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
-    pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
-    dblclick(e) { emit('dblclick', e, getCoord(e)) },
-    click(e) { emit('click', e, getCoord(e)) },
-    contextmenu(e) { emit('contextmenu', e, getCoord(e)) },
-    pointermove(e) { emit('pointermove', e, getCoord(e)) },
+    pointerup(e) { emit('pointerup', e, getPosition(e)) },
+    pointerover(e) { emit('pointerover', e, getPosition(e)) },
+    pointerout(e) { emit('pointerout', e, getPosition(e)) },
+    pointerenter(e) { emit('pointerenter', e, getPosition(e)) },
+    pointerleave(e) { emit('pointerleave', e, getPosition(e)) },
+    dblclick(e) { emit('dblclick', e, getPosition(e)) },
+    click(e) { emit('click', e, getPosition(e)) },
+    contextmenu(e) { emit('contextmenu', e, getPosition(e)) },
+    pointermove(e) { emit('pointermove', e, getPosition(e)) },
     pointerdown: axisMovePointerdown,
     wheel: axisWheel
 }
 </script>
 <template>
-    <g :transform="transform">
+    <g :transform="transform" :style="{ transition }">
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
-        <CoreText v-for="tick in tickTexts" v-bind="tick" />
+        <g v-for="tick in tickTexts" v-bind="tick.wrapper">
+            <CoreText v-bind="tick.text" />
+        </g>
         <g class="vvplot-interactive" fill="transparent">
             <rect :width="width" :height="10" :y="-5" v-on="axisVOn"
                 :class="{ 'vvplot-cursor-grab': action.some?.(a => a.action == 'move') }" />

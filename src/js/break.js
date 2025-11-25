@@ -3,13 +3,11 @@
  * @param {*} options
  * @returns {function({min:number, max:number}): Array}
  */
-function break_number({ extend = 0, step, minor = false } = {}) {
+function break_number({ step: $step, minor = false } = {}) {
     return function ({ min, max } = {}) {
-        let interval = max - min
+        let interval = max - min, step = $step
         if (isNaN(interval) || interval < 0) return []
         if (interval == 0) return [min]
-        min -= interval * extend
-        max += interval * extend
         let exp = 10 ** Math.floor(Math.log10(interval) - 1),
             m = interval / exp
         if (step == null)
@@ -25,13 +23,13 @@ function break_number({ extend = 0, step, minor = false } = {}) {
  * @param {*} options
  * @returns {function({min:number, max:number}): Array}
  */
-function break_datetime({ extend = 0 } = {}) {
+function break_datetime() {
     return function ({ min, max } = {}) {
         let interval = max - min
         if (isNaN(interval) || interval < 0) return []
         if (interval == 0) return [new Date(min)]
-        let s = new Date(min - interval * extend),
-            e = new Date(max + interval * extend)
+        let s = new Date(min),
+            e = new Date(max)
         let sYear = s.getUTCFullYear(),
             sMonth = s.getUTCMonth(),
             sDate = s.getUTCDate(),
@@ -109,7 +107,7 @@ function break_datetime({ extend = 0 } = {}) {
             let step = (m > 50 ? 20 : m > 25 ? 10 : 5) * exp
             let nMin = Math.ceil(min / step)
             let nMax = Math.floor(max / step)
-            return new Array(nMax - nMin + 1).fill(null).map((_, i) => (nMin + i) * step)
+            return new Array(nMax - nMin + 1).fill(null).map((_, i) => new Date((nMin + i) * step))
         }
         return breaks
     }
