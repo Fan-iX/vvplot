@@ -479,6 +479,7 @@ watch([w, h], ([w, h], [ow, oh]) => {
 })
 const panelStyle = computed(() => {
     return {
+        position: 'absolute',
         left: str_c(plotRef.value?.panel?.left, 'px'),
         top: str_c(plotRef.value?.panel?.top, 'px'),
         width: str_c(plotRef.value?.panel?.width, 'px'),
@@ -510,8 +511,8 @@ defineExpose({
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selectionPreview="selectionPreview" v-model:selectionPreviewTheme="selectionPreviewTheme"
             :action="action" :clip="clip" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
-        <div class="vvplot-panel-container" :style="panelStyle" v-if="vnodes.dom.panel?.length">
-            <div class="vvplot-panel">
+        <div class="vvplot-panel-container" :style="panelStyle">
+            <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>
