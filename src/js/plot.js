@@ -3,7 +3,7 @@ import vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
-import { numutils, GEnumLevel } from './utils'
+import { numutils, GEnumLevel, plus } from './utils'
 
 function object_map(obj, expr) {
     if (obj == null) return {}
@@ -277,25 +277,26 @@ export class GPlot {
         let result = {}
         this._range = range
         if (this.levels.x) {
-            let min = +(range?.xmin ?? - 0.5) - (add.x?.min ?? 0),
-                max = +(range?.xmax ?? this.levels.x.length - 0.5) + (add.x?.max ?? 0)
+            let min = +(range?.xmin ?? - 0.5) - (+add.x?.min || 0),
+                max = +(range?.xmax ?? this.levels.x.length - 0.5) + (+add.x?.max || 0)
             result.x = new DiscreteCoordScale(this.levels.x, { min, max })
         } else {
             let $min = range?.xmin ?? this.extents.x?.min ?? 0,
                 $max = range?.xmax ?? this.extents.x?.max ?? 0
-            let min = +$min - (add.x?.min ?? 0), max = +$max + (add.x?.max ?? 0)
+            let min = plus($min, -add.x?.min || 0), max = plus($max, +add.x?.max || 0)
             let dmin = minRange?.x ?? 1
             if (max - min < dmin) {
                 if (range?.xmax == null && range?.xmin != null) {
-                    max = min + dmin
+                    max = plus(min, +dmin)
                 } else if (range?.xmax != null && range?.xmin == null) {
-                    min = max - dmin
+                    min = plus(max, -dmin)
                 } else {
-                    max = (max + min) / 2 + dmin / 2
-                    min = max - dmin
+                    let interval = max - min
+                    max = plus(max, -interval / 2 + dmin / 2)
+                    min = plus(max, -dmin)
                 }
             }
-            if ($min instanceof Date || $max instanceof Date) {
+            if (min instanceof Date || max instanceof Date) {
                 result.x = new DatetimeCoordScale({ min, max })
             } else {
                 result.x = new ContinuousCoordScale({ min, max })
@@ -303,25 +304,25 @@ export class GPlot {
         }
 
         if (this.levels.y) {
-            let min = +(range?.ymin ?? - 0.5) - (add.y?.min ?? 0),
-                max = +(range?.ymax ?? this.levels.y.length - 0.5) + (add.y?.max ?? 0)
+            let min = +(range?.ymin ?? - 0.5) - (+add.y?.min || 0),
+                max = +(range?.ymax ?? this.levels.y.length - 0.5) + (+add.y?.max || 0)
             result.y = new DiscreteCoordScale(this.levels.y, { min, max })
         } else {
             let $min = range?.ymin ?? this.extents.y?.min ?? 0,
                 $max = range?.ymax ?? this.extents.y?.max ?? 0
-            let min = +$min - (add.y?.min ?? 0), max = +$max + (add.y?.max ?? 0)
+            let min = plus($min, -add.y?.min ?? 0), max = plus($max, +add.y?.max || 0)
             let dmin = minRange?.y ?? 1
             if (max - min < dmin) {
                 if (range?.ymax == null && range?.ymin != null) {
-                    max = min + dmin
+                    max = plus(min, +dmin)
                 } else if (range?.ymax != null && range?.ymin == null) {
-                    min = max - dmin
+                    min = plus(max, -dmin)
                 } else {
-                    max = (max + min) / 2 + dmin / 2
-                    min = max - dmin
+                    max = plus(max, -interval / 2 + dmin / 2)
+                    min = plus(max, -dmin)
                 }
             }
-            if ($min instanceof Date || $max instanceof Date) {
+            if (min instanceof Date || max instanceof Date) {
                 result.y = new DatetimeCoordScale({ min, max })
             } else {
                 result.y = new ContinuousCoordScale({ min, max })
@@ -375,57 +376,30 @@ class DiscreteCoordScale extends Function {
     constructor(level, { min, max } = {}) {
         const scale = min == max ? x => 0 : x => (+x - min) / (max - min)
         scale.range = { min, max }
-        scale.limits = { min, max }
         scale.level = level
-        scale.invert = w => w * (max - min) + min
         Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
         return scale
     }
-    expand({ min: mmin = 0, max: mmax = 0 } = {}) {
-        let $min = 0, $max = this.level.length, $interval = $max
-        let min = $min - mmin * $interval,
-            max = $max + mmax * $interval
-        const scale = min == max ? x => 0 : x => (+x - min) / (max - min)
-        scale.invert = w => w * (max - min) + min
-        scale.range = this.range
-        scale.level = this.level
-        scale.title = this.title
-        scale.limits = { min, max }
-        Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
-        return scale
+    invert(w) {
+        let { min, max } = this.range
+        return w * (max - min) + min
     }
     get breaks() { return Array.from(this.level) }
     get minorBreaks() { return [] }
 }
 class ContinuousCoordScale extends Function {
     constructor(domain) {
-        let min = +domain.min,
-            max = +domain.max
+        let { min, max } = domain
         const scale = min == max ? x => 0.5 : x => (+x - min) / (max - min)
         scale.range = { min, max }
-        scale.limits = { min, max }
-        Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
-        return scale
-    }
-    expand({ min: mmin = 0, max: mmax = 0 } = {}) {
-        let { min: $min, max: $max } = this.limits
-        let $interval = $max - $min
-        let min = $min - mmin * $interval,
-            max = $max + mmax * $interval
-        const scale = min == max ? x => 0.5 : x => (+x - min) / (max - min)
-        scale.range = this.range
-        scale.level = this.level
-        scale.title = this.title
-        scale.limits = { min, max }
         Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
         return scale
     }
     invert(w) {
-        let { min, max } = this.limits
-        return w * (max - min) + min
+        let { min, max } = this.range
+        return plus(min, w * (max - min))
     }
     get breaks() { return vvbreak.number() }
-    get minorBreaks() { return vvbreak.number({ minor: true }) }
 }
 class DatetimeCoordScale extends ContinuousCoordScale {
     constructor(domain) {
@@ -433,42 +407,36 @@ class DatetimeCoordScale extends ContinuousCoordScale {
         Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
         return scale
     }
-    expand({ min: mmin = 0, max: mmax = 0 } = {}) {
-        let scale = super.expand({ min: mmin, max: mmax })
-        Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
-        return scale
-    }
-    invert(w) {
-        let { min, max } = this.limits
-        return new Date(w * (max - min) + min)
-    }
     get breaks() { return vvbreak.datetime() }
     get minorBreaks() { return [] }
 }
 
 export class GAxis {
-    constructor(scale, { extend, breaks, labels, minorBreaks, titles } = {}) {
+    constructor(scale, { breaks, labels, minorBreaks, titles } = {}) {
         this.scale = scale
-        this.limits = scale?.limits
-        this.extend = extend ?? 0
+        this.range = scale?.range
         this.breaks = breaks ?? scale.breaks
         this.labels = labels ?? vvlabel.auto()
         this.titles = titles ?? vvlabel.asis()
-        this.minorBreaks = minorBreaks ?? scale.minorBreaks
+        this.minorBreaks = minorBreaks ?? breaks ?? scale.minorBreaks ?? scale.breaks
     }
-    getBindings({ limits = this.limits, extend = this.extend } = {}) {
-        let breaks = this.breaks, minorBreaks = this.minorBreaks
-        let { min, max } = limits, interval = max - min || 0
-        min = min == null ? min : min - extend * interval
-        max = max == null ? max : max + extend * interval
+    getBindings({ range = this.range, expandMult = { min: 0, max: 0 } } = {}) {
+        let majorBreaks = this.breaks, minorBreaks = this.minorBreaks,
+            labels = this.labels, titles = this.titles
+        let { min, max } = range, interval = max - min || 0
+        min = min == null ? min : plus(min, -expandMult.min * interval)
+        max = max == null ? max : plus(max, +expandMult.max * interval)
 
-        if (typeof breaks == 'function') breaks = breaks(limits)
-        breaks = Array.isArray(breaks) ? breaks.sort((a, b) => a - b) : []
+        function normalizeBreaks(val) {
+            if (val.position != null) return val
+            return { position: val }
+        }
+        if (typeof majorBreaks == 'function') majorBreaks = majorBreaks({ min, max })
+        majorBreaks = Array.isArray(majorBreaks) ? majorBreaks.map(normalizeBreaks) : []
+        let breaks = majorBreaks.map(x => x.position)
 
-        if (typeof minorBreaks == 'function') minorBreaks = minorBreaks(limits)
-        minorBreaks = Array.isArray(minorBreaks) ? minorBreaks.sort((a, b) => a - b) : []
-
-        let labels = this.labels, titles = this.titles
+        if (typeof minorBreaks == 'function') minorBreaks = minorBreaks({ min, max, minor: true })
+        minorBreaks = Array.isArray(minorBreaks) ? minorBreaks.map(normalizeBreaks) : []
 
         if (typeof labels === 'function') labels = breaks.map(labels)
         if (!Array.isArray(labels)) {
@@ -480,12 +448,12 @@ export class GAxis {
         if (typeof titles === 'function') titles = breaks.map(titles)
         if (!Array.isArray(titles)) {
             titles = []
-        } else if (titles.length != titles.length) {
+        } else if (titles.length != breaks.length) {
             throw new Error('Length of titles must be the same as breaks')
         }
 
         return {
-            majorBreaks: breaks, minorBreaks,
+            majorBreaks, minorBreaks,
             ticks: breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
         }
     }

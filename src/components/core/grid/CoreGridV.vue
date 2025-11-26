@@ -16,8 +16,8 @@ const height = computed(() => layout.height + layout.t + layout.b)
 const majorLines = computed(() => {
     let result = []
     for (let line of majorBreaks) {
-        if (line?.position == null) line = { position: +line }
         let pos = coord2pos({ h: line.position }).h
+        if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
         let position = pos + layout.l
         if (position + tsl < 0 || position + tsl > width.value) continue
@@ -36,8 +36,9 @@ const majorLines = computed(() => {
 const minorLines = computed(() => {
     let result = []
     for (let line of minorBreaks) {
-        if (line?.position == null) line = { position: +line }
+        if (majorBreaks.some(ml => ml.position == line.position)) continue
         let pos = coord2pos({ h: line.position }).h
+        if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
         let position = pos + layout.l
         if (position + tsl < 0 || position + tsl > width.value) continue
@@ -51,12 +52,12 @@ const minorLines = computed(() => {
             style: { transition },
         })
     }
-    return result.filter(l => l.stroke !== null && majorLines.value.every(ml => ml.x1 !== l.x1))
+    return result.filter(l => l.stroke !== null)
 })
+const lines = computed(() => minorLines.value.concat(majorLines.value).sort((a, b) => a.x1 - b.x1))
 </script>
 <template>
     <g>
-        <line v-for="line in minorLines" v-bind="line" />
-        <line v-for="line in majorLines" v-bind="line" />
+        <line v-for="line in lines" v-bind="line" :style="{ transition }" />
     </g>
 </template>

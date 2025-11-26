@@ -281,17 +281,11 @@ function coord2pos({
     }
     return result
 }
-function coord2orientation(coord) {
-    return (flip ? { x: "v", y: "h" } : { x: "h", y: "v" })[coord]
-}
-function orientation2coord(orient) {
-    return (flip ? { h: "y", v: "x" } : { h: "x", v: "y" })[orient]
-}
 
 function getPadding({ min: $min, max: $max } = {}, { min: mmin = 0, max: mmax = 0 } = {}) {
     let $interval = $max - $min
-    let min = $min - mmin * $interval,
-        max = $max + mmax * $interval,
+    let min = +$min - mmin * $interval,
+        max = +$max + mmax * $interval,
         interval = max - min
     return {
         min: interval == 0 ? 0 : ($min - min) / interval,
@@ -572,15 +566,15 @@ const svgVOn = {
 function changerange(coord) {
     let { xmin, xmax, ymin, ymax } = coord
     let { xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax } = range
-    xmin = xmin != null ? plus(xmin, expandAdd.x.min) : $xmin
+    xmin = xmin != null ? plus(xmin, +expandAdd.x.min) : $xmin
     xmax = xmax != null ? plus(xmax, -expandAdd.x.max) : $xmax
-    ymin = ymin != null ? plus(ymin, expandAdd.y.min) : $ymin
+    ymin = ymin != null ? plus(ymin, +expandAdd.y.min) : $ymin
     ymax = ymax != null ? plus(ymax, -expandAdd.y.max) : $ymax
     if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
     Object.assign(range, { xmin, xmax, ymin, ymax })
 }
 
-const axisLimits = reactiveComputed(() => {
+const axisRange = reactiveComputed(() => {
     let xmin = rangePreview?.xmin ?? range?.xmin,
         xmax = rangePreview?.xmax ?? range?.xmax,
         ymin = rangePreview?.ymin ?? range?.ymin,
@@ -592,19 +586,21 @@ const axisLimits = reactiveComputed(() => {
 })
 const gaxes = computed(() => {
     let coordScales = {
-        x: vplot.value.coordScales.x.expand(expandMult?.x),
-        y: vplot.value.coordScales.y.expand(expandMult?.y)
+        x: vplot.value.coordScales.x,
+        y: vplot.value.coordScales.y
     }
     return props.axes.filter(a => a.coord in coordScales)
         .filter(a => ["h", "v"].includes(a.orientation))
         .map(({
-            coord, breaks, extend, labels, minorBreaks, ...etc
+            coord, breaks, labels, minorBreaks, ...etc
         }) => ({
-            coord, axis: new GAxis(coordScales[coord], { breaks, extend, labels, minorBreaks }), etc
+            coord, axis: new GAxis(coordScales[coord], { breaks, labels, minorBreaks }), etc
         }))
 })
 const vaxes = computed(() => gaxes.value.map(({ coord, axis, etc }) => {
-    let { majorBreaks, minorBreaks, ticks } = axis.getBindings({ limits: axisLimits[coord] })
+    let { majorBreaks, minorBreaks, ticks } = axis.getBindings({
+        range: axisRange[coord], expandMult: expandMult[coord]
+    })
     let { showGrid, orientation, ...bind } = etc
     return {
         majorBreaks, minorBreaks, ticks,
@@ -617,12 +613,12 @@ const gridBreaks = computed(() => {
         vAxes = vaxes.value.filter(a => a.showGrid && a.orientation == "h")
     return {
         h: {
-            majorBreaks: unique(hAxes.flatMap(a => a.majorBreaks)),
-            minorBreaks: unique(hAxes.flatMap(a => a.minorBreaks)),
+            majorBreaks: unique(hAxes.flatMap(a => a.majorBreaks), x => x.position),
+            minorBreaks: unique(hAxes.flatMap(a => a.minorBreaks), x => x.position),
         },
         v: {
-            majorBreaks: unique(vAxes.flatMap(a => a.majorBreaks)),
-            minorBreaks: unique(vAxes.flatMap(a => a.minorBreaks)),
+            majorBreaks: unique(vAxes.flatMap(a => a.majorBreaks), x => x.position),
+            minorBreaks: unique(vAxes.flatMap(a => a.minorBreaks), x => x.position),
         }
     }
 })

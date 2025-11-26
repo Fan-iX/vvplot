@@ -198,9 +198,13 @@ export function str_c(...args) {
  * @param {Array} arr 
  * @returns {Array}
  */
-export function unique(arr) {
-    if (arr == null) return []
-    return Array.from(new Set(arr))
+export function unique(arr, mapper = null) {
+    let map = new Map()
+    for (let i in arr) {
+        let key = mapper ? mapper(arr[i]) : arr[i]
+        if (!map.has(key)) map.set(key, arr[i])
+    }
+    return Array.from(map.values())
 }
 
 /**
