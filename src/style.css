@@ -3,7 +3,6 @@
 }
 
 .vvplot-panel-container {
-    position: absolute;
     pointer-events: none;
 }
 
@@ -15,8 +14,4 @@
 .vvplot-legend {
     display: flex;
     flex-direction: column;
-}
-
-.vvplot-cursor-grab {
-    cursor: grab;
 }

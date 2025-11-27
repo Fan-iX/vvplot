@@ -17,6 +17,10 @@ export const oob = {
     },
 }
 
+function custom_scale(func, { title, ...etc } = {}) {
+    return Object.assign(function (arr) { return arr.map(func) }, { title }, etc)
+}
+
 function manual_scale({
     values = {},
     na_value = null,
@@ -214,6 +218,7 @@ const palette_scales = {
 
     dynamic: palette_scale_dynamic,
     auto: palette_scale_auto,
+    custom: custom_scale,
 
     default: palette_scale_auto,
 }
@@ -258,30 +263,32 @@ export default {
     fill: palette_scales,
     alpha: {
         continuous: continuous_scale,
+        custom: custom_scale,
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [0.1, 1], title, ...etc }),
     },
     size: {
         identity: scale_identity_number,
         continuous: continuous_scale,
+        custom: custom_scale,
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [1, 6], title, ...etc }),
     },
     linewidth: {
         identity: scale_identity_number,
         continuous: continuous_scale,
         manual: manual_scale,
+        custom: custom_scale,
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [1, 6], title, ...etc }),
     },
     linetype: {
         identity: scale_identity_string,
         discrete: linetype_scale_discrete,
         default: linetype_scale_discrete,
+        custom: custom_scale,
     },
     shape: {
         identity: scale_identity_string,
         discrete: shape_scale_discrete,
         default: shape_scale_discrete,
-    },
-    custom(func, { title, ...etc } = {}) {
-        return Object.assign(function (arr) { return arr.map(func) }, { title }, etc)
+        custom: custom_scale,
     },
 }

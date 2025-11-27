@@ -115,12 +115,12 @@ export const numutils = {
         return arr[lo] * (hi - idx) + arr[hi] * (idx - lo)
     },
     extent(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (arr.length == 0) return []
         if (na_rm) arr = arr.filter(isContinuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        if (arr.length == 0) return new Array(2)
         let min = Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity),
             max = Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
-        return { 0: min, 1: max, length: 2, min, max }
+        return Object.assign([min, max], { min, max })
     }
 }
 
@@ -198,9 +198,13 @@ export function str_c(...args) {
  * @param {Array} arr 
  * @returns {Array}
  */
-export function unique(arr) {
-    if (arr == null) return []
-    return Array.from(new Set(arr))
+export function unique(arr, mapper = null) {
+    let map = new Map()
+    for (let i in arr) {
+        let key = mapper ? mapper(arr[i]) : arr[i]
+        if (!map.has(key)) map.set(key, arr[i])
+    }
+    return Array.from(map.values())
 }
 
 /**

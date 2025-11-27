@@ -65,7 +65,7 @@ const vBind = {
             <hr>
             <pre><code class="html">{{templates[4] = `<VVPlot :data="letters" legend-teleport="#legend-4">
     <VVAxisY :min="0" :expand-mult="0" />
-    <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.custom((v) => ['blue', 'gold'][v % 2]) }" />
+    <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
 </VVPlot>`}}</code></pre>
             <div class="flex flex-row">
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -105,10 +105,10 @@ const vBind = {
             </div>
             <hr>
             <pre><code class="html">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false">
-    <VVAxisY :position="0" :extend="1">
+    <VVAxisY :position="0">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
-    <VVAxisX position="center" :extend="1">
+    <VVAxisX position="center">
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
     </VVAxisX>
@@ -152,7 +152,7 @@ const vBind = {
         :theme="{ title_position: 'right', title_size: 16 }">
         <VVAction move rescale zoom />
     </VVAxisX>
-    <VVAxisY :position="0" :expand-mult="1" :extend="1" title="y"
+    <VVAxisY :position="0" :expand-mult="1" title="y"
         :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
         <VVAction move rescale zoom />
     </VVAxisY>
