@@ -358,11 +358,11 @@ const size_limits_max = ref(600)
                 that is not covered by the built-in scale functions.
             </p>
             <p>
-                The <code>vvscale.custom</code> wrapper function can be used to create custom scale functions easily.
+                The <code>vvscale.*.custom</code> wrapper function can be used to create custom scale functions easily.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
                 <pre><code class="html">{{templates[9] = `<VVPlot :data="letters" :scales="{
-    fill: vvscale.custom(v => ['blue', 'gold'][v % 2]),
+    fill: vvscale.fill.custom(v => ['blue', 'gold'][v % 2]),
  // same as \`arr => arr.map(v => ['blue','gold'][v % 2])\`
  // the function will be applied to an array of categorical values,
  // \`v % 2\` works because \`v.valueOf()\` will return its ordinal number

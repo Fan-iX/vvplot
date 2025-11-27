@@ -65,7 +65,7 @@ const vBind = {
             <hr>
             <pre><code class="html">{{templates[4] = `<VVPlot :data="letters" legend-teleport="#legend-4">
     <VVAxisY :min="0" :expand-mult="0" />
-    <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.custom((v) => ['blue', 'gold'][v % 2]) }" />
+    <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
 </VVPlot>`}}</code></pre>
             <div class="flex flex-row">
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
