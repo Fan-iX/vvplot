@@ -1,6 +1,6 @@
 {
   "name": "vvplot",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "files": [
     "dist"
@@ -15,8 +15,6 @@
   "imports": {
     "#base/*": "./src/*"
   },
-  "homepage": "https://fan-ix.github.io/vvplot/",
-  "repository": "https://github.com/Fan-iX/vvplot/",
   "exports": {
     ".": "./dist/index.js",
     "./components": "./dist/components.js",
@@ -25,6 +23,11 @@
     "./theme": "./dist/theme.js",
     "./label": "./dist/label.js",
     "./style.css": "./dist/style.css"
+  },
+  "homepage": "https://fan-ix.github.io/vvplot/",
+  "repository": "https://github.com/Fan-iX/vvplot/",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@vueuse/core": "^13.7.0",
