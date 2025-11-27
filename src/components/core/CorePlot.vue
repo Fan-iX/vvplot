@@ -216,15 +216,15 @@ function _coord2pos(
 ) {
     let result = {}
     if (value != null) {
-        result.value = oob(length * (rev ? 1 - scale(value) : scale(value)), boundary)
+        result.value = length ? oob(length * (rev ? 1 - scale(value) : scale(value)), boundary) : 0
     }
     if (min == null && max == null) return result
     if (rev) {
-        if (max != null) result.min = oob(length * (1 - scale(max)), boundary)
-        if (min != null) result.max = oob(length * (1 - scale(min)), boundary)
+        if (max != null) result.min = length ? oob(length * (1 - scale(max)), boundary) : 0
+        if (min != null) result.max = length ? oob(length * (1 - scale(min)), boundary) : 0
     } else {
-        if (min != null) result.min = oob(length * scale(min), boundary)
-        if (max != null) result.max = oob(length * scale(max), boundary)
+        if (min != null) result.min = length ? oob(length * scale(min), boundary) : 0
+        if (max != null) result.max = length ? oob(length * scale(max), boundary) : 0
     }
     return result
 }

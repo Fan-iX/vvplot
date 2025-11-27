@@ -390,7 +390,7 @@ class DiscreteCoordScale extends Function {
 class ContinuousCoordScale extends Function {
     constructor(domain) {
         let { min, max } = domain
-        const scale = min == max ? x => 0.5 : x => (+x - min) / (max - min)
+        const scale = min == max ? x => isFinite(x) ? 0.5 : x : x => (+x - min) / (max - min)
         scale.range = { min, max }
         Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
         return scale
