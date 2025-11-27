@@ -143,9 +143,9 @@ const fileChanged = (e) => {
 <VVAction zoom move />`
 }
 
-let app
+let app, instance
 async function buildPlot() {
-    if (app?._instance) app.unmount()
+    if (instance) app.unmount()
     let template = `<VVPlot ref="plot" :data="data" ${attrsText.value}
 ${templateText.value}
 </VVPlot>`
@@ -160,7 +160,7 @@ ${templateText.value}
         app.component(c, components[c])
     }
     try {
-        app.mount('#plot')
+        instance = app.mount('#plot')
     } catch (e) {
         app.unmount()
     }
@@ -191,7 +191,7 @@ const { textarea: attrsTextarea, input: attrsText } = useTextareaAutosize()
 attrsText.value = `:width="600" :height="400" resize>`
 
 function exportSVG() {
-    let blob = new Blob([app._instance.ctx.plot.serialize()])
+    let blob = new Blob([instance.plot.serialize()])
     let url = URL.createObjectURL(blob)
     let a = document.createElement('a')
     a.href = url
