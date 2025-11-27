@@ -305,7 +305,7 @@ const axisVOn = {
         </g>
         <g class="vvplot-interactive" fill="transparent">
             <rect :width="width" :height="10" :y="-5" v-on="axisVOn"
-                :class="{ 'vvplot-cursor-grab': action.some?.(a => a.action == 'move') }" />
+                :cursor="action.some?.(a => a.action == 'move') ? 'grab' : null" />
         </g>
         <g v-if="action.some?.(a => a.action == 'rescale')" class="vvplot-interactive" fill="transparent">
             <rect :width="20" :height="10" :y="-5" style="cursor:ew-resize;"

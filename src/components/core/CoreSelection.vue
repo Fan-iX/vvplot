@@ -32,7 +32,7 @@ const borderBind = computed(() => {
         stroke: theme?.line_color ?? "transparent",
         'stroke-width': theme?.line_width,
         'stroke-opacity': theme?.opacity,
-        style: config.move ? "cursor:move;" : "pointer:events-none;"
+        style: config.move ? "cursor:move;" : "pointer-events:none;"
     }
     if (config.resize) {
         if (pos.hmin != null)
