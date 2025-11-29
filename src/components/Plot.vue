@@ -17,6 +17,11 @@ const components = {
     VVAction, VVSelection,
 }
 
+const opponents = {
+    x: 'y', y: 'x', h: 'v', v: 'h',
+    top: 'bottom', bottom: 'top', left: 'right', right: 'left'
+}
+
 function _isPropTruthy(v) {
     if (v == null) return v
     return v === "" || Boolean(v)
@@ -324,7 +329,7 @@ const expandMult = computed(() => {
     else if (typeof y == 'number') y = { min: y, max: y }
     return { x, y }
 })
-const reverse = computed(() => ({
+const reverse = reactiveComputed(() => ({
     x: _isPropTruthy(primaryAxisConfig.reverse.x) ?? $reverse?.x ?? false,
     y: _isPropTruthy(primaryAxisConfig.reverse.y) ?? $reverse?.y ?? false,
 }))
@@ -346,7 +351,14 @@ const axes = computed(() => {
         $_children, ...etc
     }) => {
         let orientation = ori[coord]
-        position = position ?? defaultPos[coord]
+        position = position ?? "start"
+        if (position == "start") {
+            position = { h: "bottom", v: "left" }[orientation]
+            if (reverse[opponents[coord]]) position = opponents[position]
+        } else if (position == "end") {
+            position = { h: "top", v: "right" }[orientation]
+            if (reverse[opponents[coord]]) position = opponents[position]
+        }
         let action = Object.values($_children ?? {})
             .filter(s => typeof s == "function")
             .flatMap(s => expandFragment(s()))
