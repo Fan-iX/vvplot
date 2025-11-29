@@ -414,7 +414,7 @@ function svgPointerdown(e) {
                 if (sel.dismissible !== true && ["xmin", "xmax", "ymin", "ymax"].every(k => model?.[k] == null)) return
                 let res = {}, event = new PointerEvent("select", e)
                 sel["onUpdate:modelValue"]?.(res)
-                if (!emitEvent(sel["onCancel"], dropNull(res), event)) {
+                if (!emitEvent(sel["onDismiss"], dropNull(res), event)) {
                     emit('select', dropNull(res), event)
                 }
             }

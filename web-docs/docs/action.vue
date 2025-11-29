@@ -174,7 +174,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 coordinates.
             </p>
             <p>
-                When a selection is made or dismissed, a <code>select</code> or <code>cancel</code> event will be
+                When a selection is made or dismissed, a <code>select</code> or <code>dismiss</code> event will be
                 emitted to the helper component. Event handlers could take two arguments:
                 the first is the selection model value, and the second is a virtual pointer event.
             </p>
@@ -190,10 +190,10 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 </li>
                 <li>
                     <code>dismissible</code>:
-                    If unset, a <code>cancel</code> event will be emitted on singleclick only if there is an
+                    If unset, a <code>dismiss</code> event will be emitted on singleclick only if there is an
                     existing selection range;
                     If false, the selection range will not be dismissed by a singleclick;
-                    If true, a <code>cancel</code> event will always be emitted on singleclick.
+                    If true, a <code>dismiss</code> event will always be emitted on singleclick.
                 </li>
                 <li>
                     <code>resize</code>:
@@ -207,7 +207,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <p>
                 Key modifier <code>ctrl</code>, <code>shift</code>, <code>meta</code>, <code>alt</code>
                 and mouse modifier <code>button</code> / <code>buttons</code>
-                can be used to control when the selection can be made or canceled.
+                can be used to control when the selection can be made or dismissed.
             </p>
             <p>
                 limits of the selection region can be set via properties
@@ -244,7 +244,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
                     <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2" :min-range-x="0.5"
                         :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }"
-                        @select="e => plotSelectArg = e" @cancel="e => plotSelectArg = e" />
+                        @select="e => plotSelectArg = e" @dismiss="e => plotSelectArg = e" />
                 </VVPlot>
                 <div class="flex-1">
                     <p><strong>Selection event argument</strong></p>
