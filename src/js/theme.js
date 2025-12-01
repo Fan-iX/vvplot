@@ -132,7 +132,7 @@ export function themeMerge(...themes) {
             if (t[k] === null) {
                 acc[k] = null
             } else {
-                acc[k] = Object.assign(acc[k] || {}, t[k])
+                acc[k] = obj_merge(acc[k], t[k])
             }
         }
         return acc ?? undefined
@@ -151,19 +151,19 @@ export function themePreprocess(theme, flip = false) {
         ...rest
     } = theme
     if (flip) {
-        axis_h = obj_merge([axis_h, axis_y])
-        axis_v = obj_merge([axis_v, axis_x])
-        grid_h = obj_merge([grid_h, grid_x])
-        grid_v = obj_merge([grid_v, grid_y])
+        axis_h = obj_merge(axis_h, axis_y)
+        axis_v = obj_merge(axis_v, axis_x)
+        grid_h = obj_merge(grid_h, grid_x)
+        grid_v = obj_merge(grid_v, grid_y)
         plot.margin_h = margin_y === undefined ? margin_h : margin_y
         plot.margin_v = margin_x === undefined ? margin_v : margin_x
         plot.padding_h = padding_y === undefined ? padding_h : padding_y
         plot.padding_v = padding_x === undefined ? padding_v : padding_x
     } else {
-        axis_h = obj_merge([axis_h, axis_x])
-        axis_v = obj_merge([axis_v, axis_y])
-        grid_h = obj_merge([grid_h, grid_y])
-        grid_v = obj_merge([grid_v, grid_x])
+        axis_h = obj_merge(axis_h, axis_x)
+        axis_v = obj_merge(axis_v, axis_y)
+        grid_h = obj_merge(grid_h, grid_y)
+        grid_v = obj_merge(grid_v, grid_x)
         plot.margin_h = margin_x === undefined ? margin_h : margin_x
         plot.margin_v = margin_y === undefined ? margin_v : margin_y
         plot.padding_h = padding_x === undefined ? padding_h : padding_x
@@ -185,24 +185,24 @@ export function themeBuild(theme) {
     }
     return {
         axis: {
-            h: obj_merge(["axis", "axis_h"].map(k => theme?.[k])),
-            v: obj_merge(["axis", "axis_v"].map(k => theme?.[k])),
+            h: obj_merge(...["axis", "axis_h"].map(k => theme?.[k])),
+            v: obj_merge(...["axis", "axis_v"].map(k => theme?.[k])),
             left: obj_merge(
-                ["axis", "axis_v", "axis_left"].map(k => theme?.[k])
+                ...["axis", "axis_v", "axis_left"].map(k => theme?.[k])
             ),
             right: obj_merge(
-                ["axis", "axis_v", "axis_right"].map(k => theme?.[k])
+                ...["axis", "axis_v", "axis_right"].map(k => theme?.[k])
             ),
             top: obj_merge(
-                ["axis", "axis_h", "axis_top"].map(k => theme?.[k])
+                ...["axis", "axis_h", "axis_top"].map(k => theme?.[k])
             ),
             bottom: obj_merge(
-                ["axis", "axis_h", "axis_bottom"].map(k => theme?.[k])
+                ...["axis", "axis_h", "axis_bottom"].map(k => theme?.[k])
             ),
         },
         grid: {
-            h: _grid_build(obj_merge(["grid", "grid_h"].map(k => theme?.[k]))),
-            v: _grid_build(obj_merge(["grid", "grid_v"].map(k => theme?.[k])))
+            h: _grid_build(obj_merge(...["grid", "grid_h"].map(k => theme?.[k]))),
+            v: _grid_build(obj_merge(...["grid", "grid_v"].map(k => theme?.[k])))
         },
         plot: {
             margin: {
