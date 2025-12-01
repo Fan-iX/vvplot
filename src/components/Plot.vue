@@ -476,10 +476,10 @@ const width = defineModel('width')
 const height = defineModel('height')
 onMounted(() => {
     watch(width, (v) => {
-        wrapperRef.value.style.width = str_c(v, 'px')
+        wrapperRef.value.style.width = str_c(v, 'px') ?? null
     }, { immediate: true })
     watch(height, (v) => {
-        wrapperRef.value.style.height = str_c(v, 'px')
+        wrapperRef.value.style.height = str_c(v, 'px') ?? null
     }, { immediate: true })
 })
 const { width: w, height: h } = useElementSize(plotRef)
