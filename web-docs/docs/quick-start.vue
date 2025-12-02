@@ -125,7 +125,7 @@ const render = ref('canvas')
             </p>
             <ul>
                 <li>
-                    The property <code>limits</code> defines the range limits of the axis.
+                    The properties <code>min</code> and <code>max</code> defines the range limits of the axis.
                 </li>
                 <li>
                     For discrete axes, the property <code>levels</code> controls the which discrete values are shown.
@@ -154,7 +154,7 @@ const render = ref('canvas')
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" :alpha="0.5" bins="20"
         :scales="{ fill: vvscale.fill.hue({ l: 60 }) }"
         style="cursor: pointer;"/>
-    <VVAxisX :limits="{min: 0}" :breaks="[0, 0.5, 1, 1.5, 2, 2.5]" />
+    <VVAxisX :min="0" :breaks="[0, 0.5, 1, 1.5, 2, 2.5]" />
     <VVAxisY :expand-mult="{max: 0.1}" primary />
     <VVAxisY position="right" />
 </VVPlot>` }}</code></pre>
@@ -202,13 +202,12 @@ const render = ref('canvas')
                             x-axis.
                         </li>
                         <li>
-                            The property <code>:limits="{max: 3}"</code> sets the maximum limit of the coordinate
-                            mapping for the x-dimension. The minimum limit is determined automatically from the data.
+                            The property <code>:min="0"</code> sets the minimum limit of the coordinate
+                            mapping for the x-dimension. The maximum limit is determined automatically from the data.
                         </li>
                         <li>
                             The property <code>:breaks="[0, 0.5, 1, 1.5, 2, 2.5]"</code> specifies the tick mark
-                            positions
-                            along the axis.
+                            positions along the axis.
                         </li>
                     </ul>
                 </li>
@@ -280,8 +279,8 @@ const render = ref('canvas')
             <hr>
             <pre><code class="html">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-    <VVAxisX position="center" :extend="1">
-        <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
+    <VVAxisX position="center" :extend="1" :min="-1">
+        <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="3" />
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
     </VVAxisX>
     <VVAxisY :position="0" :extend="1">

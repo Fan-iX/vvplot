@@ -420,12 +420,14 @@ export class GAxis {
         this.titles = titles ?? vvlabel.asis()
         this.minorBreaks = minorBreaks ?? breaks ?? scale.minorBreaks ?? scale.breaks
     }
-    getBindings({ range = this.range, expandMult = { min: 0, max: 0 } } = {}) {
+    getBindings({ range, expandMult } = {}) {
         let majorBreaks = this.breaks, minorBreaks = this.minorBreaks,
             labels = this.labels, titles = this.titles
-        let { min, max } = range, interval = max - min || 0
-        min = min == null ? min : plus(min, -expandMult.min * interval)
-        max = max == null ? max : plus(max, +expandMult.max * interval)
+        let min = range?.min ?? this?.range?.min,
+            max = range?.max ?? this?.range?.max,
+            interval = max - min || 0
+        min = min == null ? min : plus(min, -(expandMult?.min ?? 0) * interval)
+        max = max == null ? max : plus(max, +(expandMult?.max ?? 0) * interval)
 
         function normalizeBreaks(val) {
             if (val.position != null) return val
