@@ -7,7 +7,10 @@ const { scales, theme } = defineProps({
     scales: Map,
 })
 const guides = computed(() => {
-    let scale_fns = Array.from(scales.keys())
+    let guide_scales = new Map(
+        Array.from(scales).filter(([fn]) => fn.legend !== false)
+    )
+    let scale_fns = Array.from(guide_scales.keys())
     let keys = scale_fns.map(s => s.key)
     let j = 1
     for (let i in keys) {
@@ -16,7 +19,7 @@ const guides = computed(() => {
     }
     let types = scale_fns.map(s => getGuideType(s))
     let groups = interaction(keys, types)
-    return Map.groupBy(scales, (s, i) => groups.categories[groups[i]])
+    return Map.groupBy(guide_scales, (s, i) => groups.categories[groups[i]])
 })
 
 function getGuideType(scale) {

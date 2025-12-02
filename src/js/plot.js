@@ -130,12 +130,14 @@ class GLayer {
                 }
                 let values = this.$data[aes]
                 if (!values?.length) continue
-                if ($$levels?.[aes] != null) {
-                    scale.level = $$levels[aes]
-                } else if (values.some(v => typeof v === 'string')) {
-                    scale.level = GEnumLevel.from(values)
-                } else {
-                    scale.extent = numutils.extent(values)
+                if (!scale.asis) {
+                    if ($$levels?.[aes] != null) {
+                        scale.level = $$levels[aes]
+                    } else if (values.some(v => typeof v === 'string')) {
+                        scale.level = GEnumLevel.from(values)
+                    } else {
+                        scale.extent = numutils.extent(values)
+                    }
                 }
                 this.applyScale(aes, scale)
             }
@@ -162,10 +164,8 @@ class GLayer {
     applyScale(aes, scale) {
         let values = this.$data[aes]
         if (values == null) return
-        if (scale.level != null) {
-            values = scale.level.apply(values)
-        }
-        values.extent = scale.limits
+        if (scale.level) values = scale.level.apply(values)
+        if (scale.limits) values.extent = scale.limits
         scale.aes = aes
         this.data[aes] = scale(values)
         this.scales[aes] = scale
@@ -205,12 +205,14 @@ export class GPlot {
             if (values.length != 0) {
                 let scale = new Scale(scales?.[aes] ?? vvscale[aes].default())
                 scale.aesthetics = aes
-                if (levels?.[aes] != null) {
-                    scale.level = levels[aes]
-                } else if (values.some(v => typeof v === 'string')) {
-                    scale.level = GEnumLevel.from(values)
-                } else if (!scale.asis) {
-                    scale.extent = numutils.extent(values)
+                if (!scale.asis) {
+                    if (levels?.[aes] != null) {
+                        scale.level = levels[aes]
+                    } else if (values.some(v => typeof v === 'string')) {
+                        scale.level = GEnumLevel.from(values)
+                    } else {
+                        scale.extent = numutils.extent(values)
+                    }
                 }
                 if (scale.title == null) {
                     scale.title = this.layers.map(layer => layer.$fns?.[aes]).find(s => s != null)
