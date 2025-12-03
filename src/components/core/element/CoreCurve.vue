@@ -16,10 +16,10 @@ const binds = computed(() => {
     let interpolatorFn = interpolators[interpolate] ?? d3.curveNatural
     return {
         d: d3.line().curve(interpolatorFn)(points.map(p => [p.x, p.y])),
-        fill: fill,
-        stroke: color,
+        fill: fill || null,
+        stroke: color || null,
         'stroke-width': linewidth,
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLineType(linetype),
         transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
     }

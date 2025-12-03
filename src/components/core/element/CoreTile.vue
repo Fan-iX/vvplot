@@ -14,11 +14,11 @@ const {
 const binds = computed(() => {
     return {
         x: x - width / 2, y: y - height / 2, width, height,
-        fill: fill,
-        'fill-opacity': alpha,
-        stroke: color,
+        fill: fill || null,
+        'fill-opacity': alpha == 1 ? null : alpha,
+        stroke: color || null,
         'stroke-width': linewidth,
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLineType(linetype),
         transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
     }

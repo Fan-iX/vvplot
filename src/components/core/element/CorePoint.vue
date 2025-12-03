@@ -22,11 +22,11 @@ const paths = {
 const binds = computed(() => {
     let d = shape?.startsWith?.("path:") ? shape?.slice?.(5) : paths[shape]
     let result = {
-        fill: color,
-        'fill-opacity': alpha,
-        stroke,
+        fill: color || null,
+        'fill-opacity': alpha == 1 ? null : alpha,
+        stroke: stroke || null,
         'stroke-width': linewidth,
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLineType(linetype),
     }
     if (d != null) {
