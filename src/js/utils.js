@@ -404,13 +404,13 @@ export function intrazip(arrays) {
 export function serializeSVG(svgElement) {
     if (!(svgElement instanceof SVGElement)) return null
     function removeComments(node) {
-        let i = node.childNodes.length;
+        let i = node.childNodes.length
         while (i--) {
-            const child = node.childNodes[i];
+            const child = node.childNodes[i]
             if (child.nodeType === Node.COMMENT_NODE) {
-                node.removeChild(child);
+                node.removeChild(child)
             } else if (child.nodeType === Node.ELEMENT_NODE) {
-                removeComments(child);
+                removeComments(child)
                 if (child.getAttribute("style") == "") child.removeAttribute('style')
                 if (child.getAttribute("class") == "") child.removeAttribute('class')
             }

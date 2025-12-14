@@ -1,5 +1,38 @@
 <script setup>
 import iris from './data/iris.json'
+import { useTemplateRef } from 'vue'
+const plot = useTemplateRef('plot')
+
+function exportSVG() {
+    let blob = new Blob([plot.value.serialize()])
+    let url = URL.createObjectURL(blob)
+    let a = document.createElement('a')
+    a.href = url
+    a.download = 'plot.svg'
+    a.click()
+    URL.revokeObjectURL(url)
+}
+function exportPNG() {
+    const img = new Image()
+    img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => {
+            let url = URL.createObjectURL(blob)
+            let a = document.createElement('a')
+            a.href = url
+            a.download = 'plot.png'
+            a.click()
+            URL.revokeObjectURL(url)
+        }, 'image/png')
+    }
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
+        '<?xml version="1.0" standalone="no"?>\r\n' + plot.value.serialize()
+    )))
+}
 </script>
 <template>
     <article>
@@ -27,12 +60,19 @@ import iris from './data/iris.json'
 </template>` }}</pre-highlight>
             <p>Result:</p>
             <div class="flex flex-row">
-                <VVPlot :data="iris" :width="600" :height="400" legend-teleport="#legend-1">
+                <VVPlot ref="plot" :data="iris" :width="600" :height="400" legend-teleport="#legend-1">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
                         :shape="d => d.Species" />
                 </VVPlot>
-                <div id="legend-1"></div>
+                <div>
+                    <div id="legend-1"></div>
+                </div>
             </div>
+            <p>
+                The plot can be exported as
+                <a href="javascript:void(0)" @click="exportSVG">SVG</a> or
+                <a href="javascript:void(0)" @click="exportPNG">PNG</a>
+            </p>
             <p>
                 You may refer to the <a href="#quick_start">getting started</a> page to learn about how VVPlot
                 works.

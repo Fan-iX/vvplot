@@ -199,6 +199,27 @@ function exportSVG() {
     a.click()
     URL.revokeObjectURL(url)
 }
+function exportPNG() {
+    const img = new Image()
+    img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob((blob) => {
+            let url = URL.createObjectURL(blob)
+            let a = document.createElement('a')
+            a.href = url
+            a.download = 'plot.png'
+            a.click()
+            URL.revokeObjectURL(url)
+        }, 'image/png')
+    }
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
+        '<?xml version="1.0" standalone="no"?>\r\n' + instance.plot.serialize()
+    )))
+}
 
 onMounted(() => { useData('iris') })
 </script>
@@ -246,6 +267,7 @@ onMounted(() => { useData('iris') })
             <div>
                 <button @click="buildPlot">refresh plot</button>
                 <button @click="exportSVG">download as SVG</button>
+                <button @click="exportPNG">download as PNG</button>
             </div>
         </div>
     </div>
