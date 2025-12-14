@@ -14,6 +14,8 @@
         import { createApp } from 'vue'
         import App from './web-docs/index.vue'
         import * as components from '#base/components'
+        import PreHighlightElement from './web-docs/script/pre-highlight.js'
+        customElements.define('pre-highlight', PreHighlightElement)
         let app = createApp(App)
         for (let c in components) {
             app.component(c, components[c])

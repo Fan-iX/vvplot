@@ -52,18 +52,18 @@ ol {
     padding-left: 2em;
 }
 
-:not(pre)>code {
+code {
     background: #f0f0f0;
     padding-inline: 0.5ch;
     border-radius: 0.25em;
 }
 
-pre code.hljs {
+pre-highlight {
+    display: block;
     background: #f8f8f8;
-    margin-block: 1em;
+    padding: 1em;
     overflow: auto;
     border-radius: 1em;
-    line-break: anywhere;
 }
 
 kbd {

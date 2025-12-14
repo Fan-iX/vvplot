@@ -1,14 +1,6 @@
 <script setup>
 import '#base/style.css'
-import { ref, nextTick, onMounted } from 'vue'
-import 'highlight.js/styles/github.css'
-import hljs from 'highlight.js/lib/core'
-import xml from 'highlight.js/lib/languages/xml'
-import javascript from 'highlight.js/lib/languages/javascript'
-import json from 'highlight.js/lib/languages/json'
-hljs.registerLanguage('html', xml)
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('json', json)
+import { ref } from 'vue'
 
 const page = ref(window.location.hash.slice(1) || 'home')
 
@@ -24,13 +16,8 @@ import action from './docs/action.vue'
 
 const pages = { home, quick_start, layer, theme, axis, scale, action, gallery, playground }
 
-onMounted(() => {
-    nextTick(() => hljs.highlightAll())
-})
-
 window.addEventListener('hashchange', () => {
     page.value = window.location.hash.slice(1) || 'home'
-    nextTick(() => hljs.highlightAll())
 })
 </script>
 <template>

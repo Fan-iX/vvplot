@@ -25,14 +25,14 @@ const size_limits_max = ref(600)
                 in the <code>vvplot/scale</code> module.
                 They can be imported directly from the module:
             </p>
-            <pre><code class="html">import vvscale from 'vvplot/scale'</code></pre>
+            <pre-highlight lang="javascript">import vvscale from 'vvplot/scale'</pre-highlight>
             <h3><code>identity</code> scale: keep values unchanged</h3>
             <p>
                 The identity scale (<code>vvscale.*.identity()</code>) maps data values to aesthetic attributes directly
                 without any transformation.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[1] = `<VVPlot :data="[
+                <pre-highlight lang="html">{{templates[1] = `<VVPlot :data="[
     { x: 1, y: 1, size:10, color: 'red' },
     { x: 2, y: 4, size:14, color: 'green' },
     { x: 3, y: 9, size:17, color: 'blue' }
@@ -40,7 +40,7 @@ const size_limits_max = ref(600)
               size: vvscale.size.identity() }">
     <VVGeomPoint :x="d => d.x" :y="d => d.y"
         :color="d => d.color" :size="d => d.size" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[1]]" />
             </div>
@@ -67,7 +67,7 @@ const size_limits_max = ref(600)
                 It can be either an array of aesthetic attribute values or an object that describes the mapping.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[2] = `<VVPlot :data="iris" :scales="{
+                <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="iris" :scales="{
     color: vvscale.color.manual({
         values: ['#1f77b4', '#ff7f0e', '#2ca02c']
      // values: { 'setosa': '#1f77b4',
@@ -77,7 +77,7 @@ const size_limits_max = ref(600)
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[2]]" />
             </div>
@@ -97,14 +97,14 @@ const size_limits_max = ref(600)
                 </label>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[3] = `<VVPlot :data="UCBAdmissions"
+                <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="UCBAdmissions"
     :scales="{ alpha: vvscale.size.continuous({
         limits: [0, ${alpha_limits_max}], range: [0.2, 1], na_value: 0
     }) }">
     <VVGeomPoint :x="d => d.Gender + '_' + d.Admit"
         :y="d => d.Dept" :alpha="d => d.Freq" :size="15" />
     <VVAxisX :theme="{ text_angle: -10 }" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[3]]" />
             </div>
@@ -116,7 +116,7 @@ const size_limits_max = ref(600)
                 The <code>oob</code> argument property controls how out-of-boundary values will be handled.
                 VVPlot provides several built-in oob functions in the <code>vvplot/scale</code> module:
             </p>
-            <pre><code class="html">import { oob } from 'vvplot/scale'</code></pre>
+            <pre-highlight lang="javascript">import { oob } from 'vvplot/scale'</pre-highlight>
             <p>
                 The following oob functions are available:
             </p>
@@ -145,7 +145,7 @@ const size_limits_max = ref(600)
                 </label>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[4] = `<VVPlot :data="UCBAdmissions"
+                <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="UCBAdmissions"
     :scales="{ size: vvscale.size.continuous({
         limits: [0, ${size_limits_max}], range: [5, 20],
         oob: oob.squish_any
@@ -153,7 +153,7 @@ const size_limits_max = ref(600)
     <VVGeomPoint :x="d => d.Gender + '_' + d.Admit"
         :y="d => d.Dept" :size="d => d.Freq" />
     <VVAxisX :theme="{ text_angle: -10 }" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[4]]" />
             </div>
@@ -167,12 +167,12 @@ const size_limits_max = ref(600)
                 It generates a set of distinct colors by varying the hue component in the HCL color space
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[5] = `<VVPlot :data="iris"
+                <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris"
     :scales="{ color: vvscale.color.hue() }">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[5]]" />
             </div>
@@ -181,12 +181,12 @@ const size_limits_max = ref(600)
                 It generates a gradient of colors between two specified colors.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[6] = `<VVPlot :data="iris"
+                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="iris"
     :scales="{ color: vvscale.color.gradient() }">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Sepal_Width" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[6]]" />
             </div>
@@ -312,14 +312,14 @@ const size_limits_max = ref(600)
                 <code>"diamond"</code>, <code>"plus"</code>, <code>"cross"</code>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[7] = `<VVPlot :scales="{ shape: vvscale.color.identity() }"
+                <pre-highlight lang="html">{{templates[7] = `<VVPlot :scales="{ shape: vvscale.color.identity() }"
     :data="[
         'circle', 'square', 'triangle',
         'diamond', 'plus', 'cross'
     ]">
     <VVGeomPoint :x="d => d" :shape="d => d"
         :y="0" :size="15" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[7]]" />
             </div>
@@ -336,7 +336,7 @@ const size_limits_max = ref(600)
                 </li>
             </ul>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[8] = `<VVPlot :scales="{ linetype: vvscale.linetype.identity() }"
+                <pre-highlight lang="html">{{templates[8] = `<VVPlot :scales="{ linetype: vvscale.linetype.identity() }"
     :data="[
         'solid', 'dashed', 'dotted',
         'dotdash', 'longdash', 'twodash',
@@ -344,7 +344,7 @@ const size_limits_max = ref(600)
     ]">
     <VVGeomLinerange :xmin="0" :xmax="1"
         :y="d => d" :linetype="d => d" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[8]]" />
             </div>
@@ -361,14 +361,14 @@ const size_limits_max = ref(600)
                 The <code>vvscale.*.custom</code> wrapper function can be used to create custom scale functions easily.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[9] = `<VVPlot :data="letters" :scales="{
+                <pre-highlight lang="html">{{templates[9] = `<VVPlot :data="letters" :scales="{
     fill: vvscale.fill.custom(v => ['blue', 'gold'][v % 2]),
  // same as \`arr => arr.map(v => ['blue','gold'][v % 2])\`
  // the function will be applied to an array of categorical values,
  // \`v % 2\` works because \`v.valueOf()\` will return its ordinal number
 }">
     <VVGeomBar :x="d => d" :fill="d => d" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind"
                     v-memo="[templates[9]]" />
             </div>

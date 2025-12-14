@@ -137,7 +137,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 ×
                 <input type="number" v-model.number="height" class="w-20 border-b" />
             </p>
-            <pre><code class="html">{{ pointerEventTemplate }}</code></pre>
+            <pre-highlight lang="html">{{ pointerEventTemplate }}</pre-highlight>
             <div class="grid grid-rows-[400px_1fr] grid-cols-[600px_1fr] gap-2 grid-flow-col">
                 <VVPlot :data="iris" v-on="plotVOn" v-model:width="width" v-model:height="height"
                     @resize="resizeEventHandler" resize>
@@ -238,7 +238,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                     </select>
                 </label>
             </p>
-            <pre><code class="html">{{ selectTemplate }}</code></pre>
+            <pre-highlight lang="html">{{ selectTemplate }}</pre-highlight>
             <div class="flex flex-row">
                 <VVPlot :data="iris" :width="600" :height="400">
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />

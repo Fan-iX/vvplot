@@ -46,12 +46,12 @@ const templates = ref({})
                 attributes.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[1] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[1] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX :min="0" :max="5" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <p>
@@ -59,13 +59,13 @@ const templates = ref({})
                 values.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[2] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Species"
         :xnudge="d => Math.random() - 0.5"
         :y="d => d.Petal_Width"
         :color="d => d.Species" />
     <VVAxisX :levels="['virginica', 'setosa']" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
@@ -80,13 +80,13 @@ const templates = ref({})
                 To remove the default expansion, set it to <code>0</code>.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[3] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX :expand-mult="{ min:0, max:0.5 }"/>
     <VVAxisY :min="1" :max="7" :expand-add="1" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
@@ -100,14 +100,14 @@ const templates = ref({})
                 direction in the demo below.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[4] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX :min="1.5" :max="2" />
     <VVAxisY :min="4" :max="5" :extend="2"/>
     <VVAction move />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <h3>Axis layout properties</h3>
@@ -117,13 +117,13 @@ const templates = ref({})
                 and <code>title_offset</code> can be used to adjust the title appearance.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[5] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX title="Petal Width" 
         :theme="{ title_size: 14 }" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
@@ -154,7 +154,7 @@ const templates = ref({})
                 <li><code>"none"</code>, the axis will not be drawn.</li>
             </ul>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[6] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
@@ -162,7 +162,7 @@ const templates = ref({})
     <VVAxisX :position="3" />
     <VVAxisY position="30%" :extend="1"/>
     <VVAction move />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <p>
@@ -186,7 +186,7 @@ const templates = ref({})
                 Boolean property <code>show-grid</code> controls whether to show the grid lines for the axis.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre><code class="html">{{templates[7] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
@@ -194,7 +194,7 @@ const templates = ref({})
         :minor-breaks="({ min, max }) => Array.from({ length: 20 }, (_, i) => i * (max - min) / 20 + min)" />
     <VVAxisY :show-grid="false" :labels="x => x + ' cm'" />
     <VVAction move />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <h3>List of axis properties</h3>

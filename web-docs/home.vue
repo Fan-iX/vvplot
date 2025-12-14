@@ -1,6 +1,5 @@
 <script setup>
 import iris from './data/iris.json'
-
 </script>
 <template>
     <article>
@@ -15,7 +14,7 @@ import iris from './data/iris.json'
                 VVPlot uses <i>Grammar of Graphics</i> principles to provide a powerful API for building visualizations.
             </p>
             <p>Here is a minimal example:</p>
-            <pre><code class="html">{{`<script setup>
+            <pre-highlight lang="html">{{`<script setup>
     import iris from './data/iris.json'
 </script>
 <template>
@@ -25,7 +24,7 @@ import iris from './data/iris.json'
         </VVPlot>
         <div id="legend-1"></div>
     </div>
-</template>` }}</code></pre>
+</template>` }}</pre-highlight>
             <p>Result:</p>
             <div class="flex flex-row">
                 <VVPlot :data="iris" :width="600" :height="400" legend-teleport="#legend-1">

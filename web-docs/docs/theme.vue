@@ -13,7 +13,7 @@ import iris from '../data/iris.json'
                 two-level nested objects.
                 Here shows the full content of the <code>default</code> theme:
             </p>
-            <pre><code class="json h-96 overflow-auto">{
+            <pre-highlight lang="json" class="h-96 overflow-auto">{
     axis: {
         line_width: 1,
         tick_width: 1,
@@ -61,7 +61,7 @@ import iris from '../data/iris.json'
     legend: {
         spacing: 4
     }
-}</code></pre>
+}</pre-highlight>
             <p>
                 Theme objects can be passed to the <code>theme</code> prop of <code>VVPlot</code> components.
                 They will be deep merged together with the default theme.

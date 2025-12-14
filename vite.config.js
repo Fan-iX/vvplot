@@ -12,7 +12,14 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production')
   },
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          whitespace: 'preserve',
+          isCustomElement: tag => tag.includes('-')
+        }
+      }
+    }),
     dts({ rollupTypes: true }),
     tailwindcss()
   ],
