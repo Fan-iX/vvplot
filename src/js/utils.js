@@ -161,6 +161,18 @@ export const vecutils = {
         if (arrs.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
         return Array.from({ length }, (_, i) => values.map(a => Array.isArray(a) ? a[i] : a).join(''))
+    },
+    /* vectorized function application */
+    apply(func, ...values){
+        if (values.some(x => x == null)) return null
+        let arrs = values.filter(x => Array.isArray(x))
+        if (arrs.length == 0) return [func(...values)]
+        if (values.some(v => v.length == 0))
+            return []
+        let length = arrs[0].length
+        if (arrs.some(v => v.length != length))
+            throw new Error('Arrays must have the same length')
+        return Array.from({ length }, (_, i) => func(...values.map(a => Array.isArray(a) ? a[i] : a)))
     }
 }
 

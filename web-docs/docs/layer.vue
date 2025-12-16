@@ -34,15 +34,42 @@ const render = ref('svg')
                     </thead>
                     <tbody>
                         <tr>
-                            <td><code>&lt;VVGeomBar /&gt;</code></td>
-                            <td>
-                                <code>x</code> | <code>y</code>
-                            </td>
-                            <td>rectangle</td>
-                            <td>count</td>
-                            <td>
+                            <td rowspan="2"><code>&lt;VVGeomBar /&gt;</code></td>
+                            <td><code>x</code></td>
+                            <td rowspan="2">rectangle</td>
+                            <td rowspan="2">count</td>
+                            <td rowspan="2">
                                 <VVPlot :data="['a', 'b', 'b', 'c', 'a', 'b']">
                                     <VVGeomBar :x="d => d" :render />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>y</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomBlank /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code>
+                            </td>
+                            <td>blank</td>
+                            <td>identity</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomBlank :x="d => d.Species" :y="d => d.Petal_Width" :render />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomBoxplot /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code>
+                            </td>
+                            <td>boxplot</td>
+                            <td>boxplot</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomBoxplot :x="d => d.Species" :y="d => d.Petal_Width" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -61,26 +88,32 @@ const render = ref('svg')
                             <td><code>x</code> <br> <code>y</code></td>
                         </tr>
                         <tr>
-                            <td><code>&lt;VVGeomDensity /&gt;</code></td>
-                            <td><code>x</code> | <code>y</code></td>
-                            <td>curve</td>
-                            <td>density</td>
-                            <td>
+                            <td rowspan="2"><code>&lt;VVGeomDensity /&gt;</code></td>
+                            <td><code>x</code></td>
+                            <td rowspan="2">curve</td>
+                            <td rowspan="2">density</td>
+                            <td rowspan="2">
                                 <VVPlot :data="iris">
                                     <VVGeomDensity :x="d => d.Petal_Width" :render />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td><code>&lt;VVGeomHistogram /&gt;</code></td>
-                            <td><code>x</code> | <code>y</code></td>
-                            <td>rectangle</td>
-                            <td>histogram</td>
-                            <td>
+                            <td><code>y</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2"><code>&lt;VVGeomHistogram /&gt;</code></td>
+                            <td><code>x</code></td>
+                            <td rowspan="2">rectangle</td>
+                            <td rowspan="2">histogram</td>
+                            <td rowspan="2">
                                 <VVPlot :data="iris">
                                     <VVGeomHistogram :x="d => d.Petal_Width" :bins="5" :render />
                                 </VVPlot>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><code>y</code></td>
                         </tr>
                         <tr>
                             <td><code>&lt;VVGeomLine /&gt;</code></td>
