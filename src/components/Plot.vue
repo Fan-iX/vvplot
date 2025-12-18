@@ -6,7 +6,7 @@ import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } fr
 import { str_c, serializeSVG } from '../js/utils'
 defineOptions({ inheritAttrs: false })
 
-import CorePlot from './core/CorePlot.vue'
+import CorePlot from '../core/CorePlot.vue'
 import VVAction from './Action.vue'
 import VVSelection from './Action.vue'
 import * as geom_components from './geom'
