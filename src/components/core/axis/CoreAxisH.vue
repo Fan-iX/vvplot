@@ -71,7 +71,7 @@ const tickLines = computed(() => {
             style: { transition },
         })
     }
-    return result.filter(t => t.stroke != null)
+    return result.filter(t => t.stroke != null).sort((a, b) => a.x1 - b.x1)
 })
 const tickTexts = computed(() => {
     let isTop = theme.tick_position == "top"
@@ -109,7 +109,7 @@ const tickTexts = computed(() => {
             },
         })
     }
-    return result.filter(t => t.text.fill != null)
+    return result.filter(t => t.text.fill != null).sort((a, b) => a.text.x - b.text.x)
 })
 
 const iRef = useTemplateRef("i")
