@@ -158,6 +158,7 @@ function axisMovePointerdown(e) {
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         movementY += ev.movementY
+        if (!pointerMoved) return
         let dv = oob_squish_any(-movementY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
         let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
@@ -166,6 +167,7 @@ function axisMovePointerdown(e) {
         e.target.onpointermove = null
         e.target.onpointerup = null
         e.target.style.cursor = null
+        if (!pointerMoved) return
         moveTimer = setTimeout(() => {
             applyTransform(act, ev)
             movementY = 0
