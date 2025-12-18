@@ -1,6 +1,7 @@
 export { default as VVGeom } from './Geom.vue';
 export { default as VVGeomBar } from './GeomBar.vue';
 export { default as VVGeomBlank } from './GeomBlank.vue';
+export { default as VVGeomBoxplot } from './GeomBoxplot.vue';
 export { default as VVGeomCurve } from './GeomCurve.vue';
 export { default as VVGeomDensity } from './GeomDensity.vue';
 export { default as VVGeomHistogram } from './GeomHistogram.vue';

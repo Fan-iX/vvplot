@@ -17,6 +17,11 @@ const components = {
     VVAction, VVSelection,
 }
 
+const opponents = {
+    x: 'y', y: 'x', h: 'v', v: 'h',
+    top: 'bottom', bottom: 'top', left: 'right', right: 'left'
+}
+
 function _isPropTruthy(v) {
     if (v == null) return v
     return v === "" || Boolean(v)
@@ -288,7 +293,7 @@ watch(coordRangePreview, (newRange, oldRange) => {
 
 watch(() => range, (newRange, oldRange) => {
     for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key])
+        rangeUpdate[key]?.(newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
     }
     emit('rangechange', { ...newRange }, { ...oldRange })
     emit('update:range', { ...newRange })
@@ -324,7 +329,7 @@ const expandMult = computed(() => {
     else if (typeof y == 'number') y = { min: y, max: y }
     return { x, y }
 })
-const reverse = computed(() => ({
+const reverse = reactiveComputed(() => ({
     x: _isPropTruthy(primaryAxisConfig.reverse.x) ?? $reverse?.x ?? false,
     y: _isPropTruthy(primaryAxisConfig.reverse.y) ?? $reverse?.y ?? false,
 }))
@@ -346,7 +351,14 @@ const axes = computed(() => {
         $_children, ...etc
     }) => {
         let orientation = ori[coord]
-        position = position ?? defaultPos[coord]
+        position = position ?? "start"
+        if (position == "start") {
+            position = { h: "bottom", v: "left" }[orientation]
+            if (reverse[opponents[coord]]) position = opponents[position]
+        } else if (position == "end") {
+            position = { h: "top", v: "right" }[orientation]
+            if (reverse[opponents[coord]]) position = opponents[position]
+        }
         let action = Object.values($_children ?? {})
             .filter(s => typeof s == "function")
             .flatMap(s => expandFragment(s()))
@@ -444,7 +456,10 @@ const selections = computed(() => {
                 resize: resize !== false,
                 x: xy || Boolean(_isPropTruthy(x)),
                 y: xy || Boolean(_isPropTruthy(y)),
-                xmin, xmax, ymin, ymax,
+                xmin: xmin ?? actionBoundary?.x?.min,
+                xmax: xmax ?? actionBoundary?.x?.max,
+                ymin: ymin ?? actionBoundary?.y?.min,
+                ymax: ymax ?? actionBoundary?.y?.max,
                 ctrlKey: Boolean(_isPropTruthy(ctrl)),
                 shiftKey: Boolean(_isPropTruthy(shift)),
                 altKey: Boolean(_isPropTruthy(alt)),
@@ -464,10 +479,10 @@ const width = defineModel('width')
 const height = defineModel('height')
 onMounted(() => {
     watch(width, (v) => {
-        wrapperRef.value.style.width = str_c(v, 'px')
+        wrapperRef.value.style.width = str_c(v, 'px') ?? null
     }, { immediate: true })
     watch(height, (v) => {
-        wrapperRef.value.style.height = str_c(v, 'px')
+        wrapperRef.value.style.height = str_c(v, 'px') ?? null
     }, { immediate: true })
 })
 const { width: w, height: h } = useElementSize(plotRef)
@@ -500,7 +515,8 @@ const wrapperStyle = computed(() => {
 })
 
 defineExpose({
-    serialize() { return serializeSVG(plotRef.value.svg) }
+    get svg() { return plotRef.value.svg },
+    serialize() { return serializeSVG(plotRef.value.svg) },
 })
 </script>
 <template>

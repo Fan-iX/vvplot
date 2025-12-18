@@ -161,6 +161,18 @@ export const vecutils = {
         if (arrs.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
         return Array.from({ length }, (_, i) => values.map(a => Array.isArray(a) ? a[i] : a).join(''))
+    },
+    /* vectorized function application */
+    apply(func, ...values){
+        if (values.some(x => x == null)) return null
+        let arrs = values.filter(x => Array.isArray(x))
+        if (arrs.length == 0) return [func(...values)]
+        if (values.some(v => v.length == 0))
+            return []
+        let length = arrs[0].length
+        if (arrs.some(v => v.length != length))
+            throw new Error('Arrays must have the same length')
+        return Array.from({ length }, (_, i) => func(...values.map(a => Array.isArray(a) ? a[i] : a)))
     }
 }
 
@@ -171,12 +183,18 @@ export const vecutils = {
  * @param {Array} arr
  * @returns {Object|null}
  */
-export function obj_merge(arr) {
+export function obj_merge(...arr) {
     arr = arr.filter(x => x !== undefined)
     if (arr.length == 0) return undefined
     arr = arr.slice(arr.findIndex(x => x == null) + 1)
     if (arr.length == 0) return null
-    return arr.reduce((a, c) => Object.assign(a, c), {})
+    return arr.reduce((a, c) => {
+        for (let k in c) {
+            if (c[k] === null) delete a[k]
+            if (c[k] != undefined) a[k] = c[k]
+        }
+        return a
+    }, {})
 }
 
 /**
@@ -398,13 +416,13 @@ export function intrazip(arrays) {
 export function serializeSVG(svgElement) {
     if (!(svgElement instanceof SVGElement)) return null
     function removeComments(node) {
-        let i = node.childNodes.length;
+        let i = node.childNodes.length
         while (i--) {
-            const child = node.childNodes[i];
+            const child = node.childNodes[i]
             if (child.nodeType === Node.COMMENT_NODE) {
-                node.removeChild(child);
+                node.removeChild(child)
             } else if (child.nodeType === Node.ELEMENT_NODE) {
-                removeComments(child);
+                removeComments(child)
                 if (child.getAttribute("style") == "") child.removeAttribute('style')
                 if (child.getAttribute("class") == "") child.removeAttribute('class')
             }

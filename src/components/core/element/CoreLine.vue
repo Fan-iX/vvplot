@@ -15,9 +15,9 @@ const {
 const binds = computed(() => {
     return {
         x1, x2, y1, y2,
-        stroke: color,
+        stroke: color || null,
         'stroke-width': linewidth,
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLineType(linetype),
         transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
     }

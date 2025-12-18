@@ -61,6 +61,20 @@ function continuous_scale({
     return Object.assign(fn, { title, limits, oob }, etc)
 }
 
+function identity_scale({ title, ...etc } = {}) {
+    return Object.assign(function (arr) { return Array.from(arr) }, { asis: true, title }, etc)
+}
+function identity_scale_number({ title, ...etc } = {}) {
+    return Object.assign(function (arr) { return arr.map(v => +v) }, { asis: true, title }, etc)
+}
+function identity_scale_string({ title, ...etc } = {}) {
+    return Object.assign(function (arr) { return arr.map(v => String(v ?? "")) }, { asis: true, title }, etc)
+}
+
+function disable_scale({ title, ...etc } = {}) {
+    return Object.assign(function () { return null }, { title }, etc)
+}
+
 function palette_scale_hue({
     h = [15, 375], c = 100, l = 65, h_start = 0,
     direction = 1,
@@ -204,42 +218,6 @@ function palette_scale_dynamic({
     return Object.assign(fn, { title, limits, oob }, etc)
 }
 
-const palette_scales = {
-    identity: scale_identity_string,
-
-    discrete: palette_scale_hue,
-    hue: palette_scale_hue,
-    manual: palette_scale_manual,
-
-    continuous: palette_scale_gradient,
-    gradient: palette_scale_gradient,
-    gradient2: palette_scale_gradient2,
-    gradientn: palette_scale_gradientn,
-
-    dynamic: palette_scale_dynamic,
-    auto: palette_scale_auto,
-    custom: custom_scale,
-
-    default: palette_scale_auto,
-}
-
-function scale_identity({ title, ...etc } = {}) {
-    return Object.assign(function (arr) { return Array.from(arr) }, { title }, etc)
-}
-function scale_identity_asis({ title, ...etc } = {}) {
-    return Object.assign(function (arr) { return arr }, { asis: true, title }, etc)
-}
-function scale_identity_number({ title, ...etc } = {}) {
-    return Object.assign(function (arr) { return arr.map(v => +v) }, { title }, etc)
-}
-function scale_identity_string({ title, ...etc } = {}) {
-    return Object.assign(function (arr) { return arr.map(v => String(v ?? "")) }, { title }, etc)
-}
-
-function scale_disabled({ title, ...etc } = {}) {
-    return Object.assign(function () { return null }, { title }, etc)
-}
-
 function shape_scale_discrete({ title, ...etc } = {}) {
     let shapes = ["circle", "square", "triangle", "diamond", "plus"]
     let fn = function (arr) {
@@ -257,6 +235,25 @@ function linetype_scale_discrete({ title, ...etc } = {}) {
     return Object.assign(fn, { title }, etc)
 }
 
+const palette_scales = {
+    identity: ({ title, ...etc } = {}) => identity_scale_string({ legend: false, title, ...etc }),
+
+    discrete: palette_scale_hue,
+    hue: palette_scale_hue,
+    manual: palette_scale_manual,
+
+    continuous: palette_scale_gradient,
+    gradient: palette_scale_gradient,
+    gradient2: palette_scale_gradient2,
+    gradientn: palette_scale_gradientn,
+
+    dynamic: palette_scale_dynamic,
+    auto: palette_scale_auto,
+    custom: custom_scale,
+
+    default: palette_scale_auto,
+}
+
 export default {
     color: palette_scales,
     stroke: palette_scales,
@@ -267,26 +264,26 @@ export default {
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [0.1, 1], title, ...etc }),
     },
     size: {
-        identity: scale_identity_number,
+        identity: ({ title, ...etc } = {}) => identity_scale_number({ legend: false, title, ...etc }),
         continuous: continuous_scale,
         custom: custom_scale,
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [1, 6], title, ...etc }),
     },
     linewidth: {
-        identity: scale_identity_number,
+        identity: ({ title, ...etc } = {}) => identity_scale_number({ legend: false, title, ...etc }),
         continuous: continuous_scale,
         manual: manual_scale,
         custom: custom_scale,
         default: ({ title, ...etc } = {}) => continuous_scale({ range: [1, 6], title, ...etc }),
     },
     linetype: {
-        identity: scale_identity_string,
+        identity: ({ title, ...etc } = {}) => identity_scale_string({ legend: false, title, ...etc }),
         discrete: linetype_scale_discrete,
         default: linetype_scale_discrete,
         custom: custom_scale,
     },
     shape: {
-        identity: scale_identity_string,
+        identity: ({ title, ...etc } = {}) => identity_scale_string({ legend: false, title, ...etc }),
         discrete: shape_scale_discrete,
         default: shape_scale_discrete,
         custom: custom_scale,

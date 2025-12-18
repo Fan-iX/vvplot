@@ -31,80 +31,80 @@ const vBind = {
     <article>
         <section>
             <h2>Gallery</h2>
-            <pre><code class="html">{{templates[1] = `<VVPlot :data="mtcars">
+            <pre-highlight lang="html">{{templates[1] = `<VVPlot :data="mtcars">
     <VVGeomPoint :x="d => d.wt" :y="d => d.mpg" shape="triangle" />
     <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15" :anchor-x="0" :anchor-y="0.5" :translate-x="6" :translate-y="-2" />
     <VVGeomSegment :x="d => d.x1" :y="d => d.y1" :xend="d => d.x2" :yend="d => d.y2"
         :data="[{ x1: 2.62, x2: 3.57, y1: 21, y2: 15 }]" color="red" linetype="dashed" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-1"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[2] = `<VVPlot :data="UCBAdmissions" legend-teleport="#legend-2">
+            <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="UCBAdmissions" legend-teleport="#legend-2">
     <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :fill="d => d.Freq" :width="0.8" :height="0.8" :alpha="0.4"
         :scales="{ fill: vvscale.color.gradient2({ midpoint: null, limits: [0, 500], breaks: [0, 250, 500] }) }" />
     <VVGeomText :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :color="d => d.Freq" :label="d => d.Freq" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-2"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[3] = `<VVPlot :data="economics" legend-teleport="#legend-3">
+            <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="economics" legend-teleport="#legend-3">
     <VVAxisX title="unemployment rate" />
     <VVAxisY title="personal savings rate" />
     <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i" :linewidth="d => d.pop" linetype="22"
         :scales="{ color: vvscale.color.hue({ guide: 'legendkey', key: 'pop' }), linetype: vvscale.linetype.default({ key: 'pop' }) }" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-3"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[4] = `<VVPlot :data="letters" legend-teleport="#legend-4">
+            <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="letters" legend-teleport="#legend-4">
     <VVAxisY :min="0" :expand-mult="0" />
     <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-4"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[5] = `<VVPlot :data="iris" legend-teleport="#legend-5">
+            <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris" legend-teleport="#legend-5">
     <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :alpha="0.5" 
         :scales="{ color: vvscale.color.hue({ l: 45, key: 'Species' }), fill: vvscale.fill.default({ key: 'Species' }) }" />
     <VVGeomDensity :x="d => d.Petal_Width" :color="d => d.Species"
         :scales="{ color: vvscale.fill.default({ key: 'Species' }) }" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-5"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[6] = `<VVPlot :data="pigments" legend-teleport="#legend-6">
+            <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="pigments" legend-teleport="#legend-6">
     <VVGeomLine :x="d => d.wave_length" :y="d => d.molar_extinction" :color="d => d.pigment" :group="d => d.pigment"
         :scales="{ color: vvscale.color.manual({ values: { beta_carotene: 'orangered', chlorophyll_a: 'limegreen', chlorophyll_b: 'royalblue' } }) }" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-6"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[7] = `<VVPlot :data="iris">
+            <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris">
     <VVGeomPolygon :points="d => [
         { x: d.Petal_Width - 0.1, y: d.Sepal_Length },
         { x: d.Petal_Width, y: d.Sepal_Length - 0.1 },
         { x: d.Petal_Width + 0.1, y: d.Sepal_Length },
         { x: d.Petal_Width, y: d.Sepal_Length + 0.1 },
     ]" :color="d => d.Species" :fill="d => d.Species" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
-            <pre><code class="html">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false">
+            <pre-highlight lang="html">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false">
     <VVAxisY :position="0">
         <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
     </VVAxisY>
@@ -118,13 +118,13 @@ const vBind = {
     <VVAction nudge shift />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
     <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" :min-range-y="4"/>
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind" />
                 <div id="legend-8"></div>
             </div>
             <hr>
-            <pre><code class="html">{{templates[9] = `<VVPlot :data="economics" :theme="{ plot: { margin_right: 50 } }">
+            <pre-highlight lang="html">{{templates[9] = `<VVPlot :data="economics" :theme="{ plot: { margin_right: 50 } }">
     <VVAxisY :labels="v => \`\${v * 100}%\`" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate"
         :theme="{ title_color: 'gray' }">
         <VVAction move rescale zoom />
@@ -135,19 +135,19 @@ const vBind = {
         <VVAction move rescale zoom />
     </VVAxisX>
     <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
-            <pre><code class="html">{{templates[10] = `<VVPlot :data="economics">
+            <pre-highlight lang="html">{{templates[10] = `<VVPlot :data="economics">
     <VVAxisX :labels="vvlabel.timestamp({ format: 'yyyy/MM' })" position="top" />
     <VVAxisY position="left" primary />
     <VVAxisY position="right" />
     <VVAxisX position="bottom" secondary />
     <VVGeomLine :x="d => new Date(d.date)" :y="d => d.pop" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <component :is="{ template: templates[10], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
-            <pre><code class="html">{{templates[11] = `<VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
+            <pre-highlight lang="html">{{templates[11] = `<VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
     <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x"
         :theme="{ title_position: 'right', title_size: 16 }">
         <VVAction move rescale zoom />
@@ -157,14 +157,14 @@ const vBind = {
         <VVAction move rescale zoom />
     </VVAxisY>
     <VVGeomPoint :x="d => d.x" :y="d => d.y" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <component :is="{ template: templates[11], props: Object.keys(vBind) }" v-bind="vBind" />
             <hr>
-            <pre><code class="html">{{templates[12] = `<VVPlot :data="letters">
+            <pre-highlight lang="html">{{templates[12] = `<VVPlot :data="letters">
     <VVAxisX :expand-add="1" :expand-mult="0" :levels="['x', 'y', 'z', '', 'a', 'b', 'c']" :position="0" />
     <VVAxisY position="center" :theme="{ tick_anchor_y: 1 }" />
     <VVGeomBar :x="d => d" />
-</VVPlot>`}}</code></pre>
+</VVPlot>`}}</pre-highlight>
             <component :is="{ template: templates[12], props: Object.keys(vBind) }" v-bind="vBind" />
         </section>
     </article>

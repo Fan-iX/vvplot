@@ -1,8 +1,8 @@
 <script>
 export default {
     $_props: {
-        geom: 'blank',
-        stat: 'identity',
+        geom: 'boxplot',
+        stat: 'boxplot',
     },
     $_type: 'layer',
 }

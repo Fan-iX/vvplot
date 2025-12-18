@@ -6,7 +6,8 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
+const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -22,28 +23,21 @@ const binds = computed(() => {
             points.every(p => p.x < xlim_min) || points.every(p => p.x > xlim_max) ||
             points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)
         ) return null
-        let result = {
+        let vbind = {
             points, fill, color, linewidth, linetype, alpha,
             translateX, translateY,
-            onClick: (e) => emit('click', e, $raw),
-            onContextmenu: (e) => emit('contextmenu', e, $raw),
-            onPointerover: (e) => emit('pointerover', e, $raw),
-            onPointerout: (e) => emit('pointerout', e, $raw),
-            onPointerenter: (e) => emit('pointerenter', e, $raw),
-            onPointerleave: (e) => emit('pointerleave', e, $raw),
-            onPointerdown: (e) => emit('pointerdown', e, $raw),
-            onPointerup: (e) => emit('pointerup', e, $raw),
-            onPointermove: (e) => emit('pointermove', e, $raw),
-            onWheel: (e) => emit('wheel', e, $raw),
         }
-        return result
+        let von = Object.fromEntries(
+            events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), $raw)])
+        )
+        return [vbind, von]
     }).filter(x => x != null))
 })
 </script>
 <template>
     <g>
         <g v-for="group in binds">
-            <CorePolygon v-bind="item" v-for="item in group" />
+            <CorePolygon v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

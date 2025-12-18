@@ -310,10 +310,36 @@ function isInPlot(event) {
         event.clientY < rect.bottom - panel.b
 }
 
+function dispatchPointerEvent(e) {
+    if (!layers.value || e._vhandled || !isInPlot(e)) return e
+    let canvasLayers = Array.from(layers.value).filter(l => l.render == 'canvas')
+    if (!canvasLayers.length) return e
+    // clone event
+    let options = {}
+    for (let key in e) options[key] = e[key]
+    options.bubbles = false
+    let event = new PointerEvent(e.type, options)
+    for (let key of Object.keys(e)) {
+        let prop = Object.getOwnPropertyDescriptor(event, key)
+        if (prop && !prop.writable && !prop.set) continue
+        event[key] = e[key]
+    }
+    // dispatch to canvas layers
+    for (let i = layers.value.length - 1; i >= 0; i--)
+        if (layers.value[i].dispatchEvent(event) === false) e.preventDefault()
+    for (let key of Object.keys(event)) {
+        let prop = Object.getOwnPropertyDescriptor(event, key)
+        if (prop && !prop.writable && !prop.set) continue
+        e[key] = event[key]
+    }
+    return event._vhandled ? event : e
+}
+
 let moveTimer, movementX = 0, movementY = 0
 function svgPointerdown(e) {
     let coord = getCoord(e)
-    emit('pointerdown', e, coord)
+    emit('pointerdown', dispatchPointerEvent(e), coord)
+    if (props.clip && !isInPlot(e)) return
     let svg = e.currentTarget
     let pointerMoved = false
     function detectMove(ev) {
@@ -326,16 +352,10 @@ function svgPointerdown(e) {
     e.target.addEventListener('pointerup', function (ev) {
         e.target.removeEventListener('pointermove', detectMove)
         if (!pointerMoved) {
-            let coord = getCoord(ev)
-            emit('singleclick', new PointerEvent("singleclick", ev), coord)
-            if (isInPlot(e) && layers.value) {
-                if (ev.button == 0) {
-                    layers.value.forEach(layer => layer.dispatchEvent(new PointerEvent("click", ev)))
-                }
-            }
+            let event = new PointerEvent("singleclick", ev)
+            ev.target.dispatchEvent(event)
         }
     }, { once: true })
-    if (props.clip && !isInPlot(e)) return
     let sel = props.selections.find(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
     if (sel) {
         let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0 } = sel
@@ -414,7 +434,7 @@ function svgPointerdown(e) {
                 if (sel.dismissible !== true && ["xmin", "xmax", "ymin", "ymax"].every(k => model?.[k] == null)) return
                 let res = {}, event = new PointerEvent("select", e)
                 sel["onUpdate:modelValue"]?.(res)
-                if (!emitEvent(sel["onCancel"], dropNull(res), event)) {
+                if (!emitEvent(sel["onDismiss"], dropNull(res), event)) {
                     emit('select', dropNull(res), event)
                 }
             }
@@ -463,7 +483,7 @@ function svgPointerdown(e) {
 let wheelDelta = 0, wheelTimer
 function svgWheel(e) {
     let coord = getCoord(e)
-    emit('wheel', e, coord)
+    emit('wheel', dispatchPointerEvent(e), coord)
     if (props.clip && !isInPlot(e)) return
     let act = props.action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act || !act.x && !act.y) return
@@ -551,15 +571,16 @@ function applyTransform(act, event) {
 }
 const svgVOn = {
     pointerdown: svgPointerdown,
-    pointerup(e) { emit('pointerup', e, getCoord(e)) },
+    pointerup(e) { emit('pointerup', dispatchPointerEvent(e), getCoord(e)) },
     pointerover(e) { emit('pointerover', e, getCoord(e)) },
     pointerout(e) { emit('pointerout', e, getCoord(e)) },
     pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
     pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
-    dblclick(e) { emit('dblclick', e, getCoord(e)) },
-    click(e) { emit('click', e, getCoord(e)) },
-    contextmenu(e) { emit('contextmenu', e, getCoord(e)) },
-    pointermove(e) { emit('pointermove', e, getCoord(e)) },
+    click(e) { emit('click', dispatchPointerEvent(e), getCoord(e)) },
+    contextmenu(e) { emit('contextmenu', dispatchPointerEvent(e), getCoord(e)) },
+    singleclick(e) { emit('singleclick', dispatchPointerEvent(e), getCoord(e)) },
+    dblclick(e) { emit('dblclick', dispatchPointerEvent(e), getCoord(e)) },
+    pointermove(e) { emit('pointermove', dispatchPointerEvent(e), getCoord(e)) },
     wheel: svgWheel,
 }
 
@@ -653,7 +674,7 @@ const axes = computed(() => {
         </defs>
         <rect :transform="`translate(${panel.left}, ${panel.top})`" :width="panel.width" :height="panel.height"
             :fill="theme.plot.background" v-if="theme.plot.background"></rect>
-        <g :transform="`translate(${panel.left}, ${panel.top})`">
+        <g :transform="`translate(${panel.left}, ${panel.top})`" style="pointer-events: none;">
             <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
                 :activeTransform="activeTransform" :coord2pos="coord2pos" :transition="transition" />
             <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"

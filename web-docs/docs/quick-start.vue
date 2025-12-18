@@ -18,11 +18,11 @@ const render = ref('canvas')
                 VVPlot uses a Vue-based, <i>Grammar of Graphics</i> style syntax to build plots.
             </p>
             <hr>
-            <pre><code class="html">{{templates[1] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre-highlight lang="html">{{templates[1] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Petal_Length" :color="d => d.Species" />
     <VVAxisX title="Petal Width" />
     <VVAxisY title="Petal Length" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[1], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             </hr>
@@ -42,7 +42,8 @@ const render = ref('canvas')
             </p>
             <details>
                 <summary>The <code>iris</code> data set</summary>
-                <pre><code class="javascript overflow-auto max-h-48">iris = [{{iris.map(d => '\n    ' + JSON.stringify(d)).join(',') + '\n'}}]</code></pre>
+                <pre-highlight lang="javascript"
+                    class="overflow-auto max-h-48">iris = [{{iris.map(d => '\n    ' + JSON.stringify(d)).join(',') + '\n'}}]</pre-highlight>
             </details>
             <h4>Layer declaration</h4>
             <p>
@@ -125,7 +126,7 @@ const render = ref('canvas')
             </p>
             <ul>
                 <li>
-                    The property <code>limits</code> defines the range limits of the axis.
+                    The properties <code>min</code> and <code>max</code> defines the range limits of the axis.
                 </li>
                 <li>
                     For discrete axes, the property <code>levels</code> controls the which discrete values are shown.
@@ -150,14 +151,14 @@ const render = ref('canvas')
                 The same applies to y-axis, which will be drawn at the left of the plot by default.
             </p>
             <hr>
-            <pre><code class="html">{{templates[2] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" :alpha="0.5" bins="20"
         :scales="{ fill: vvscale.fill.hue({ l: 60 }) }"
         style="cursor: pointer;"/>
-    <VVAxisX :limits="{min: 0}" :breaks="[0, 0.5, 1, 1.5, 2, 2.5]" />
+    <VVAxisX :min="0" :breaks="[0, 0.5, 1, 1.5, 2, 2.5]" />
     <VVAxisY :expand-mult="{max: 0.1}" primary />
     <VVAxisY position="right" />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -202,13 +203,12 @@ const render = ref('canvas')
                             x-axis.
                         </li>
                         <li>
-                            The property <code>:limits="{max: 3}"</code> sets the maximum limit of the coordinate
-                            mapping for the x-dimension. The minimum limit is determined automatically from the data.
+                            The property <code>:min="0"</code> sets the minimum limit of the coordinate
+                            mapping for the x-dimension. The maximum limit is determined automatically from the data.
                         </li>
                         <li>
                             The property <code>:breaks="[0, 0.5, 1, 1.5, 2, 2.5]"</code> specifies the tick mark
-                            positions
-                            along the axis.
+                            positions along the axis.
                         </li>
                     </ul>
                 </li>
@@ -246,16 +246,16 @@ const render = ref('canvas')
             <p>
                 To use a built-in theme, you need to import it from the <code>vvplot/theme</code> module.
             </p>
-            <pre><code class="html">import vvtheme from 'vvplot/theme'</code></pre>
+            <pre-highlight lang="javascript">import vvtheme from 'vvplot/theme'</pre-highlight>
             <p>
                 You can provide a single theme object or an array of theme objects to the <code>theme</code> property of
                 <code>&lt;VVPlot&gt;</code>:
             </p>
             <hr>
-            <pre><code class="html">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" 
+            <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="iris" :width="600" :height="400" 
     :theme="[vvtheme.gray, { axis_x: { line_color: 'blue' } }]">
     <VVGeomHistogram :x="d => d.Petal_Width" :fill="d => d.Species" bins="15"/>
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -278,10 +278,10 @@ const render = ref('canvas')
                 which are: <code>move</code>, <code>nudge</code>, <code>zoom</code>, <code>rescale</code> (axis only).
             </p>
             <hr>
-            <pre><code class="html">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
+            <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400">
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-    <VVAxisX position="center" :extend="1">
-        <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
+    <VVAxisX position="center" :extend="1" :min="-1">
+        <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="3" />
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
     </VVAxisX>
     <VVAxisY :position="0" :extend="1">
@@ -292,7 +292,7 @@ const render = ref('canvas')
     <VVAction nudge y />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
     <VVAction :zoom="{ xmin: -5, xmax: 10 }" :ymin="-2" :ymax="10" ctrl />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" class="mx-auto" />
             <hr>
             <p>
@@ -398,7 +398,9 @@ const render = ref('canvas')
             </p>
             <hr>
             <blockquote class="warning">
-                You may experience slow response and high CPU usage in SVG mode.
+                <p>
+                    You may experience slow response and high CPU usage in SVG mode.
+                </p>
             </blockquote>
             <label>
                 render mode:
@@ -407,11 +409,11 @@ const render = ref('canvas')
                     <option value="svg">SVG</option>
                 </select>
             </label>
-            <pre><code class="html">{{templates[5] = `<VVPlot :width="600" :height="400">
+            <pre-highlight lang="html">{{templates[5] = `<VVPlot :width="600" :height="400">
     <VVGeomPoint :data="Array.from({length: 30000}, ()=>({x:Math.random(),y:Math.random()}))"
-        :x="d => d.x" :y="d => d.y" size="2" render="${render}"/>
+        :x="d => d.x" :y="d => d.y" :size="2" render="${render}"/>
     <VVAction zoom move />
-</VVPlot>` }}</code></pre>
+</VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[5], props: Object.keys(vBind).concat('render') }" v-bind="vBind"
                 :render="render" class="mx-auto" />
         </section>

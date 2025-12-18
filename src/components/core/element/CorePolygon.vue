@@ -13,11 +13,11 @@ const {
 const binds = computed(() => {
     return {
         points: points.map(p => `${p.x},${p.y}`).join(' '),
-        fill: fill,
-        'fill-opacity': alpha,
-        stroke: color,
+        fill: fill || null,
+        'fill-opacity': alpha == 1 ? null : alpha,
+        stroke: color || null,
         'stroke-width': linewidth,
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLineType(linetype),
         transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
     }

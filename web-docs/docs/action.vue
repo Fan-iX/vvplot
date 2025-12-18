@@ -74,9 +74,15 @@ const selectConfigs = reactive({
 const selectModifiers = reactive({
     ctrl: false, shift: false, meta: false, alt: false
 })
+const pointerupPrevent = reactive({
+    plot: false, layer: false,
+})
+function onpointerup(e, target) {
+    if (pointerupPrevent[target]) e.preventDefault()
+}
 const selectButton = ref("left")
-const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${pointerupPrevent.plot ? ' @pointerup.prevent' : ''}>
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" ${pointerupPrevent.layer ? '@pointerup.prevent ' : ''}/>
     <VVSelection v-model="selection" ${Object.entries(selectConfigs).map(([k, v]) => `:${k}="${v}"`).join(' ')}
         ${Object.entries(selectModifiers).map(([k, v]) => `:${k}="${v}"`).join(' ')} button="${selectButton.value}"
         :xmin="0.5" :xmax="2" :theme="{ line_color: 'gray' }" :min-range-x="0.5" />
@@ -86,11 +92,16 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
     <article>
         <section>
             <h2>Event handling and interactivity</h2>
-            <h3>Pointer events</h3>
+            <h3>Pointer and resize events</h3>
+            <h4>Pointer events</h4>
             <p>
-                Event handlers can be attached to the plot component (<code>&lt;VVPlot&gt;</code>),
-                axis declarations (<code>&lt;VVAxis&gt;</code>) or layer declarations (<code>&lt;VVGeom&gt;</code>)
-                to capture pointer actions.
+                Standard DOM pointer events (
+                <code>click</code>, <code>contextmenu</code>, <code>dblclick</code>,
+                <code>pointerdown</code>, <code>pointerup</code>,
+                <code>pointerenter</code>, <code>pointerleave</code>, <code>pointerover</code>, <code>pointerout</code>,
+                <code>pointermove</code> and <code>wheel</code>
+                ) can be captured through event handlers attached to the plot component (<code>&lt;VVPlot&gt;</code>),
+                axis declarations (<code>&lt;VVAxis&gt;</code>) or layer declarations (<code>&lt;VVGeom&gt;</code>).
             </p>
             <p>
                 Two arguments are passed to pointer event handlers:
@@ -99,25 +110,46 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             </p>
             <ul>
                 <li>
-                    Plot events have the second argument containing its distance to the sides of the plot area in pixel
+                    For <strong>plot events</strong>,
+                    the second argument contains its distance to the sides of the plot area in pixel
                     (<code>l</code>, <code>r</code>, <code>t</code>, <code>b</code>)
                     as well as its position in data coordinate
                     (<code>x</code>, <code>y</code>).
                 </li>
                 <li>
-                    Axis events have the same distance and coordinate position as the second argument,
+                    For <strong>axis events</strong>,
+                    the second argument has the same distance and coordinate position properties as for the plot events,
                     but only for the axis orientation.
                 </li>
                 <li>
-                    Layer events have the raw data bound to the graphical element.
+                    For <strong>layer events</strong>,
+                    the second argument will be the raw data bound to the graphical element.
                 </li>
             </ul>
             <p>
-                Apart from the standard DOM events <code>click</code> DOM event,
+                Apart from the standard DOM events,
                 an additional event, <code>singleclick</code>, is provided for convenience.
-                It will be triggered if the mouse button is clicked without moving the pointer.
+                It will be triggered if a mouse button is released at the same position where it was pressed.
             </p>
-            <h3>Resize event</h3>
+            <blockquote class="info">
+                <p>
+                    <code>canvas</code> layers do not support <code>pointerenter</code>, <code>pointerleave</code>,
+                    <code>pointerover</code> and <code>pointerout</code> events.
+                </p>
+            </blockquote>
+            <blockquote class="info">
+                <p>
+                    Layers are rendered in order of declaration, with later layers on top of earlier ones.
+                </p>
+                <p>
+                    For both <code>svg</code> and <code>canvas</code> layers, events will be captured by the topmost
+                    graphic element at the event position.
+                    However, if there are overlapping <code>svg</code> and <code>canvas</code> layers, the event will
+                    always be captured by the <code>svg</code> layer first, even if it is underneath a
+                    <code>canvas</code> layer.
+                </p>
+            </blockquote>
+            <h4>Resize event</h4>
             <p>
                 For resizable plots, a <code>resize</code> event of argument
                 <code>{ width, height }</code> will be triggered when the plot is resized.
@@ -125,44 +157,45 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <p>
                 The <code>width</code> and <code>height</code> model value of the plot will be updated as well.
             </p>
-            <hr>
-            <p class="flex flex-wrap gap-x-4">
-                <label v-for="v, k in activeEvents" :key="k" class="inline-block">
-                    <input type="checkbox" v-model="activeEvents[k]"> {{ k }}
-                </label>
-            </p>
-            <p>
-                width × height:
-                <input type="number" v-model.number="width" class="w-20 border-b" />
-                ×
-                <input type="number" v-model.number="height" class="w-20 border-b" />
-            </p>
-            <pre><code class="html">{{ pointerEventTemplate }}</code></pre>
-            <div class="grid grid-rows-[400px_1fr] grid-cols-[600px_1fr] gap-2 grid-flow-col">
-                <VVPlot :data="iris" v-on="plotVOn" v-model:width="width" v-model:height="height"
-                    @resize="resizeEventHandler" resize>
-                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-                        v-on="layerVOn" />
-                    <VVAxisX v-on="axisVOn" position="center" />
-                    <VVAxisY v-on="axisVOn" position="center" />
-                </VVPlot>
-                <pre class="overflow-auto h-36" ref="hist-container">{{ eventHist.join('\n') }}</pre>
-                <div class="row-span-full">
-                    <div>
-                        <p>plot event data:</p>
-                        <pre class="overflow-auto h-48">{{ plotEventData }}</pre>
-                    </div>
-                    <div>
-                        <p>axis event data:</p>
-                        <pre class="overflow-auto h-24">{{ axisEventData }}</pre>
-                    </div>
-                    <div>
-                        <p>layer event data:</p>
-                        <pre class="overflow-auto h-48">{{ layerEventData }}</pre>
+            <fieldset>
+                <legend>pointer and resize events</legend>
+                <p class="flex flex-wrap gap-x-4">
+                    <label v-for="v, k in activeEvents" :key="k" class="inline-block">
+                        <input type="checkbox" v-model="activeEvents[k]"> {{ k }}
+                    </label>
+                </p>
+                <p>
+                    width × height:
+                    <input type="number" v-model.number="width" class="w-20 border-b" />
+                    ×
+                    <input type="number" v-model.number="height" class="w-20 border-b" />
+                </p>
+                <pre-highlight lang="html">{{ pointerEventTemplate }}</pre-highlight>
+                <div class="grid grid-rows-[400px_1fr] grid-cols-[600px_1fr] gap-2 grid-flow-col">
+                    <VVPlot :data="iris" v-on="plotVOn" v-model:width="width" v-model:height="height"
+                        @resize="resizeEventHandler" resize>
+                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                            v-on="layerVOn" />
+                        <VVAxisX v-on="axisVOn" position="center" />
+                        <VVAxisY v-on="axisVOn" position="center" />
+                    </VVPlot>
+                    <pre class="overflow-auto h-36" ref="hist-container">{{ eventHist.join('\n') }}</pre>
+                    <div class="row-span-full">
+                        <div>
+                            <p>plot event data:</p>
+                            <pre class="overflow-auto h-48">{{ plotEventData }}</pre>
+                        </div>
+                        <div>
+                            <p>axis event data:</p>
+                            <pre class="overflow-auto h-24">{{ axisEventData }}</pre>
+                        </div>
+                        <div>
+                            <p>layer event data:</p>
+                            <pre class="overflow-auto h-48">{{ layerEventData }}</pre>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <hr>
+            </fieldset>
             <h3>Action declaration and events</h3>
             <h4>Selection</h4>
             <p>
@@ -174,7 +207,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
                 coordinates.
             </p>
             <p>
-                When a selection is made or dismissed, a <code>select</code> or <code>cancel</code> event will be
+                When a selection is made or dismissed, a <code>select</code> or <code>dismiss</code> event will be
                 emitted to the helper component. Event handlers could take two arguments:
                 the first is the selection model value, and the second is a virtual pointer event.
             </p>
@@ -185,80 +218,95 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400">
             <ul>
                 <li>
                     <code>once</code>:
-                    If true, the selection range will not be displayed after the selection is made,
+                    If <code>true</code>, the selection range will not be displayed after the selection is made,
                     only the <code>select</code> event will be emitted.
                 </li>
                 <li>
                     <code>dismissible</code>:
-                    If unset, a <code>cancel</code> event will be emitted on singleclick only if there is an
+                    If unset, a <code>dismiss</code> event will be emitted on singleclick only if there is an
                     existing selection range;
-                    If false, the selection range will not be dismissed by a singleclick;
-                    If true, a <code>cancel</code> event will always be emitted on singleclick.
+                    If <code>false</code>, the selection range will not be dismissed by a singleclick;
+                    If <code>true</code>, a <code>dismiss</code> event will always be emitted on singleclick.
                 </li>
                 <li>
                     <code>resize</code>:
-                    If true, the selection region can be resized via dragging its edges and corners.
+                    If <code>true</code>, the selection region can be resized via dragging its edges and corners.
                 </li>
                 <li>
                     <code>move</code>:
-                    If true, the selection region can be moved via dragging its body.
+                    If <code>true</code>, the selection region can be moved via dragging its body.
                 </li>
             </ul>
             <p>
                 Key modifier <code>ctrl</code>, <code>shift</code>, <code>meta</code>, <code>alt</code>
                 and mouse modifier <code>button</code> / <code>buttons</code>
-                can be used to control when the selection can be made or canceled.
+                can be used to control when the selection can be made or dismissed.
             </p>
             <p>
-                limits of the selection region can be set via properties
-                <code>xmin</code>, <code>xmax</code>, <code>ymin</code> and <code>ymax</code>.
+                The dismissal of selection can be prevented by calling the <code>.preventDefault()</code> method
+                on the <code>pointerup</code> DOM event.
             </p>
+            <blockquote class="info">
+                <p>
+                    The <code>.preventDefault()</code> call must be made before the <code>pointerup</code> event is
+                    bubbled to the <code>svg</code> element (the <code>&lt;VVPlot&gt;</code> component).
+                    So the <code>capture: true</code> option shall be used when the event handler is attached to
+                    ancestor elements (e.g. <code>document</code>) of the <code>&lt;VVPlot&gt;</code> component.
+                </p>
+            </blockquote>
             <p>
-                The minimum size of the selection region can be set via properties
-                <code>min-range-x</code> and <code>min-range-y</code>.
+                limits and minimum interval of the selection region can be set via properties
+                <code>xmin</code>, <code>xmax</code>, <code>ymin</code>, <code>ymax</code> and
+                <code>min-range-x</code>, <code>min-range-y</code> .
             </p>
             <p>
                 The selection region can be styled via the <code>theme</code> property.
                 It accepts an object with properties <code>background</code>, <code>opacity</code>,
                 <code>line_color</code> and <code>line_width</code>.
             </p>
-            <hr>
-            <p class="flex flex-wrap gap-x-4">
-                <label v-for="v, k in selectConfigs" :key="k" class="inline-block">
-                    <input type="checkbox" class="align-middle" v-model="selectConfigs[k]"> {{ k }}
-                </label>
-                <label v-for="v, k in selectModifiers" :key="k" class="inline-block">
-                    <input type="checkbox" class="align-middle" v-model="selectModifiers[k]"> {{ k }}
-                </label>
-                <label class="inline-block">
-                    button:
-                    <select v-model="selectButton">
-                        <option value="left">left</option>
-                        <option value="right">right</option>
-                    </select>
-                </label>
-            </p>
-            <pre><code class="html">{{ selectTemplate }}</code></pre>
-            <div class="flex flex-row">
-                <VVPlot :data="iris" :width="600" :height="400">
-                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
-                    <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2" :min-range-x="0.5"
-                        :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }"
-                        @select="e => plotSelectArg = e" @cancel="e => plotSelectArg = e" />
-                </VVPlot>
-                <div class="flex-1">
-                    <p><strong>Selection event argument</strong></p>
-                    <pre>{{ plotSelectArg }}</pre>
+            <fieldset>
+                <legend>selection events</legend>
+                <p class="flex flex-wrap gap-x-4">
+                    <label v-for="v, k in selectConfigs" :key="k" class="inline-block">
+                        <input type="checkbox" class="align-middle" v-model="selectConfigs[k]"> {{ k }}
+                    </label>
+                    <label v-for="v, k in selectModifiers" :key="k" class="inline-block">
+                        <input type="checkbox" class="align-middle" v-model="selectModifiers[k]"> {{ k }}
+                    </label>
+                    <label class="inline-block">
+                        button:
+                        <select v-model="selectButton">
+                            <option value="left">left</option>
+                            <option value="right">right</option>
+                        </select>
+                    </label>
+                    <label v-for="v, k in pointerupPrevent" :key="k" class="inline-block">
+                        <input type="checkbox" class="align-middle" v-model="pointerupPrevent[k]"> {{ k }}.prevent
+                    </label>
+                </p>
+                <pre-highlight lang="html">{{ selectTemplate }}</pre-highlight>
+                <div class="flex flex-row">
+                    <VVPlot :data="iris" :width="600" :height="400" @pointerup="e => onpointerup(e, 'plot')">
+                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                            @pointerup="e => onpointerup(e, 'layer')" />
+                        <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2" :min-range-x="0.5"
+                            :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }"
+                            @select="e => plotSelectArg = e" @dismiss="e => plotSelectArg = e" />
+                    </VVPlot>
+                    <div class="flex-1">
+                        <p><strong>Selection event argument</strong></p>
+                        <pre>{{ plotSelectArg }}</pre>
+                    </div>
                 </div>
-            </div>
-            <hr>
+            </fieldset>
             <h4>Change of plot limits</h4>
             <p>
                 The limits of the plot and axis can be changed interactively via mouse actions.
                 The interactive actions are declared through the <code>&lt;VVAction /&gt;</code> helper component.
             </p>
             <p>
-                These actions will emit events of the same name, which have the updated plot/axis limits as the event
+                These actions will emit events of the same name, which have the updated plot/axis limits as the
+                event
                 argument.
                 You can attach event handlers on the <code>&lt;VVAction /&gt;</code> component to capture them.
                 For convenience, event handlers can be attached to the <code>&lt;VVPlot&gt;</code> component as

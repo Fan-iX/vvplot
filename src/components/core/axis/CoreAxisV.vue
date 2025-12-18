@@ -71,7 +71,7 @@ const tickLines = computed(() => {
             style: { transition },
         })
     }
-    return result.filter(t => t.stroke != null)
+    return result.filter(t => t.stroke != null).sort((a, b) => a.y1 - b.y1)
 })
 const tickTexts = computed(() => {
     let isRight = theme.tick_position == "right"
@@ -109,7 +109,7 @@ const tickTexts = computed(() => {
             }
         })
     }
-    return result.filter(t => t.text.fill != null)
+    return result.filter(t => t.text.fill != null).sort((a, b) => a.text.y - b.text.y)
 })
 
 const iRef = useTemplateRef("i")

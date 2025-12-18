@@ -5,7 +5,8 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
+const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -13,11 +14,12 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        x, xend, y, yend, size = 4, label = "", title,
+        x, xend, y, yend, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         'text-length': textLength, $raw
     }) => {
+        if (label == null) return null
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
         const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
         if (
@@ -27,7 +29,7 @@ const binds = computed(() => {
         let parts = splitLabel(String(label))
         let dx = (xend - x) / (parts.length - 1 || 1),
             dy = (yend - y) / (parts.length - 1 || 1)
-        let content = parts.map((v, i) => {
+        let content = parts.map((label, i) => {
             let $x = x + i * dx, $y = y + i * dy
             const { h: tx, v: ty } = coord2pos({ x: $x, y: $y })
             if (typeof (textLength) == "object") {
@@ -36,19 +38,16 @@ const binds = computed(() => {
                     { h: h2, v: v2 } = coord2pos({ x: $x - lx / 2, y: $y - ly / 2 })
                 textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
             }
-            return {
-                bind: {
-                    x: tx, y: ty,
-                    'text-anchor': 'middle',
-                    'alignment-baseline': 'central',
-                    textLength,
-                    lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
-                },
-                label: v
+            let vbind = {
+                x: tx, y: ty,
+                'text-anchor': 'middle',
+                'alignment-baseline': 'central',
+                textLength,
+                lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
             }
+            return [vbind, label]
         })
-        let result = {
-            content, title: String(title ?? label),
+        let vbind = {
             fill: color,
             'font-size': size * 4,
             stroke: stroke,
@@ -57,18 +56,11 @@ const binds = computed(() => {
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
             transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
-            onClick: (e) => emit('click', e, $raw),
-            onContextmenu: (e) => emit('contextmenu', e, $raw),
-            onPointerover: (e) => emit('pointerover', e, $raw),
-            onPointerout: (e) => emit('pointerout', e, $raw),
-            onPointerenter: (e) => emit('pointerenter', e, $raw),
-            onPointerleave: (e) => emit('pointerleave', e, $raw),
-            onPointerdown: (e) => emit('pointerdown', e, $raw),
-            onPointerup: (e) => emit('pointerup', e, $raw),
-            onPointermove: (e) => emit('pointermove', e, $raw),
-            onWheel: (e) => emit('wheel', e, $raw),
         }
-        return result
+        let von = Object.fromEntries(
+            events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), $raw)])
+        )
+        return [vbind, von, content, String(title ?? label)]
     }).filter(x => x != null))
 })
 /**
@@ -94,11 +86,11 @@ function splitLabel(label) {
 <template>
     <g>
         <g v-for="group in binds">
-            <template v-for="item in group">
-                <text v-bind="{ ...item, content: null, title: null }">
-                    <title>{{ item.title }}</title>
-                    <template v-for="span in item.content">
-                        <tspan v-if="span.label" v-bind="span.bind">{{ span.label }}</tspan>
+            <template v-for="[vbind, von, content, title] in group">
+                <text v-bind="vbind" v-on="von">
+                    <title>{{ title }}</title>
+                    <template v-for="[vbind, label] in content">
+                        <tspan v-if="label" v-bind="vbind">{{ label }}</tspan>
                     </template>
                 </text>
             </template>

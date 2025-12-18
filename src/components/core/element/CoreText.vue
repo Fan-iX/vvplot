@@ -48,12 +48,12 @@ const binds = computed(() => {
     }
     return {
         x, y,
-        fill: color,
-        'fill-opacity': alpha,
-        stroke,
+        fill: color || null,
+        'fill-opacity': alpha == 1 ? null : alpha,
+        stroke: stroke || null,
         'stroke-width': linewidth,
         'stroke-dasharray': parseLineType(linetype),
-        'stroke-opacity': alpha,
+        'stroke-opacity': alpha == 1 ? null : alpha,
         transform,
         textLength,
         lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
