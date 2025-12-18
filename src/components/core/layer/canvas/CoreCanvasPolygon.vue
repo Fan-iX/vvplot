@@ -5,7 +5,8 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
+let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
+const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const vBind = computed(() => ({
     width: layout.fullWidth * (1 + extendX * 2),
@@ -50,16 +51,20 @@ const layerCanvas = computed(() => {
             }
         }
     }
-    canvas.onclick = function (e) {
-        const rect = canvas.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        for (const [path, data] of path_data) {
-            if (ctx.isPointInPath(path, x, y)) {
-                emit('click', e, data)
-                break
+    for (let evt of events) {
+        canvas.addEventListener(evt, function (e) {
+            if (e._vhandled) return
+            const rect = canvas.getBoundingClientRect()
+            const x = e.clientX - rect.left
+            const y = e.clientY - rect.top
+            for (const [path, data] of path_data) {
+                if (ctx.isPointInPath(path, x, y)) {
+                    emit(evt, e, data)
+                    e._vhandled = true
+                    break
+                }
             }
-        }
+        })
     }
     return canvas
 })

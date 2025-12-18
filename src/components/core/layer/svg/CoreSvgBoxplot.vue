@@ -8,7 +8,8 @@ const { extendX, extendY, data, coord2pos, layout } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, layout: Object
 })
-const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
+const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -36,22 +37,12 @@ const binds = computed(() => {
         const { h: uwx2, v: uwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
         const { h: lwx1, v: lwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
         const { h: lwx2, v: lwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
-        let result = {
+        let vbinds = {
             rect: {
                 x: (rx1 + rx2) / 2, width: rx2 - rx1,
                 y: (ry1 + ry2) / 2, height: ry2 - ry1,
                 fill, color, linetype, linewidth, alpha,
                 translateX, translateY,
-                onClick: (e) => emit('click', e, $raw),
-                onContextmenu: (e) => emit('contextmenu', e, $raw),
-                onPointerover: (e) => emit('pointerover', e, $raw),
-                onPointerout: (e) => emit('pointerout', e, $raw),
-                onPointerenter: (e) => emit('pointerenter', e, $raw),
-                onPointerleave: (e) => emit('pointerleave', e, $raw),
-                onPointerdown: (e) => emit('pointerdown', e, $raw),
-                onPointerup: (e) => emit('pointerup', e, $raw),
-                onPointermove: (e) => emit('pointermove', e, $raw),
-                onWheel: (e) => emit('wheel', e, $raw),
             },
             line: {
                 x1: lx1, y1: ly1, x2: lx2, y2: ly2,
@@ -75,36 +66,33 @@ const binds = computed(() => {
             },
             outliers: outliers?.map(({ x, y, $raw }) => {
                 const { h: cx, v: cy } = coord2pos({ x, y })
-                return {
+                let vbind = {
                     x: cx, y: cy, shape: 'circle', size: 4, color, alpha,
                     translateX, translateY,
-                    onClick: (e) => emit('click', e, $raw),
-                    onContextmenu: (e) => emit('contextmenu', e, $raw),
-                    onPointerover: (e) => emit('pointerover', e, $raw),
-                    onPointerout: (e) => emit('pointerout', e, $raw),
-                    onPointerenter: (e) => emit('pointerenter', e, $raw),
-                    onPointerleave: (e) => emit('pointerleave', e, $raw),
-                    onPointerdown: (e) => emit('pointerdown', e, $raw),
-                    onPointerup: (e) => emit('pointerup', e, $raw),
-                    onPointermove: (e) => emit('pointermove', e, $raw),
-                    onWheel: (e) => emit('wheel', e, $raw),
                 }
-            }),
+                let von = Object.fromEntries(
+                    events.map(evt => [evt, (e) => emit(evt, e, $raw)])
+                )
+                return [vbind, von]
+            })
         }
-        return result
+        let von = Object.fromEntries(
+            events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), $raw)])
+        )
+        return [vbinds, von]
     }).filter(x => x != null))
 })
 </script>
 <template>
     <g>
         <g v-for="group in binds">
-            <g v-for="item in group">
-                <CoreLine v-bind="item.line" />
-                <CoreTile v-bind="item.rect" />
-                <CoreLine v-bind="item.midline" />
-                <CoreLine v-bind="item.uwisker" />
-                <CoreLine v-bind="item.lwisker" />
-                <CorePoint v-bind="outlier" v-for="outlier in item.outliers" />
+            <g v-for="[vbinds, von] in group">
+                <CoreLine v-bind="vbinds.line" />
+                <CoreTile v-bind="vbinds.rect" v-on="von" />
+                <CoreLine v-bind="vbinds.midline" />
+                <CoreLine v-bind="vbinds.uwisker" />
+                <CoreLine v-bind="vbinds.lwisker" />
+                <CorePoint v-bind="vbind" v-on="von" v-for="[vbind, von] in vbinds.outliers" />
             </g>
         </g>
     </g>

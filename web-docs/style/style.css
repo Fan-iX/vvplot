@@ -29,8 +29,13 @@ h4 {
     font-size: large;
 }
 
-p {
+p,
+details {
     margin-block-start: 0.5em;
+}
+
+p:first-child {
+    margin-block-start: 0;
 }
 
 button {
@@ -93,6 +98,17 @@ blockquote {
         &::before {
             content: '⚠️ Warning';
             color: darkorange;
+            margin-block-end: 0.5em;
+        }
+    }
+
+    &.note {
+        border-left: 0.25em solid teal;
+
+        &::before {
+            content: '📝 Note';
+            color: teal;
+            margin-block-end: 0.5em;
         }
     }
 
@@ -102,6 +118,7 @@ blockquote {
         &::before {
             content: 'ℹ️ Info';
             color: royalblue;
+            margin-block-end: 0.5em;
         }
     }
 
@@ -111,6 +128,7 @@ blockquote {
         &::before {
             content: '❌ Error';
             color: red;
+            margin-block-end: 0.5em;
         }
     }
 
@@ -120,8 +138,25 @@ blockquote {
         &::before {
             content: '💡 Tip';
             color: green;
+            margin-block-end: 0.5em;
         }
     }
+}
+
+fieldset {
+    min-width: unset;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 0.5em;
+    margin-block: 0.5em;
+
+    legend {
+        padding-inline: 0.5em;
+    }
+}
+
+figcaption {
+    text-align: center;
 }
 
 hr {

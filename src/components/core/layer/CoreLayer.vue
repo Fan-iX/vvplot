@@ -15,8 +15,9 @@ const rend = computed(() => {
     return 'svg'
 })
 const layer = useTemplateRef('layer')
-const style = computed(() => rend.value == 'canvas' ? 'pointer-events:none;' : '')
+const style = computed(() => rend.value == 'canvas' ? 'pointer-events: none;' : '')
 defineExpose({
+    render: rend,
     dispatchEvent: e => layer.value?.dispatchEvent?.(e)
 })
 </script>
