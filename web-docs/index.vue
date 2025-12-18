@@ -44,6 +44,12 @@ select {
     display: inline-block;
 }
 
+table th,
+table td {
+    border: 1px solid #ddd;
+}
+
+
 .plot-container {
     display: flex;
     flex-direction: column;
@@ -59,7 +65,6 @@ select {
 
     th,
     td {
-        border: 1px solid #ddd;
         padding-inline: 8px;
     }
 

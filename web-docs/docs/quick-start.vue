@@ -398,7 +398,9 @@ const render = ref('canvas')
             </p>
             <hr>
             <blockquote class="warning">
-                You may experience slow response and high CPU usage in SVG mode.
+                <p>
+                    You may experience slow response and high CPU usage in SVG mode.
+                </p>
             </blockquote>
             <label>
                 render mode:
@@ -409,7 +411,7 @@ const render = ref('canvas')
             </label>
             <pre-highlight lang="html">{{templates[5] = `<VVPlot :width="600" :height="400">
     <VVGeomPoint :data="Array.from({length: 30000}, ()=>({x:Math.random(),y:Math.random()}))"
-        :x="d => d.x" :y="d => d.y" size="2" render="${render}"/>
+        :x="d => d.x" :y="d => d.y" :size="2" render="${render}"/>
     <VVAction zoom move />
 </VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[5], props: Object.keys(vBind).concat('render') }" v-bind="vBind"

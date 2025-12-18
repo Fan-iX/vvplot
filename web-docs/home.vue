@@ -4,13 +4,14 @@ import { useTemplateRef } from 'vue'
 const plot = useTemplateRef('plot')
 
 function exportSVG() {
-    let blob = new Blob([plot.value.serialize()])
+    let blob = new Blob([plot.value.serialize()], { type: 'image/svg+xml;charset=utf-8' })
     let url = URL.createObjectURL(blob)
-    let a = document.createElement('a')
-    a.href = url
-    a.download = 'plot.svg'
-    a.click()
-    URL.revokeObjectURL(url)
+    const win = window.open(url, '_blank')
+    if (win) {
+        win.onload = () => URL.revokeObjectURL(url)
+    } else {
+        URL.revokeObjectURL(url)
+    }
 }
 function exportPNG() {
     const img = new Image()
@@ -22,11 +23,12 @@ function exportPNG() {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         canvas.toBlob((blob) => {
             let url = URL.createObjectURL(blob)
-            let a = document.createElement('a')
-            a.href = url
-            a.download = 'plot.png'
-            a.click()
-            URL.revokeObjectURL(url)
+            const win = window.open(url, '_blank')
+            if (win) {
+                win.onload = () => URL.revokeObjectURL(url)
+            } else {
+                URL.revokeObjectURL(url)
+            }
         }, 'image/png')
     }
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(

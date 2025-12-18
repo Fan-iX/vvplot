@@ -396,81 +396,79 @@ import iris from '../data/iris.json'
                 related to the x axis.
             </blockquote>
             <h3>List of built-in themes</h3>
-            <div class="w-full overflow-auto">
-                <table class="w-full doc-demo-table">
-                    <thead>
-                        <tr>
-                            <th>Theme</th>
-                            <th>Appearance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>vvtheme.default</code></td>
-                            <td>
+            <table class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼']">
+                <tbody>
+                    <tr>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.default</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.default">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.light</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.light</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.light">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.classic</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.classic</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.classic">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.gray</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.gray</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.gray">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.dark</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.dark</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.dark">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.linedraw</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.linedraw</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.linedraw">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>vvtheme.void</code></td>
-                            <td>
+                            </figure>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <figure>
+                                <figcaption><code>vvtheme.void</code></figcaption>
                                 <VVPlot :data="iris" :theme="vvtheme.void">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                 </VVPlot>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                            </figure>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
     </article>
 </template>
