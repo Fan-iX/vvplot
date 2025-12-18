@@ -293,7 +293,7 @@ watch(coordRangePreview, (newRange, oldRange) => {
 
 watch(() => range, (newRange, oldRange) => {
     for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key])
+        rangeUpdate[key]?.(newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
     }
     emit('rangechange', { ...newRange }, { ...oldRange })
     emit('update:range', { ...newRange })
@@ -456,7 +456,10 @@ const selections = computed(() => {
                 resize: resize !== false,
                 x: xy || Boolean(_isPropTruthy(x)),
                 y: xy || Boolean(_isPropTruthy(y)),
-                xmin, xmax, ymin, ymax,
+                xmin: xmin ?? actionBoundary?.x?.min,
+                xmax: xmax ?? actionBoundary?.x?.max,
+                ymin: ymin ?? actionBoundary?.y?.min,
+                ymax: ymax ?? actionBoundary?.y?.max,
                 ctrlKey: Boolean(_isPropTruthy(ctrl)),
                 shiftKey: Boolean(_isPropTruthy(shift)),
                 altKey: Boolean(_isPropTruthy(alt)),
@@ -512,7 +515,8 @@ const wrapperStyle = computed(() => {
 })
 
 defineExpose({
-    serialize() { return serializeSVG(plotRef.value.svg) }
+    get svg() { return plotRef.value.svg },
+    serialize() { return serializeSVG(plotRef.value.svg) },
 })
 </script>
 <template>

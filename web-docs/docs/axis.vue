@@ -110,6 +110,27 @@ const templates = ref({})
 </VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
+            <hr>
+            <p>
+                The <code>boundary</code> property sets the default boundary of plot and axis events.
+            </p>
+            <p>
+                The boundary can be overridden by action definitions.
+            </p>
+            <div class="grid grid-cols-[3fr_2fr] gap-4">
+                <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris">
+    <VVGeomPoint :x="d => d.Petal_Width"
+        :y="d => d.Petal_Length"
+        :color="d => d.Species" />
+    <VVAxisX :boundary="[0, 5]">
+        <VVAction move :zoom="{min: -5, max: 10}" />
+    </VVAxisX>
+    <VVAxisY :boundary="{min: 0, max: 10}"/>
+    <VVSelection />
+    <VVAction move zoom />
+</VVPlot>` }}</pre-highlight>
+                <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
+            </div>
             <h3>Axis layout properties</h3>
             <p>
                 The <code>title</code> property sets the axis title.
@@ -117,14 +138,14 @@ const templates = ref({})
                 and <code>title_offset</code> can be used to adjust the title appearance.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
     <VVAxisX title="Petal Width" 
         :theme="{ title_size: 14 }" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
+                <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
             <p>
@@ -148,13 +169,13 @@ const templates = ref({})
                         <li><code>"bottom"</code>: The axis will be drawn at the bottom of the plot area.</li>
                         <li><code>"left"</code>: The axis will be drawn at the left of the plot area.</li>
                         <li><code>"right"</code>: The axis will be drawn at the right of the plot area.</li>
+                        <li><code>"center"</code>: Same as <code>"50%"</code>.</li>
+                        <li><code>"none"</code>: The axis will not be drawn.</li>
                     </ul>
                 </li>
-                <li><code>"center"</code>, same as <code>"50%"</code>.</li>
-                <li><code>"none"</code>, the axis will not be drawn.</li>
             </ul>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
@@ -163,7 +184,7 @@ const templates = ref({})
     <VVAxisY position="30%" :extend="1"/>
     <VVAction move />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind" />
+                <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <p>
                 If no <code>&lt;VVAxis&gt;</code> is declared for a coordinate direction, a primary axis will be
@@ -186,7 +207,7 @@ const templates = ref({})
                 Boolean property <code>show-grid</code> controls whether to show the grid lines for the axis.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris">
+                <pre-highlight lang="html">{{templates[8] = `<VVPlot :data="iris">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
@@ -195,20 +216,23 @@ const templates = ref({})
     <VVAxisY :show-grid="false" :labels="x => x + ' cm'" />
     <VVAction move />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
+                <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <h3>List of axis properties</h3>
             <div class="w-full overflow-auto">
                 <table class="w-full doc-demo-table">
                     <thead>
                         <tr>
-                            <th>Axis property</th>
+                            <th>Property</th>
                             <th>Syntax</th>
                             <th>Description</th>
                             <th>Example</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <tr>
+                            <th colspan="4">Primary axis properties</th>
+                        </tr>
                         <tr>
                             <td><code>min</code>,<code>max</code></td>
                             <td>
@@ -285,6 +309,31 @@ const templates = ref({})
                                     </VVAxisY>
                                 </VVPlot>
                             </td>
+                        </tr>
+                        <tr>
+                            <td><code>boundary</code></td>
+                            <td>
+                                <code>{ <br> min: &lt;Number&gt;, <br> max: &lt;Number&gt; <br> }</code>
+                                | <br>
+                                <code>[&lt;Number&gt;, &lt;Number&gt;]</code>
+                            </td>
+                            <td>Default boundary of plot and axis events</td>
+                            <td>
+                                <VVPlot :data="demo_point">
+                                    <VVGeomPoint :x="d => d.x" :y="d => d.y" />
+                                    <VVAxisX :boundary="{ min: -3, max: 5 }">
+                                        <VVAction move />
+                                    </VVAxisX>
+                                    <VVAxisY>
+                                        <VVAction move />
+                                    </VVAxisY>
+                                </VVPlot>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <th colspan="4">Layout properties</th>
                         </tr>
                         <tr>
                             <td><code>title</code></td>
