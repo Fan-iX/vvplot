@@ -337,8 +337,9 @@ function dispatchPointerEvent(e) {
 
 let moveTimer, movementX = 0, movementY = 0
 function svgPointerdown(e) {
-    let coord = getCoord(e)
-    emit('pointerdown', dispatchPointerEvent(e), coord)
+    let evt = dispatchPointerEvent(e), coord = getCoord(e)
+    emit('pointerdown', evt, coord)
+    if (evt.defaultPrevented) e.preventDefault()
     if (props.clip && !isInPlot(e)) return
     let svg = e.currentTarget
     let pointerMoved = false
@@ -482,8 +483,9 @@ function svgPointerdown(e) {
 }
 let wheelDelta = 0, wheelTimer
 function svgWheel(e) {
-    let coord = getCoord(e)
-    emit('wheel', dispatchPointerEvent(e), coord)
+    let evt = dispatchPointerEvent(e), coord = getCoord(e)
+    emit('wheel', evt, coord)
+    if (evt.defaultPrevented) e.preventDefault()
     if (props.clip && !isInPlot(e)) return
     let act = props.action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act || !act.x && !act.y) return
@@ -571,16 +573,32 @@ function applyTransform(act, event) {
 }
 const svgVOn = {
     pointerdown: svgPointerdown,
-    pointerup(e) { emit('pointerup', dispatchPointerEvent(e), getCoord(e)) },
+    pointerup(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('pointerup', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     pointerover(e) { emit('pointerover', e, getCoord(e)) },
     pointerout(e) { emit('pointerout', e, getCoord(e)) },
     pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
     pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
     click(e) { emit('click', dispatchPointerEvent(e), getCoord(e)) },
-    contextmenu(e) { emit('contextmenu', dispatchPointerEvent(e), getCoord(e)) },
+    contextmenu(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('contextmenu', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     singleclick(e) { emit('singleclick', dispatchPointerEvent(e), getCoord(e)) },
-    dblclick(e) { emit('dblclick', dispatchPointerEvent(e), getCoord(e)) },
-    pointermove(e) { emit('pointermove', dispatchPointerEvent(e), getCoord(e)) },
+    dblclick(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('dblclick', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
+    pointermove(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('pointermove', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     wheel: svgWheel,
 }
 
