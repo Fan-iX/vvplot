@@ -293,7 +293,7 @@ watch(coordRangePreview, (newRange, oldRange) => {
 
 watch(() => range, (newRange, oldRange) => {
     for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
+        rangeUpdate[key]?.(newRange[key] == null ? newRange[key] : newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
     }
     emit('rangechange', { ...newRange }, { ...oldRange })
     emit('update:range', { ...newRange })
