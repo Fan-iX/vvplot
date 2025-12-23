@@ -44,6 +44,7 @@ function onselecting(modelValue, theme) {
     selectionPreview.value = modelValue
     selectionPreviewTheme.value = theme
 }
+const _selectionPreviewTheme = computed(() => Object.assign({}, theme?.selection, selectionPreviewTheme.value))
 function onselectend() {
     selectionPreview.value = {}
 }
@@ -707,7 +708,7 @@ const axes = computed(() => {
                     @selecting="onselecting" @selectend="onselectend" v-bind="sel" v-for="sel in props.selections"
                     :flip />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    :modelValue="selectionPreview" :theme="selectionPreviewTheme" :flip />
+                    :modelValue="selectionPreview" :theme="_selectionPreviewTheme" :flip />
             </g>
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">

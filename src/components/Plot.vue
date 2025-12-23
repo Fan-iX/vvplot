@@ -453,7 +453,7 @@ const selections = computed(() => {
             return {
                 move: Boolean(_isPropTruthy(move)),
                 dismissible: dismissible == undefined ? undefined : dismissible !== false,
-                resize: resize !== false,
+                resize: Boolean(_isPropTruthy(resize)),
                 x: xy || Boolean(_isPropTruthy(x)),
                 y: xy || Boolean(_isPropTruthy(y)),
                 xmin: xmin ?? actionBoundary?.x?.min,
@@ -525,7 +525,7 @@ defineExpose({
             :expand-add="expandAdd" :expand-mult="expandMult" :reverse="reverse" :flip="flip"
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
-            v-model:selectionPreview="selectionPreview" v-model:selectionPreviewTheme="selectionPreviewTheme"
+            v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
             :action="action" :clip="clip" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
