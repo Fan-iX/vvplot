@@ -337,12 +337,11 @@ const reverse = reactiveComputed(() => ({
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let ori = flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
-    let defaultPos = flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
     let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children })).concat($axes ?? [])
     if (allAxes.every(ax => ax?.coord != 'x')) allAxes.push({ coord: 'x' })
     if (allAxes.every(ax => ax?.coord != 'y')) allAxes.push({ coord: 'y' })
     return allAxes.map(({
-        coord, position, title, breaks, labels,
+        coord, position, title, breaks, labels, titles,
         'minor-breaks': minorBreaks, 'show-grid': showGrid,
         theme: $$theme = [], extend, boundary, action: $$action,
         // preserved properties
@@ -386,7 +385,7 @@ const axes = computed(() => {
                 return res
             })
         return {
-            coord, orientation, position, title, breaks, labels, minorBreaks,
+            coord, orientation, position, title, breaks, labels, titles, minorBreaks,
             showGrid: _isPropTruthy(showGrid) ?? position !== "none",
             extend: extend ?? primaryAxisConfig.extend[coord],
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),

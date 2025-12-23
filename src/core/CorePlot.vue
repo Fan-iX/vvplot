@@ -632,9 +632,9 @@ const gaxes = computed(() => {
     return props.axes.filter(a => a.coord in coordScales)
         .filter(a => ["h", "v"].includes(a.orientation))
         .map(({
-            coord, breaks, labels, minorBreaks, ...etc
+            coord, breaks, labels, titles, minorBreaks, ...etc
         }) => ({
-            coord, axis: new GAxis(coordScales[coord], { breaks, labels, minorBreaks }), etc
+            coord, axis: new GAxis(coordScales[coord], { breaks, labels, titles, minorBreaks }), etc
         }))
 })
 const vaxes = computed(() => gaxes.value.map(({ coord, axis, etc }) => {
