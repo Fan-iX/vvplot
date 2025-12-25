@@ -320,6 +320,7 @@ export class GPlot {
                 } else if (range?.ymax != null && range?.ymin == null) {
                     min = plus(max, -dmin)
                 } else {
+                    let interval = max - min
                     max = plus(max, -interval / 2 + dmin / 2)
                     min = plus(max, -dmin)
                 }

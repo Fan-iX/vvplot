@@ -85,11 +85,11 @@ const vplot = computed(() => {
   └───────────────────────────────────┘ ┘
  */
 const panel = reactiveComputed(() => {
-    let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, paddings[p] ? (theme.plot.padding[p] || 0) : 0]))
-    let l = theme.plot.margin.left + padding.left,
-        r = theme.plot.margin.right + padding.right,
-        t = theme.plot.margin.top + padding.top,
-        b = theme.plot.margin.bottom + padding.bottom
+    let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, paddings[p] && theme.plot.padding[p] || 0]))
+    let l = +theme.plot.margin.left + padding.left,
+        r = +theme.plot.margin.right + padding.right,
+        t = +theme.plot.margin.top + padding.top,
+        b = +theme.plot.margin.bottom + padding.bottom
     if (t + b > height.value) {
         t = height.value * (t / (t + b))
         b = height.value - t
@@ -431,7 +431,7 @@ function svgPointerdown(e) {
                 }
             }
             if (!pointerMoved && sel.dismissible !== false) {
-                if (ev.defaultPrevented || ev.handled) return
+                if (ev.defaultPrevented) return
                 let model = sel.modelValue
                 if (sel.dismissible !== true && ["xmin", "xmax", "ymin", "ymax"].every(k => model?.[k] == null)) return
                 let res = {}, event = new PointerEvent("select", e)
@@ -564,11 +564,13 @@ const activeTransform = computed(() => {
 })
 watch(activeTransform, ({ translateH: dh, translateV: dv, scaleH: sh, scaleV: sv }) => { if (!dh && !dv && sh == 1 && sv == 1) transition.value = null }, { deep: true })
 function applyTransform(act, event) {
-    if (!Object.keys(dropNull(rangePreview) ?? {}).length) return
-    if (!emitEvent(act.emit, rangePreview, event)) {
-        emit(act.action, rangePreview, event)
+    let coord = dropNull(rangePreview) ?? {}
+    if (!Object.keys(coord).length) return
+    let e = new PointerEvent(event.type, event)
+    if (!emitEvent(act.emit, coord, e)) {
+        emit(act.action, coord, e)
     }
-    changerange(rangePreview)
+    changerange(coord)
     let xmin, xmax, ymin, ymax
     Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
 }

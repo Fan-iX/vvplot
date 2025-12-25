@@ -13,8 +13,9 @@ import gallery from './docs/gallery.vue'
 import axis from './docs/axis.vue'
 import scale from './docs/scale.vue'
 import action from './docs/action.vue'
+import event from './docs/event.vue'
 
-const pages = { home, quick_start, layer, theme, axis, scale, action, gallery, playground }
+const pages = { home, quick_start, layer, theme, axis, scale, action, event, gallery, playground }
 
 window.addEventListener('hashchange', () => {
     page.value = window.location.hash.slice(1) || 'home'

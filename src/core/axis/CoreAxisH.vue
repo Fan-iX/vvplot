@@ -276,11 +276,13 @@ function wheel(act, pos, delta) {
     }
 }
 function applyTransform(act, event) {
-    if (!Object.keys(dropNull(rangePreview) ?? {}).length) return
-    if (!emitEvent(act.emit, rangePreview, event)) {
-        emit(act.action, rangePreview, event)
+    let coord = dropNull(rangePreview) ?? {}
+    if (!Object.keys(coord).length) return
+    let e = new PointerEvent(event.type, event)
+    if (!emitEvent(act.emit, coord, e)) {
+        emit(act.action, coord, e)
     }
-    emit('rangechange', rangePreview)
+    emit('rangechange', coord)
     let xmin, xmax, ymin, ymax
     Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
 }
