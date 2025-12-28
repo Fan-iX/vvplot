@@ -19,7 +19,7 @@ const {
     ...props
 } = defineProps({
     schema: Object, layers: Array,
-    range: Object, minRange: Object, expandAdd: Object,
+    minRange: Object, expandAdd: Object,
     flip: Boolean, reverse: Object, paddings: Object,
     expandMult: Object, coordLevels: Object,
     levels: Object, scales: Object,
@@ -59,9 +59,7 @@ const vplot = computed(() => {
     return gplot.value
         .useScales(scales, levels)
         .useCoordLevels(coordLevels)
-        .render(
-            range, expandAdd, props.minRange
-        )
+        .render(range, expandAdd, props.minRange)
 })
 
 /**

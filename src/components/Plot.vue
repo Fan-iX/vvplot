@@ -233,11 +233,6 @@ const coordRange = computed(() => {
         let max = primaryAxisConfig.max[ori] ?? $range?.[ori + "max"]
         result[ori + "min"] = isFinite(min) && !Number.isNaN(min) ? min : null
         result[ori + "max"] = isFinite(max) && !Number.isNaN(max) ? max : null
-        let level = coordLevels.value[ori]
-        if (level != null) {
-            result[ori + "min"] = (result[ori + "min"] ?? 0) - 0.5
-            result[ori + "max"] = (result[ori + "max"] ?? level.length ?? Math.max(Object.values(level))) - 0.5
-        }
     }
     return result
 })
@@ -291,9 +286,9 @@ watch(coordRangePreview, (newRange, oldRange) => {
         rangePreview.ymax = newRange.ymax
 }, { immediate: true })
 
-watch(() => range, (newRange, oldRange) => {
+watch(() => ({ ...range }), (newRange, oldRange) => {
     for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key] == null ? newRange[key] : newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
+        rangeUpdate[key]?.(newRange[key])
     }
     emit('rangechange', { ...newRange }, { ...oldRange })
     emit('update:range', { ...newRange })
