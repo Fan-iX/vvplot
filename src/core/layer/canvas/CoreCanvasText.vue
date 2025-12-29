@@ -52,15 +52,7 @@ const layerCanvas = computed(() => {
             } else if (textLength != null) {
                 width = textLength
             }
-            if (anchorX != null || anchorY != null) {
-                let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
-                    alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
-                if (isNaN(alnX)) alnX = 0.5
-                if (isNaN(alnY)) alnY = 0.5
-                let w = width, h = height
-                ctx.rotate(angle * Math.PI / 180)
-                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
-            } else if (dockX != null || dockY != null) {
+            if (dockX != null || dockY != null) {
                 let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
                     alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
                 if (isNaN(alnX)) alnX = 0.5
@@ -69,6 +61,14 @@ const layerCanvas = computed(() => {
                     h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180))
                 ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
                 ctx.rotate(angle * Math.PI / 180)
+            } else {
+                let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+                    alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+                if (isNaN(alnX)) alnX = 0.5
+                if (isNaN(alnY)) alnY = 0.5
+                let w = width, h = height
+                ctx.rotate(angle * Math.PI / 180)
+                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
             }
             if (width != w) ctx.scale(width / w, 1)
             if (color !== 'none') {
