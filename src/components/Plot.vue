@@ -33,13 +33,13 @@ const {
     expandAdd: $expandAdd, expandMult: $expandMult, extend: $extend,
     levels: $levels, range: $range, minRange: $minRange, rangePreview: $rangePreview,
     axes: $axes, theme: $theme, action: $action, reverse: $reverse,
-    flip, clip, resize, legendTeleport
+    render, flip, clip, resize, legendTeleport
 } = defineProps({
     data: Array, scales: Object, aes: Object,
     expandAdd: Object, expandMult: Object, extend: Object,
     levels: Object, range: Object, minRange: Object, rangePreview: Object,
     axes: [Object, Array], theme: [Object, Array], action: [Object, Array], reverse: Object,
-    flip: Boolean, clip: { type: Boolean, default: true }, resize: null,
+    render: String, flip: Boolean, clip: { type: Boolean, default: true }, resize: null,
     legendTeleport: null,
 })
 const selectionPreview = defineModel('selectionPreview', { default: () => ({}) })
@@ -520,7 +520,7 @@ defineExpose({
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
-            :action="action" :clip="clip" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
+            :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />

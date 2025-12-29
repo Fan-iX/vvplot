@@ -25,7 +25,7 @@ const {
     levels: Object, scales: Object,
     axes: { type: Array, default: () => [] },
     theme: Object,
-    clip: Boolean,
+    render: String, clip: Boolean,
     action: { type: Array, default: () => [] },
     selections: { type: Array, default: () => [] },
     legendTeleport: null,
@@ -364,8 +364,8 @@ function svgPointerdown(e) {
         let xboundary = (({ xmin: min, xmax: max }) => ({ min, max }))(sel),
             yboundary = (({ ymin: min, ymax: max }) => ({ min, max }))(sel)
         e.target.onpointermove = (ev) => {
+            if (!x && !y || !pointerMoved) return
             let coordMove = getCoord(ev)
-            if (!x && !y) return
             let res = {}
             if (x) {
                 let xstart = oob_squish_any(coord.x, xboundary),
@@ -703,7 +703,7 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />
+                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :default-render="props.render" />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
                     @selecting="onselecting" @selectend="onselectend" v-bind="sel" v-for="sel in props.selections"
                     :flip />
