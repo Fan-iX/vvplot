@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import * as d3 from 'd3'
-const { extendX, extendY, data, coord2pos, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -63,7 +63,7 @@ const layerCanvas = computed(() => {
             const y = e.clientY - rect.top
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, data)
+                    emit(evt, e, getCoord(e), data)
                     e._vhandled = true
                     break
                 }

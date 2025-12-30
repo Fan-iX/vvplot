@@ -1,9 +1,9 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-const { extendX, extendY, data, coord2pos, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -33,8 +33,6 @@ const layerCanvas = computed(() => {
         } of group) {
             ctx.save()
             ctx.translate(translateX, translateY)
-            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
-            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth
@@ -81,7 +79,7 @@ const layerCanvas = computed(() => {
             const y = e.clientY - rect.top
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, data)
+                    emit(evt, e, getCoord(e), data)
                     e._vhandled = true
                     break
                 }
