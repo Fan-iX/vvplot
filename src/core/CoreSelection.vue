@@ -27,9 +27,9 @@ const borderBind = computed(() => {
     let binds = {}
     binds[config.move ? "tblr" : ""] = {
         x: hmin, y: vmin, width, height,
-        fill: theme?.background ?? "#00000020",
+        fill: theme?.background ?? "transparent",
         'fill-opacity': theme?.opacity,
-        stroke: theme?.line_color ?? "transparent",
+        stroke: theme?.line_color ?? "none",
         'stroke-width': theme?.line_width,
         'stroke-opacity': theme?.opacity,
         style: config.move ? "cursor:move;" : "pointer-events:none;"

@@ -79,7 +79,7 @@ function parseLineType(linetype) {
         :font-size="(fontSize ?? size * 4) || null">
         <slot>
             <title v-if="title">{{ title }}</title>
-            {{ text }}
+            {{ text.replace(/ /g, "\u00a0") }}
         </slot>
     </text>
 </template>

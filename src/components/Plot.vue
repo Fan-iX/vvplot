@@ -1,12 +1,12 @@
 <script setup>
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
-import { reactiveComputed, useElementSize } from '@vueuse/core'
+import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c, serializeSVG } from '../js/utils'
 defineOptions({ inheritAttrs: false })
 
-import CorePlot from './core/CorePlot.vue'
+import CorePlot from '../core/CorePlot.vue'
 import VVAction from './Action.vue'
 import VVSelection from './Action.vue'
 import * as geom_components from './geom'
@@ -33,13 +33,13 @@ const {
     expandAdd: $expandAdd, expandMult: $expandMult, extend: $extend,
     levels: $levels, range: $range, minRange: $minRange, rangePreview: $rangePreview,
     axes: $axes, theme: $theme, action: $action, reverse: $reverse,
-    flip, clip, resize, legendTeleport
+    render, flip, clip, resize, legendTeleport
 } = defineProps({
     data: Array, scales: Object, aes: Object,
     expandAdd: Object, expandMult: Object, extend: Object,
     levels: Object, range: Object, minRange: Object, rangePreview: Object,
     axes: [Object, Array], theme: [Object, Array], action: [Object, Array], reverse: Object,
-    flip: Boolean, clip: { type: Boolean, default: true }, resize: null,
+    render: String, flip: Boolean, clip: { type: Boolean, default: true }, resize: null,
     legendTeleport: null,
 })
 const selectionPreview = defineModel('selectionPreview', { default: () => ({}) })
@@ -233,11 +233,6 @@ const coordRange = computed(() => {
         let max = primaryAxisConfig.max[ori] ?? $range?.[ori + "max"]
         result[ori + "min"] = isFinite(min) && !Number.isNaN(min) ? min : null
         result[ori + "max"] = isFinite(max) && !Number.isNaN(max) ? max : null
-        let level = coordLevels.value[ori]
-        if (level != null) {
-            result[ori + "min"] = (result[ori + "min"] ?? 0) - 0.5
-            result[ori + "max"] = (result[ori + "max"] ?? level.length ?? Math.max(Object.values(level))) - 0.5
-        }
     }
     return result
 })
@@ -291,9 +286,9 @@ watch(coordRangePreview, (newRange, oldRange) => {
         rangePreview.ymax = newRange.ymax
 }, { immediate: true })
 
-watch(() => range, (newRange, oldRange) => {
+watch(() => ({ ...range }), (newRange, oldRange) => {
     for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key] + (coordLevels.value[key.charAt(0)] ? 0.5 : 0))
+        rangeUpdate[key]?.(newRange[key])
     }
     emit('rangechange', { ...newRange }, { ...oldRange })
     emit('update:range', { ...newRange })
@@ -337,12 +332,11 @@ const reverse = reactiveComputed(() => ({
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let ori = flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
-    let defaultPos = flip ? { x: 'left', y: 'bottom' } : { x: 'bottom', y: 'left' }
     let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children })).concat($axes ?? [])
     if (allAxes.every(ax => ax?.coord != 'x')) allAxes.push({ coord: 'x' })
     if (allAxes.every(ax => ax?.coord != 'y')) allAxes.push({ coord: 'y' })
     return allAxes.map(({
-        coord, position, title, breaks, labels,
+        coord, position, title, breaks, labels, titles,
         'minor-breaks': minorBreaks, 'show-grid': showGrid,
         theme: $$theme = [], extend, boundary, action: $$action,
         // preserved properties
@@ -386,7 +380,7 @@ const axes = computed(() => {
                 return res
             })
         return {
-            coord, orientation, position, title, breaks, labels, minorBreaks,
+            coord, orientation, position, title, breaks, labels, titles, minorBreaks,
             showGrid: _isPropTruthy(showGrid) ?? position !== "none",
             extend: extend ?? primaryAxisConfig.extend[coord],
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),
@@ -453,7 +447,7 @@ const selections = computed(() => {
             return {
                 move: Boolean(_isPropTruthy(move)),
                 dismissible: dismissible == undefined ? undefined : dismissible !== false,
-                resize: resize !== false,
+                resize: Boolean(_isPropTruthy(resize)),
                 x: xy || Boolean(_isPropTruthy(x)),
                 y: xy || Boolean(_isPropTruthy(y)),
                 xmin: xmin ?? actionBoundary?.x?.min,
@@ -485,12 +479,14 @@ onMounted(() => {
         wrapperRef.value.style.height = str_c(v, 'px') ?? null
     }, { immediate: true })
 })
-const { width: w, height: h } = useElementSize(plotRef)
-watch([w, h], ([w, h], [ow, oh]) => {
+let oldSize = { width: 0, height: 0 }
+useResizeObserver(plotRef, (e) => {
+    let { width: w, height: h } = e[0].contentRect
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
-    if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
-        emit('resize', { width: w, height: h }, { width: ow, height: oh })
+    if ((w > 0 || h > 0) && (oldSize.width > 0 || oldSize.height > 0))
+        emit('resize', { width: w, height: h }, oldSize)
+    oldSize = { width: w, height: h }
 })
 const panelStyle = computed(() => {
     return {
@@ -525,8 +521,9 @@ defineExpose({
             :expand-add="expandAdd" :expand-mult="expandMult" :reverse="reverse" :flip="flip"
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
-            v-model:selectionPreview="selectionPreview" v-model:selectionPreviewTheme="selectionPreviewTheme"
-            :action="action" :clip="clip" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
+            v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
+            :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport"
+            @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />

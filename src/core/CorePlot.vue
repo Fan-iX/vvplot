@@ -1,9 +1,9 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
-import { computed, watch, inject, useTemplateRef, useId } from 'vue'
+import { ref, computed, watch, inject, useTemplateRef, useId } from 'vue'
 import { GPlot, GAxis } from '#base/js/plot'
 import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#base/js/utils'
-import { reactiveComputed, useElementSize } from '@vueuse/core'
+import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
 import CoreGridV from './grid/CoreGridV.vue'
@@ -19,13 +19,13 @@ const {
     ...props
 } = defineProps({
     schema: Object, layers: Array,
-    range: Object, minRange: Object, expandAdd: Object,
+    minRange: Object, expandAdd: Object,
     flip: Boolean, reverse: Object, paddings: Object,
     expandMult: Object, coordLevels: Object,
     levels: Object, scales: Object,
     axes: { type: Array, default: () => [] },
     theme: Object,
-    clip: Boolean,
+    render: String, clip: Boolean,
     action: { type: Array, default: () => [] },
     selections: { type: Array, default: () => [] },
     legendTeleport: null,
@@ -44,6 +44,7 @@ function onselecting(modelValue, theme) {
     selectionPreview.value = modelValue
     selectionPreviewTheme.value = theme
 }
+const _selectionPreviewTheme = computed(() => Object.assign({}, theme?.selection, selectionPreviewTheme.value))
 function onselectend() {
     selectionPreview.value = {}
 }
@@ -51,16 +52,20 @@ const transition = defineModel('transition')
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
-const { width, height } = useElementSize(svgRef)
+const width = ref(0), height = ref(0)
+
+useResizeObserver(svgRef, entries => {
+    let { width: w, height: h } = entries[0].contentRect
+    width.value = w
+    height.value = h
+})
 
 const gplot = computed(() => new GPlot(schema, props.layers))
 const vplot = computed(() => {
     return gplot.value
         .useScales(scales, levels)
         .useCoordLevels(coordLevels)
-        .render(
-            range, expandAdd, props.minRange
-        )
+        .render(range, expandAdd, props.minRange)
 })
 
 /**
@@ -84,11 +89,11 @@ const vplot = computed(() => {
   └───────────────────────────────────┘ ┘
  */
 const panel = reactiveComputed(() => {
-    let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, paddings[p] ? (theme.plot.padding[p] || 0) : 0]))
-    let l = theme.plot.margin.left + padding.left,
-        r = theme.plot.margin.right + padding.right,
-        t = theme.plot.margin.top + padding.top,
-        b = theme.plot.margin.bottom + padding.bottom
+    let padding = Object.fromEntries(["left", "right", "top", "bottom"].map(p => [p, paddings[p] && theme.plot.padding[p] || 0]))
+    let l = +theme.plot.margin.left + padding.left,
+        r = +theme.plot.margin.right + padding.right,
+        t = +theme.plot.margin.top + padding.top,
+        b = +theme.plot.margin.bottom + padding.bottom
     if (t + b > height.value) {
         t = height.value * (t / (t + b))
         b = height.value - t
@@ -337,8 +342,9 @@ function dispatchPointerEvent(e) {
 
 let moveTimer, movementX = 0, movementY = 0
 function svgPointerdown(e) {
-    let coord = getCoord(e)
-    emit('pointerdown', dispatchPointerEvent(e), coord)
+    let evt = dispatchPointerEvent(e), coord = getCoord(e)
+    emit('pointerdown', evt, coord)
+    if (evt.defaultPrevented) e.preventDefault()
     if (props.clip && !isInPlot(e)) return
     let svg = e.currentTarget
     let pointerMoved = false
@@ -364,8 +370,8 @@ function svgPointerdown(e) {
         let xboundary = (({ xmin: min, xmax: max }) => ({ min, max }))(sel),
             yboundary = (({ ymin: min, ymax: max }) => ({ min, max }))(sel)
         e.target.onpointermove = (ev) => {
+            if (!x && !y || !pointerMoved) return
             let coordMove = getCoord(ev)
-            if (!x && !y) return
             let res = {}
             if (x) {
                 let xstart = oob_squish_any(coord.x, xboundary),
@@ -429,7 +435,7 @@ function svgPointerdown(e) {
                 }
             }
             if (!pointerMoved && sel.dismissible !== false) {
-                if (ev.defaultPrevented || ev.handled) return
+                if (ev.defaultPrevented) return
                 let model = sel.modelValue
                 if (sel.dismissible !== true && ["xmin", "xmax", "ymin", "ymax"].every(k => model?.[k] == null)) return
                 let res = {}, event = new PointerEvent("select", e)
@@ -482,8 +488,9 @@ function svgPointerdown(e) {
 }
 let wheelDelta = 0, wheelTimer
 function svgWheel(e) {
-    let coord = getCoord(e)
-    emit('wheel', dispatchPointerEvent(e), coord)
+    let evt = dispatchPointerEvent(e), coord = getCoord(e)
+    emit('wheel', evt, coord)
+    if (evt.defaultPrevented) e.preventDefault()
     if (props.clip && !isInPlot(e)) return
     let act = props.action.find(a => ["zoom", "nudge"].includes(a.action) && ["ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (!act || !act.x && !act.y) return
@@ -561,26 +568,44 @@ const activeTransform = computed(() => {
 })
 watch(activeTransform, ({ translateH: dh, translateV: dv, scaleH: sh, scaleV: sv }) => { if (!dh && !dv && sh == 1 && sv == 1) transition.value = null }, { deep: true })
 function applyTransform(act, event) {
-    if (!Object.keys(dropNull(rangePreview) ?? {}).length) return
-    if (!emitEvent(act.emit, rangePreview, event)) {
-        emit(act.action, rangePreview, event)
+    let coord = dropNull(rangePreview) ?? {}
+    if (!Object.keys(coord).length) return
+    let e = new PointerEvent(event.type, event)
+    if (!emitEvent(act.emit, coord, e)) {
+        emit(act.action, coord, e)
     }
-    changerange(rangePreview)
+    changerange(coord)
     let xmin, xmax, ymin, ymax
     Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
 }
 const svgVOn = {
     pointerdown: svgPointerdown,
-    pointerup(e) { emit('pointerup', dispatchPointerEvent(e), getCoord(e)) },
+    pointerup(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('pointerup', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     pointerover(e) { emit('pointerover', e, getCoord(e)) },
     pointerout(e) { emit('pointerout', e, getCoord(e)) },
     pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
     pointerleave(e) { emit('pointerleave', e, getCoord(e)) },
     click(e) { emit('click', dispatchPointerEvent(e), getCoord(e)) },
-    contextmenu(e) { emit('contextmenu', dispatchPointerEvent(e), getCoord(e)) },
+    contextmenu(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('contextmenu', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     singleclick(e) { emit('singleclick', dispatchPointerEvent(e), getCoord(e)) },
-    dblclick(e) { emit('dblclick', dispatchPointerEvent(e), getCoord(e)) },
-    pointermove(e) { emit('pointermove', dispatchPointerEvent(e), getCoord(e)) },
+    dblclick(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('dblclick', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
+    pointermove(e) {
+        let evt = dispatchPointerEvent(e), coord = getCoord(e)
+        emit('pointermove', evt, coord)
+        if (evt.defaultPrevented) e.preventDefault()
+    },
     wheel: svgWheel,
 }
 
@@ -613,9 +638,9 @@ const gaxes = computed(() => {
     return props.axes.filter(a => a.coord in coordScales)
         .filter(a => ["h", "v"].includes(a.orientation))
         .map(({
-            coord, breaks, labels, minorBreaks, ...etc
+            coord, breaks, labels, titles, minorBreaks, ...etc
         }) => ({
-            coord, axis: new GAxis(coordScales[coord], { breaks, labels, minorBreaks }), etc
+            coord, axis: new GAxis(coordScales[coord], { breaks, labels, titles, minorBreaks }), etc
         }))
 })
 const vaxes = computed(() => gaxes.value.map(({ coord, axis, etc }) => {
@@ -684,12 +709,12 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" />
+                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :default-render="props.render" />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
                     @selecting="onselecting" @selectend="onselectend" v-bind="sel" v-for="sel in props.selections"
                     :flip />
                 <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    :modelValue="selectionPreview" :theme="selectionPreviewTheme" :flip />
+                    :modelValue="selectionPreview" :theme="_selectionPreviewTheme" :flip />
             </g>
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">

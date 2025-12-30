@@ -1,12 +1,14 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue'
-const { data, geom, render } = defineProps({
-    data: Object, geom: String, render: { type: String, default: "auto" },
+const { data, geom, render: $render, defaultRender: $$render } = defineProps({
+    data: Object, geom: String, render: String,
+    defaultRender: { type: String, default: "auto" },
 })
 import * as canvas from './canvas'
 import * as svg from './svg'
 const geoms = { svg, canvas }
 const rend = computed(() => {
+    let render = $render ?? $$render
     if (render == "auto") {
         let n_data = data.map(d => d.length).reduce((a, b) => a + b, 0)
         return n_data > 1e3 ? "canvas" : "svg"
@@ -22,5 +24,5 @@ defineExpose({
 })
 </script>
 <template>
-    <component ref="layer" :is="geoms[rend][geom]" :style :data />
+    <component ref="layer" :is="geoms[rend][geom]" :style="style" :data="data" />
 </template>

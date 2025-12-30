@@ -43,6 +43,9 @@ export const theme_base = {
     legend: {
         spacing: 4
     },
+    selection: {
+        background: "#00000020",
+    }
 }
 
 export const theme_default = {

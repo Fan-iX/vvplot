@@ -1,71 +1,8 @@
 <script setup>
-import { ref, computed, reactive, useTemplateRef, watch } from 'vue';
+import { ref, computed, reactive, useTemplateRef, watch, nextTick } from 'vue';
 import iris from '../data/iris.json'
-const plotSelectArg = ref({})
-const plotNudgeArg = ref({})
-const plotMoveArg = ref({})
-const plotZoomArg = ref({})
-const axisNudgeArg = ref({})
-const axisMoveArg = ref({})
-const axisZoomArg = ref({})
-const axisRescaleArg = ref({})
 
-const histRef = useTemplateRef('hist-container')
-const width = ref(600)
-const height = ref(400)
-const activeEvents = reactive({
-    click: true, contextmenu: true,
-    dblclick: true, singleclick: true,
-    pointerdown: true, pointerup: true,
-    pointerenter: false, pointerleave: false,
-    pointerover: false, pointerout: false,
-    pointermove: false,
-    wheel: true,
-})
-const eventHist = ref([])
-const plotEventData = ref({})
-const axisEventData = ref({})
-const layerEventData = ref({})
-function plotEventHandler(e, d) {
-    if ([d.l, d.r, d.t, d.b].some(x => x < 0)) return
-    if (e.type == "wheel") e.preventDefault()
-    eventHist.value.push(" plot event: " + e.type)
-    plotEventData.value = d
-}
-function axisEventHandler(e, d) {
-    if ([d.l, d.r, d.t, d.b].some(x => x < 0)) return
-    if (e.type == "wheel") e.preventDefault()
-    eventHist.value.push(" axis event: " + e.type)
-    axisEventData.value = d
-}
-function layerEventHandler(e, d) {
-    if (e.type == "wheel") e.preventDefault()
-    eventHist.value.push("layer event: " + e.type)
-    layerEventData.value = d
-}
-function resizeEventHandler() {
-    eventHist.value.push(" plot event: resize")
-}
-watch(eventHist, (v) => {
-    if (eventHist.value.length > 20) eventHist.value = eventHist.value.slice(-20)
-    if (histRef.value) histRef.value.scrollTop = histRef.value.scrollHeight
-}, { deep: true })
-const plotVOn = computed(() => {
-    return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, plotEventHandler]))
-})
-const axisVOn = computed(() => {
-    return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, axisEventHandler]))
-})
-const layerVOn = computed(() => {
-    return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, layerEventHandler]))
-})
-const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :height="${height.value}" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, d) => plotEventData = d"`).join(' ')} resize>
-    <VVAxisX position="center" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, d) => axisEventData = d"`).join(' ')} />
-    <VVAxisY position="center" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, d) => axisEventData = d"`).join(' ')} />
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-        ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, d) => layerEventData = d"`).join(' ')} />
-</VVPlot>`)
-
+const selectionData = ref({})
 const selection = ref({})
 const selectConfigs = reactive({
     once: false, dismissible: true,
@@ -87,117 +24,53 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${point
         ${Object.entries(selectModifiers).map(([k, v]) => `:${k}="${v}"`).join(' ')} button="${selectButton.value}"
         :xmin="0.5" :xmax="2" :theme="{ line_color: 'gray' }" :min-range-x="0.5" />
 </VVPlot>`)
+
+const actionHist = ref([])
+const actionData = ref({})
+const histRef = useTemplateRef('hist-container')
+
+watch(actionHist, (v) => {
+    if (actionHist.value.length > 20) actionHist.value = actionHist.value.slice(-20)
+    if (histRef.value) nextTick(() => { histRef.value.scrollTop = histRef.value.scrollHeight })
+}, { deep: true })
+const plotActions = reactive({
+    nudge: true,
+    move: true,
+    zoom: true,
+})
+const axisActions = reactive({
+    nudge: true,
+    move: true,
+    zoom: true,
+    rescale: true,
+})
+const plotActionModifiers = reactive({
+    nudge: { ctrl: false, shift: true, meta: false, alt: false, x: true, y: false },
+    move: { ctrl: false, shift: false, meta: false, alt: false, x: true, y: true },
+    zoom: { ctrl: false, shift: false, meta: false, alt: false, x: true, y: true },
+})
+const axisActionModifiers = reactive({
+    nudge: { ctrl: false, shift: true, meta: false, alt: false },
+    move: { ctrl: false, shift: false, meta: false, alt: false },
+    zoom: { ctrl: false, shift: false, meta: false, alt: false },
+    rescale: { ctrl: false, shift: false, meta: false, alt: false },
+})
+const actionTemplate = computed(() => {
+    let plotActionComponents = Object.keys(plotActions).filter(act => plotActions[act])
+        .map(act => `<VVAction ${act}${Object.entries(plotActionModifiers[act]).map(([k, v]) => v ? ` ${k}` : "").join('')} @${act}="d => actionData = d" />`)
+    let axisActionComponents = Object.keys(axisActions).filter(act => axisActions[act])
+        .map(act => `<VVAction ${act}${Object.entries(axisActionModifiers[act]).map(([k, v]) => v ? ` ${k}` : "").join('')} @${act}="d => actionData = d" />`)
+    return `<VVPlot :width="600" :height="400">
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+${plotActionComponents.map(x => "    " + x + "\n").join('')}    <VVAxisX>
+${axisActionComponents.map(x => "        " + x + "\n").join('')}    </VVAxisX>
+</VVPlot>`})
 </script>
 <template>
     <article>
         <section>
-            <h2>Event handling and interactivity</h2>
-            <h3>Pointer and resize events</h3>
-            <h4>Pointer events</h4>
-            <p>
-                Standard DOM pointer events (
-                <code>click</code>, <code>contextmenu</code>, <code>dblclick</code>,
-                <code>pointerdown</code>, <code>pointerup</code>,
-                <code>pointerenter</code>, <code>pointerleave</code>, <code>pointerover</code>, <code>pointerout</code>,
-                <code>pointermove</code> and <code>wheel</code>
-                ) can be captured through event handlers attached to the plot component (<code>&lt;VVPlot&gt;</code>),
-                axis declarations (<code>&lt;VVAxis&gt;</code>) or layer declarations (<code>&lt;VVGeom&gt;</code>).
-            </p>
-            <p>
-                Two arguments are passed to pointer event handlers:
-                the first is the original DOM event object,
-                and the second is an object containing information about the event context.
-            </p>
-            <ul>
-                <li>
-                    For <strong>plot events</strong>,
-                    the second argument contains its distance to the sides of the plot area in pixel
-                    (<code>l</code>, <code>r</code>, <code>t</code>, <code>b</code>)
-                    as well as its position in data coordinate
-                    (<code>x</code>, <code>y</code>).
-                </li>
-                <li>
-                    For <strong>axis events</strong>,
-                    the second argument has the same distance and coordinate position properties as for the plot events,
-                    but only for the axis orientation.
-                </li>
-                <li>
-                    For <strong>layer events</strong>,
-                    the second argument will be the raw data bound to the graphical element.
-                </li>
-            </ul>
-            <p>
-                Apart from the standard DOM events,
-                an additional event, <code>singleclick</code>, is provided for convenience.
-                It will be triggered if a mouse button is released at the same position where it was pressed.
-            </p>
-            <blockquote class="info">
-                <p>
-                    <code>canvas</code> layers do not support <code>pointerenter</code>, <code>pointerleave</code>,
-                    <code>pointerover</code> and <code>pointerout</code> events.
-                </p>
-            </blockquote>
-            <blockquote class="info">
-                <p>
-                    Layers are rendered in order of declaration, with later layers on top of earlier ones.
-                </p>
-                <p>
-                    For both <code>svg</code> and <code>canvas</code> layers, events will be captured by the topmost
-                    graphic element at the event position.
-                    However, if there are overlapping <code>svg</code> and <code>canvas</code> layers, the event will
-                    always be captured by the <code>svg</code> layer first, even if it is underneath a
-                    <code>canvas</code> layer.
-                </p>
-            </blockquote>
-            <h4>Resize event</h4>
-            <p>
-                For resizable plots, a <code>resize</code> event of argument
-                <code>{ width, height }</code> will be triggered when the plot is resized.
-            </p>
-            <p>
-                The <code>width</code> and <code>height</code> model value of the plot will be updated as well.
-            </p>
-            <fieldset>
-                <legend>pointer and resize events</legend>
-                <p class="flex flex-wrap gap-x-4">
-                    <label v-for="v, k in activeEvents" :key="k" class="inline-block">
-                        <input type="checkbox" v-model="activeEvents[k]"> {{ k }}
-                    </label>
-                </p>
-                <p>
-                    width × height:
-                    <input type="number" v-model.number="width" class="w-20 border-b" />
-                    ×
-                    <input type="number" v-model.number="height" class="w-20 border-b" />
-                </p>
-                <pre-highlight lang="html">{{ pointerEventTemplate }}</pre-highlight>
-                <div class="grid grid-rows-[400px_1fr] grid-cols-[600px_1fr] gap-2 grid-flow-col">
-                    <VVPlot :data="iris" v-on="plotVOn" v-model:width="width" v-model:height="height"
-                        @resize="resizeEventHandler" resize>
-                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-                            v-on="layerVOn" />
-                        <VVAxisX v-on="axisVOn" position="center" />
-                        <VVAxisY v-on="axisVOn" position="center" />
-                    </VVPlot>
-                    <pre class="overflow-auto h-36" ref="hist-container">{{ eventHist.join('\n') }}</pre>
-                    <div class="row-span-full">
-                        <div>
-                            <p>plot event data:</p>
-                            <pre class="overflow-auto h-48">{{ plotEventData }}</pre>
-                        </div>
-                        <div>
-                            <p>axis event data:</p>
-                            <pre class="overflow-auto h-24">{{ axisEventData }}</pre>
-                        </div>
-                        <div>
-                            <p>layer event data:</p>
-                            <pre class="overflow-auto h-48">{{ layerEventData }}</pre>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-            <h3>Action declaration and events</h3>
-            <h4>Selection</h4>
+            <h2>Plot action: interactivity</h2>
+            <h3>Selection</h3>
             <p>
                 A rectangular region of the plot can be selected via mouse drag.
                 Selection actions can be declared through the <code>&lt;VVSelection&gt;</code> helper component.
@@ -266,7 +139,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${point
             </p>
             <fieldset>
                 <legend>selection events</legend>
-                <p class="flex flex-wrap gap-x-4">
+                <div class="flex flex-wrap gap-x-4">
                     <label v-for="v, k in selectConfigs" :key="k" class="inline-block">
                         <input type="checkbox" class="align-middle" v-model="selectConfigs[k]"> {{ k }}
                     </label>
@@ -283,7 +156,7 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${point
                     <label v-for="v, k in pointerupPrevent" :key="k" class="inline-block">
                         <input type="checkbox" class="align-middle" v-model="pointerupPrevent[k]"> {{ k }}.prevent
                     </label>
-                </p>
+                </div>
                 <pre-highlight lang="html">{{ selectTemplate }}</pre-highlight>
                 <div class="flex flex-row">
                     <VVPlot :data="iris" :width="600" :height="400" @pointerup="e => onpointerup(e, 'plot')">
@@ -291,19 +164,36 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${point
                             @pointerup="e => onpointerup(e, 'layer')" />
                         <VVSelection v-model="selection" :button="selectButton" :xmin="0.5" :xmax="2" :min-range-x="0.5"
                             :theme="{ line_color: 'gray' }" v-bind="{ ...selectConfigs, ...selectModifiers }"
-                            @select="e => plotSelectArg = e" @dismiss="e => plotSelectArg = e" />
+                            @select="e => selectionData = e" @dismiss="e => selectionData = e" />
                     </VVPlot>
                     <div class="flex-1">
                         <p><strong>Selection event argument</strong></p>
-                        <pre>{{ plotSelectArg }}</pre>
+                        <pre>{{ selectionData }}</pre>
                     </div>
                 </div>
             </fieldset>
-            <h4>Change of plot limits</h4>
+            <h3>Change of plot limits</h3>
             <p>
                 The limits of the plot and axis can be changed interactively via mouse actions.
                 The interactive actions are declared through the <code>&lt;VVAction /&gt;</code> helper component.
             </p>
+            <p>
+                Available actions include:
+            </p>
+            <ul>
+                <li>
+                    <code>nudge</code>: move plot view via mouse scroll.
+                </li>
+                <li>
+                    <code>move</code>: move plot view via mouse drag.
+                </li>
+                <li>
+                    <code>zoom</code>: zoom plot limits via mouse scroll.
+                </li>
+                <li>
+                    <code>rescale</code>: zoom plot limits via mouse drag (this action is only available for axis).
+                </li>
+            </ul>
             <p>
                 These actions will emit events of the same name, which have the updated plot/axis limits as the
                 event
@@ -315,140 +205,60 @@ const selectTemplate = computed(() => `<VVPlot :width="600" :height="400"${point
             <p>
                 A <code>rangechange</code> event will also be emitted to the plot when the plot limits change.
             </p>
-            <div class="w-full overflow-auto">
-                <table class="w-full doc-demo-table">
-                    <thead>
-                        <tr>
-                            <th colspan="2">Action</th>
-                            <th>Description</th>
-                            <th>Example</th>
-                            <th><code>rangechange</code> event argument</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th rowspan="3">plot</th>
-                            <td><code>nudge</code></td>
-                            <td>move plot view via mouse scroll</td>
-                            <td>
-                                <VVPlot :data="iris" @nudge="e => plotNudgeArg = e">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAction nudge x />
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ plotNudgeArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>move</code></td>
-                            <td>move plot view via mouse drag</td>
-                            <td>
-                                <VVPlot :data="iris" @move="e => plotMoveArg = e">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAction move />
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ plotMoveArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>zoom</code></td>
-                            <td>zoom plot limits via mouse scroll</td>
-                            <td>
-                                <VVPlot :data="iris" @zoom="e => plotZoomArg = e">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAction zoom />
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ plotZoomArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th rowspan="4">axis</th>
-                            <td><code>nudge</code></td>
-                            <td>move plot view via mouse scroll</td>
-                            <td>
-                                <VVPlot :data="iris">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAxisX position="50%">
-                                        <VVAction nudge @nudge="e => axisNudgeArg = e" />
-                                    </VVAxisX>
-                                    <VVAxisY position="50%">
-                                        <VVAction nudge @nudge="e => axisNudgeArg = e" />
-                                    </VVAxisY>
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ axisNudgeArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>move</code></td>
-                            <td>move plot view via mouse drag</td>
-                            <td>
-                                <VVPlot :data="iris">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAxisX position="50%">
-                                        <VVAction move @move="e => axisMoveArg = e" />
-                                    </VVAxisX>
-                                    <VVAxisY position="50%">
-                                        <VVAction move @move="e => axisMoveArg = e" />
-                                    </VVAxisY>
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ axisMoveArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>zoom</code></td>
-                            <td>zoom axis limits via mouse scroll</td>
-                            <td>
-                                <VVPlot :data="iris">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAxisX position="50%">
-                                        <VVAction zoom @zoom="e => axisZoomArg = e" />
-                                    </VVAxisX>
-                                    <VVAxisY position="50%">
-                                        <VVAction zoom @zoom="e => axisZoomArg = e" />
-                                    </VVAxisY>
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ axisZoomArg }}</pre>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><code>rescale</code></td>
-                            <td>zoom axis limits via mouse drag</td>
-                            <td>
-                                <VVPlot :data="iris">
-                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-                                        :color="d => d.Species" />
-                                    <VVAxisX position="50%">
-                                        <VVAction rescale @rescale="e => axisRescaleArg = e" />
-                                    </VVAxisX>
-                                    <VVAxisY position="50%">
-                                        <VVAction rescale @rescale="e => axisRescaleArg = e" />
-                                    </VVAxisY>
-                                </VVPlot>
-                            </td>
-                            <td>
-                                <pre class="w-64 max-h-48 overflow-auto">{{ axisRescaleArg }}</pre>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <p>
+                The <code>min</code> and <code>max</code> model value of the primary axis will be updated as well.
+            </p>
+            <fieldset>
+                <legend>plot and axis actions</legend>
+                <div>plot actions:</div>
+                <div class="grid grid-cols-7 gap-x-4 ml-4">
+                    <template v-for="v, k in plotActions">
+                        <label class="col-start-1">
+                            <input type="checkbox" v-model="plotActions[k]"> {{ k }}
+                        </label>
+                        <label v-for="_, m in plotActionModifiers[k]">
+                            <input type="checkbox" v-model="plotActionModifiers[k][m]" :disabled="!v"> {{ m }}
+                        </label>
+                    </template>
+                </div>
+                <div>axis actions:</div>
+                <div class="grid grid-cols-7 gap-x-4 ml-4">
+                    <template v-for="v, k in axisActions">
+                        <label class="col-start-1">
+                            <input type="checkbox" v-model="axisActions[k]"> {{ k }}
+                        </label>
+                        <label v-for="_, m in axisActionModifiers[k]">
+                            <input type="checkbox" v-model="axisActionModifiers[k][m]" :disabled="!v"> {{ m }}
+                        </label>
+                    </template>
+                </div>
+                <pre-highlight lang="html">{{ actionTemplate }}</pre-highlight>
+                <div class="grid grid-cols-[600px_1fr] gap-2 grid-flow-col">
+                    <VVPlot :data="iris" :width="600" :height="400" @rangechange="e => actionData = e">
+                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+                        <template v-for="enabled, act in plotActions">
+                            <VVAction v-if="enabled" :[act]="true" v-bind="plotActionModifiers[act]"
+                                @[act]="actionHist.push('plot:' + act)" />
+                        </template>
+                        <VVAxisX>
+                            <template v-for="enabled, act in axisActions">
+                                <VVAction v-if="enabled" :[act]="true" v-bind="axisActionModifiers[act]"
+                                    @[act]="actionHist.push('axis:' + act)" />
+                            </template>
+                        </VVAxisX>
+                    </VVPlot>
+                    <div class="row-span-full">
+                        <div>
+                            <p>action history:</p>
+                            <pre class="overflow-auto h-48" ref="hist-container">{{ actionHist.join('\n') }}</pre>
+                        </div>
+                        <div>
+                            <p>action data:</p>
+                            <pre class="overflow-auto h-36">{{ actionData }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
         </section>
     </article>
 </template>

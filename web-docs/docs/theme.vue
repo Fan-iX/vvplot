@@ -60,6 +60,9 @@ import iris from '../data/iris.json'
     },
     legend: {
         spacing: 4
+    },
+    selection: {
+        background: "#00000020"
     }
 }</pre-highlight>
             <p>
