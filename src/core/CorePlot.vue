@@ -1,9 +1,9 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
-import { computed, watch, inject, useTemplateRef, useId } from 'vue'
+import { ref, computed, watch, inject, useTemplateRef, useId } from 'vue'
 import { GPlot, GAxis } from '#base/js/plot'
 import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#base/js/utils'
-import { reactiveComputed, useElementSize } from '@vueuse/core'
+import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
 import CoreGridV from './grid/CoreGridV.vue'
@@ -52,7 +52,13 @@ const transition = defineModel('transition')
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
-const { width, height } = useElementSize(svgRef)
+const width = ref(0), height = ref(0)
+
+useResizeObserver(svgRef, entries => {
+    let { width: w, height: h } = entries[0].contentRect
+    width.value = w
+    height.value = h
+})
 
 const gplot = computed(() => new GPlot(schema, props.layers))
 const vplot = computed(() => {

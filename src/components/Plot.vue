@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
-import { reactiveComputed, useElementSize } from '@vueuse/core'
+import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c, serializeSVG } from '../js/utils'
@@ -479,12 +479,14 @@ onMounted(() => {
         wrapperRef.value.style.height = str_c(v, 'px') ?? null
     }, { immediate: true })
 })
-const { width: w, height: h } = useElementSize(plotRef)
-watch([w, h], ([w, h], [ow, oh]) => {
+let oldSize = { width: 0, height: 0 }
+useResizeObserver(plotRef, (e) => {
+    let { width: w, height: h } = e[0].contentRect
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
-    if ((w > 0 || h > 0) && (ow > 0 || oh > 0))
-        emit('resize', { width: w, height: h }, { width: ow, height: oh })
+    if ((w > 0 || h > 0) && (oldSize.width > 0 || oldSize.height > 0))
+        emit('resize', { width: w, height: h }, oldSize)
+    oldSize = { width: w, height: h }
 })
 const panelStyle = computed(() => {
     return {
@@ -520,7 +522,8 @@ defineExpose({
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
-            :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
+            :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport"
+            @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
