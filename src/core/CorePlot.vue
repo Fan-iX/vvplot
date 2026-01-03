@@ -559,10 +559,13 @@ const activeTransform = computed(() => {
     let hmin0 = 0, hmax0 = innerRect.width,
         vmin0 = 0, vmax0 = innerRect.height,
         { hmin = hmin0, hmax = hmax0, vmin = vmin0, vmax = vmax0 } = coord2pos(rangePreview ?? {})
+    let dh0 = hmax0 - hmin0, dh = hmax - hmin,
+        dv0 = vmax0 - vmin0, dv = vmax - vmin
+
     return {
-        scaleH: (hmax0 - hmin0) / (hmax - hmin) || 1,
+        scaleH: dh0 < 1 || dh < 1 || Math.abs(dh0 - dh) < 1 ? 1 : dh0 / dh,
         translateH: (hmin0 * hmax - hmin * hmax0) / (hmax - hmin) || 0,
-        scaleV: (vmax0 - vmin0) / (vmax - vmin) || 1,
+        scaleV: dv0 < 1 || dv < 1 || Math.abs(dv0 - dv) < 1 ? 1 : dv0 / dv,
         translateV: (vmin0 * vmax - vmin * vmax0) / (vmax - vmin) || 0,
     }
 })

@@ -30,7 +30,9 @@ const binds = computed(() => {
         'stroke-dasharray': parseLineType(linetype),
     }
     if (d != null) {
-        let transform = `translate(${x + translateX},${y + translateY}) scale(${size}) rotate(${angle})`
+        let transform = `translate(${x + translateX},${y + translateY})`
+        if (size != 1) transform += `scale(${size})`
+        if (angle) transform += `rotate(${angle})`
         Object.assign(result, { d, transform })
     } else {
         let transform = (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null
