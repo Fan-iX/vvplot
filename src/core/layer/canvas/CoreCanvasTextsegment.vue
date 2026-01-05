@@ -23,7 +23,7 @@ const layerCanvas = computed(() => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
-    let path_data = new Map()
+    let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
             x, xend, y, yend, size = 4, label = "", title,
@@ -70,6 +70,9 @@ const layerCanvas = computed(() => {
             }
             ctx.restore()
         }
+    }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
     }
     for (let evt of events) {
         canvas.addEventListener(evt, function (e) {

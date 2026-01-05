@@ -23,7 +23,7 @@ const layerCanvas = computed(() => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
-    let path_data = new Map()
+    let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
             x, y, xend, yend,
@@ -36,7 +36,7 @@ const layerCanvas = computed(() => {
             const path2d = new Path2D()
             path2d.moveTo(x1 + translateX, y1 + translateY)
             path2d.lineTo(x2 + translateX, y2 + translateY)
-            path_data.set(path2d, $raw)
+            _path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.setLineDash(parseLineType(linetype))
@@ -45,6 +45,9 @@ const layerCanvas = computed(() => {
                 ctx.stroke(path2d)
             }
         }
+    }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
     }
     for (let evt of events) {
         canvas.addEventListener(evt, function (e) {

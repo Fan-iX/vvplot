@@ -23,7 +23,7 @@ const layerCanvas = computed(() => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
-    let path_data = new Map()
+    let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
             x, xmin, xmax, y, ymin, ymax,
@@ -68,7 +68,7 @@ const layerCanvas = computed(() => {
                 ctx.strokeStyle = color
                 ctx.stroke(rectpath2d)
             }
-            path_data.set(rectpath2d, $raw)
+            _path_data.set(rectpath2d, $raw)
             const medianpath2d = new Path2D()
             medianpath2d.moveTo(mx1 + translateX, my1 + translateY)
             medianpath2d.lineTo(mx2 + translateX, my2 + translateY)
@@ -85,9 +85,12 @@ const layerCanvas = computed(() => {
                     ctx.fillStyle = color
                     ctx.fill(outlierpath2d)
                 }
-                path_data.set(outlierpath2d, $raw)
+                _path_data.set(outlierpath2d, $raw)
             }
         }
+    }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
     }
     for (let evt of events) {
         canvas.addEventListener(evt, function (e) {
