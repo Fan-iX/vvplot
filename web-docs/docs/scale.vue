@@ -277,12 +277,12 @@ const size_limits_max = ref(600)
                                         <code>colors: String[]</code>: array of colors to use in the gradient.
                                     </li>
                                     <li>
-                                        <code>anchors: Number[] | null</code>: positions for each color in the gradient,
+                                        <code>values: Number[] | null</code>: positions for each color in the gradient,
                                         in data value.
                                         Defaults to <code>null</code>
                                     </li>
                                     <li>
-                                        <code>values: Number[] | null</code>: positions for each color in the gradient,
+                                        <code>anchors: Number[] | null</code>: positions for each color in the gradient,
                                         in [0, 1].
                                         Defaults to <code>null</code>
                                         <ul>
