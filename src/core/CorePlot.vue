@@ -714,12 +714,13 @@ const axes = computed(() => {
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :getCoord="getCoord"
                     :default-render="props.render" />
-                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    @selecting="onselecting" @selectend="onselectend" v-bind="sel" v-for="sel in props.selections"
-                    :flip />
-                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    :modelValue="selectionPreview" :theme="_selectionPreviewTheme" :flip />
             </g>
+            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect" @selecting="onselecting"
+                @selectend="onselectend" :transition="transition" :activeTransform="activeTransform" v-bind="sel"
+                v-for="sel in props.selections" :flip />
+            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
+                :modelValue="selectionPreview" :transition="transition" :activeTransform="activeTransform"
+                :theme="_selectionPreviewTheme" :flip />
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position !== 'number')" v-bind="axis.bind"
