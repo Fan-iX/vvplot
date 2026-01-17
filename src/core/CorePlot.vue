@@ -362,7 +362,7 @@ function svgPointerdown(e) {
             ev.target.dispatchEvent(event)
         }
     }, { once: true })
-    let sel = props.selections.find(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
+    let sel = props.selections.findLast(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
     if (sel) {
         let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0 } = sel
         e.target.setPointerCapture(e.pointerId)
