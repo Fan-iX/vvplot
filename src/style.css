@@ -1,16 +1,3 @@
-.vvplot {
-    position: relative;
-}
-
-.vvplot-panel-container {
-    pointer-events: none;
-}
-
-.vvplot-panel {
-    display: contents;
-    pointer-events: auto;
-}
-
 .vvplot-legend {
     display: flex;
     flex-direction: column;
