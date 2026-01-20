@@ -1,11 +1,21 @@
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, transformWithEsbuild } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import dts from 'vite-plugin-dts'
 import tailwindcss from '@tailwindcss/vite'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+
+const esbuildMinify = {
+  name: 'minify-plugin',
+  renderChunk(code) {
+    return transformWithEsbuild(code, 'index.js', {
+      minify: true,
+      treeShaking: true,
+    })
+  }
+}
 
 export default defineConfig({
   define: {
@@ -31,27 +41,39 @@ export default defineConfig({
   build: {
     minify: false,
     lib: {
-      entry: {
-        index: resolve(__dirname, 'src/index.ts'),
-        components: resolve(__dirname, 'src/components/index.ts'),
-        scale: resolve(__dirname, 'src/js/scale.js'),
-        break: resolve(__dirname, 'src/js/break.js'),
-        label: resolve(__dirname, 'src/js/label.js'),
-        theme: resolve(__dirname, 'src/js/theme.js'),
-      },
+      entry: resolve(__dirname, 'src/index.ts'),
       name: 'VVPlot',
-      formats: ['es'],
+      fileName: 'vvplot',
       cssFileName: "style"
     },
     rollupOptions: {
       external: ['vue'],
-      output: {
-        chunkFileNames: '[name].js',
-        minifyInternalExports: false,
-        globals: {
-          vue: 'Vue',
+      output: [
+        {
+          format: 'es',
+          entryFileNames: 'vvplot.esm.js',
+          minifyInternalExports: false,
         },
-      },
+        {
+          format: 'es',
+          entryFileNames: 'vvplot.esm.min.js',
+          plugins: [esbuildMinify]
+        },
+        {
+          format: 'iife',
+          name: 'VVPlot',
+          entryFileNames: 'vvplot.global.js',
+          minifyInternalExports: false,
+          globals: { vue: 'Vue' },
+        },
+        {
+          format: 'iife',
+          name: 'VVPlot',
+          entryFileNames: 'vvplot.global.min.js',
+          globals: { vue: 'Vue' },
+          plugins: [esbuildMinify]
+        },
+      ],
     },
   },
 })

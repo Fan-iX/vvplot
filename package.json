@@ -1,6 +1,6 @@
 {
   "name": "vvplot",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "license": "MIT",
   "files": [
     "dist"
@@ -10,18 +10,16 @@
     "dev": "vite dev"
   },
   "type": "module",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/vvplot.esm.js",
+  "types": "./dist/vvplot.d.ts",
   "imports": {
     "#base/*": "./src/*"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./components": "./dist/components.js",
-    "./scale": "./dist/scale.js",
-    "./break": "./dist/break.js",
-    "./theme": "./dist/theme.js",
-    "./label": "./dist/label.js",
+    ".": {
+      "import": "./dist/vvplot.esm.js",
+      "types": "./dist/vvplot.d.ts"
+    },
     "./style.css": "./dist/style.css"
   },
   "homepage": "https://fan-ix.github.io/vvplot/",

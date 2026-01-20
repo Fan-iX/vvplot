@@ -22,10 +22,10 @@ const size_limits_max = ref(600)
             </p>
             <p>
                 VVPlot provides several built-in scale function wrappers for different aesthetics
-                in the <code>vvplot/scale</code> module.
+                in the <code>vvscale</code> module.
                 They can be imported directly from the module:
             </p>
-            <pre-highlight lang="javascript">import vvscale from 'vvplot/scale'</pre-highlight>
+            <pre-highlight lang="javascript">import { vvscale } from 'vvplot'</pre-highlight>
             <h3><code>identity</code> scale: keep values unchanged</h3>
             <p>
                 The identity scale (<code>vvscale.*.identity()</code>) maps data values to aesthetic attributes directly
@@ -114,9 +114,9 @@ const size_limits_max = ref(600)
             </p>
             <p>
                 The <code>oob</code> argument property controls how out-of-boundary values will be handled.
-                VVPlot provides several built-in oob functions in the <code>vvplot/scale</code> module:
+                VVPlot provides several built-in oob functions:
             </p>
-            <pre-highlight lang="javascript">import { oob } from 'vvplot/scale'</pre-highlight>
+            <pre-highlight lang="javascript">import { oob } from 'vvplot'</pre-highlight>
             <p>
                 The following oob functions are available:
             </p>

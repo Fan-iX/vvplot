@@ -244,9 +244,9 @@ const render = ref('canvas')
                 Like <code>ggplot2</code>, VVPlot comes with several built-in themes.
             </p>
             <p>
-                To use a built-in theme, you need to import it from the <code>vvplot/theme</code> module.
+                To use a built-in theme, you need to import it from the <code>vvtheme</code> module.
             </p>
-            <pre-highlight lang="javascript">import vvtheme from 'vvplot/theme'</pre-highlight>
+            <pre-highlight lang="javascript">import { vvtheme } from 'vvplot'</pre-highlight>
             <p>
                 You can provide a single theme object or an array of theme objects to the <code>theme</code> property of
                 <code>&lt;VVPlot&gt;</code>:

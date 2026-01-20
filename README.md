@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { VVPlot, VVGeomPoint } from 'vvplot/components'
+import { VVPlot, VVGeomPoint } from 'vvplot'
 
 const data = [{ x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 5 }]
 </script>
