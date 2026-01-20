@@ -362,7 +362,7 @@ function svgPointerdown(e) {
             ev.target.dispatchEvent(event)
         }
     }, { once: true })
-    let sel = props.selections.find(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
+    let sel = props.selections.findLast(s => ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => s[k] == e[k]))
     if (sel) {
         let { x = false, y = false, "min-range-x": mrx = 0, "min-range-y": mry = 0 } = sel
         e.target.setPointerCapture(e.pointerId)
@@ -559,10 +559,13 @@ const activeTransform = computed(() => {
     let hmin0 = 0, hmax0 = innerRect.width,
         vmin0 = 0, vmax0 = innerRect.height,
         { hmin = hmin0, hmax = hmax0, vmin = vmin0, vmax = vmax0 } = coord2pos(rangePreview ?? {})
+    let dh0 = hmax0 - hmin0, dh = hmax - hmin,
+        dv0 = vmax0 - vmin0, dv = vmax - vmin
+
     return {
-        scaleH: (hmax0 - hmin0) / (hmax - hmin) || 1,
+        scaleH: dh0 < 1 || dh < 1 || Math.abs(dh0 - dh) < 1 ? 1 : dh0 / dh,
         translateH: (hmin0 * hmax - hmin * hmax0) / (hmax - hmin) || 0,
-        scaleV: (vmax0 - vmin0) / (vmax - vmin) || 1,
+        scaleV: dv0 < 1 || dv < 1 || Math.abs(dv0 - dv) < 1 ? 1 : dv0 / dv,
         translateV: (vmin0 * vmax - vmin * vmax0) / (vmax - vmin) || 0,
     }
 })
@@ -709,13 +712,15 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :default-render="props.render" />
-                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    @selecting="onselecting" @selectend="onselectend" v-bind="sel" v-for="sel in props.selections"
-                    :flip />
-                <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                    :modelValue="selectionPreview" :theme="_selectionPreviewTheme" :flip />
+                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :getCoord="getCoord"
+                    :default-render="props.render" />
             </g>
+            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect" @selecting="onselecting"
+                @selectend="onselectend" :transition="transition" :activeTransform="activeTransform" v-bind="sel"
+                v-for="sel in props.selections" :flip />
+            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
+                :modelValue="selectionPreview" :transition="transition" :activeTransform="activeTransform"
+                :theme="_selectionPreviewTheme" :flip />
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position !== 'number')" v-bind="axis.bind"

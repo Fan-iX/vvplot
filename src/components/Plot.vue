@@ -491,6 +491,7 @@ useResizeObserver(plotRef, (e) => {
 const panelStyle = computed(() => {
     return {
         position: 'absolute',
+        pointerEvents: 'none',
         left: str_c(plotRef.value?.panel?.left, 'px'),
         top: str_c(plotRef.value?.panel?.top, 'px'),
         width: str_c(plotRef.value?.panel?.width, 'px'),
@@ -499,7 +500,7 @@ const panelStyle = computed(() => {
 })
 
 const wrapperStyle = computed(() => {
-    let style = { overflow: 'hidden', boxSizing: 'border-box' }
+    let style = { position: 'relative', overflow: 'hidden', boxSizing: 'border-box' }
     if (resize === "both" || resize === true || resize === "") {
         Object.assign(style, { resize: "both" })
     } else if (resize === "horizontal" || resize === "x" && !flip || resize === "y" && flip) {
@@ -525,7 +526,7 @@ defineExpose({
             :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport"
             @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
-            <div class="vvplot-panel" v-if="vnodes.dom.panel?.length">
+            <div class="vvplot-panel" style="pointer-events:auto;display:contents;" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>

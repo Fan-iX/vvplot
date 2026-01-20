@@ -35,7 +35,8 @@ const binds = computed(() => {
         let w = textBox.width * Math.abs(Math.cos(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.sin(angle * Math.PI / 180)),
             h = textBox.width * Math.abs(Math.sin(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.cos(angle * Math.PI / 180)),
             dx = translateX, dy = translateY
-        transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy}) rotate(${angle})`
+        transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
+        if (angle) transform += ` rotate(${angle})`
     } else {
         let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
@@ -44,7 +45,8 @@ const binds = computed(() => {
         let w = textBox.width, h = textBox.height,
             dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
             dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
-        transform = `rotate(${angle}) translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
+        transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
+        if (angle) transform = `rotate(${angle}) ` + transform
     }
     return {
         x, y,

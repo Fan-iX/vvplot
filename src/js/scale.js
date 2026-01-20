@@ -169,11 +169,10 @@ function palette_scale_gradientn({
     let fn = function (arr) {
         let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
             scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1]
-        let domain = anchors
-        if (domain == null && values != null)
-            domain = values.map(v => scale_min + (scale_max - scale_min) * v)
-        if (domain == null)
-            domain = Array(colors.length).fill(0).map((_, i) => scale_min + (scale_max - scale_min) * i / (colors.length - 1))
+        let domain = values ?? anchors?.map?.(v => scale_min + (scale_max - scale_min) * v)
+        domain ??= Array(colors.length).fill(0).map((_, i) => scale_min + (scale_max - scale_min) * i / (colors.length - 1))
+        colors = colors.filter((c, i) => !isNaN(domain[i]))
+        domain = domain.filter(v => !isNaN(v))
         let scale = d3.scaleLinear(domain, colors)
         return arr.map(v => {
             v = this.oob(v, { min: scale_min, max: scale_max })
@@ -206,8 +205,8 @@ function palette_scale_dynamic({
     limits, oob = oob_censor,
     title, ...etc
 } = {}) {
-    if (discrete == null) discrete = palette_scale_hue()
-    if (continuous == null) continuous = palette_scale_gradient()
+    discrete ??= palette_scale_hue()
+    continuous ??= palette_scale_gradient()
     let fn = function (arr) {
         if (arr.level != null) {
             return discrete.call(this, arr)

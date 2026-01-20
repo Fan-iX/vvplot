@@ -2,7 +2,7 @@
 import { computed, h } from 'vue'
 import { oob_squish_any, dropNull, plus } from '#base/js/utils'
 const model = defineModel({ default: () => ({}) })
-const { coord2pos, pos2coord, layout, theme, flip, ...config } = defineProps({
+const { coord2pos, pos2coord, layout, theme, flip, activeTransform, transition, ...config } = defineProps({
     coord2pos: Function,
     pos2coord: Function,
     layout: Object,
@@ -13,30 +13,96 @@ const { coord2pos, pos2coord, layout, theme, flip, ...config } = defineProps({
     minRangeX: Number, minRangeY: Number,
     ctrlKey: Boolean, shiftKey: Boolean, altKey: Boolean, metaKey: Boolean,
     buttons: Number,
+    activeTransform: Object, transition: String,
 })
 
-const borderBind = computed(() => {
+const position = computed(() => {
     if (model.value == null || model.value.hidden) return null
     if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => model.value?.[k] == null)) return null
-    let size = 10
     let { hmin, hmax, vmin, vmax } = coord2pos(model.value, { limited: true }),
         pos = coord2pos(model.value)
     if (hmin != null && hmax != null) [hmin, hmax] = [hmin, hmax].sort((a, b) => a - b)
     if (vmin != null && vmax != null) [vmin, vmax] = [vmin, vmax].sort((a, b) => a - b)
+    return { hmin, hmax, vmin, vmax, pos }
+})
+
+const transform = computed(() => {
+    if (!position.value) return null
+    let { translateH, translateV, scaleH, scaleV } = activeTransform
+    let { hmin, hmax, vmin, vmax, pos } = position.value
     let width = hmax - hmin, height = vmax - vmin
-    let binds = {}
-    binds[config.move ? "tblr" : ""] = {
+    let tslH = layout.left, tslV = layout.top, sclH = 1, sclV = 1
+    if (pos.hmin != null && pos.hmax != null) {
+        tslH += translateH
+        sclH = scaleH
+    } else if (pos.hmin != null) {
+        let delta = translateH + hmin * (scaleH - 1)
+        sclH = 1 - delta / width
+        tslH += delta * (1 + hmin / width)
+    } else if (pos.hmax != null) {
+        let delta = translateH + hmax * (scaleH - 1)
+        sclH = 1 + delta / width
+        tslH += delta * (1 - hmax / width)
+    }
+    if (pos.vmin != null && pos.vmax != null) {
+        tslV += activeTransform.translateV
+        sclV = activeTransform.scaleV
+    } else if (pos.vmin != null) {
+        let delta = translateV + vmin * (scaleV - 1)
+        sclV = 1 - delta / height
+        tslV += delta * (1 + vmin / height)
+    } else if (pos.vmax != null) {
+        let delta = translateV + vmax * (scaleV - 1)
+        sclV = 1 + delta / height
+        tslV += delta * (1 - vmax / height)
+    }
+    let transform = []
+    if (tslH != 0 || tslV != 0)
+        transform.push(`translate(${tslH}, ${tslV})`)
+    if (sclH != 1 || sclV != 1)
+        transform.push(`scale(${sclH}, ${sclV})`)
+    return transform.join(' ') || null
+})
+const translating = computed(() =>
+    activeTransform.translateH != 0 || activeTransform.translateV != 0 ||
+    activeTransform.scaleH != 1 || activeTransform.scaleV != 1
+)
+
+const rectBind = computed(() => {
+    if (!position.value) return null
+    let { hmin, hmax, vmin, vmax, pos } = position.value
+    let linewidth = theme?.line_width ?? 1
+    if (pos.hmin == null) hmin -= linewidth / 2
+    if (pos.hmax == null) hmax += linewidth / 2
+    if (pos.vmin == null) vmin -= linewidth / 2
+    if (pos.vmax == null) vmax += linewidth / 2
+    let width = hmax - hmin, height = vmax - vmin
+    return {
         x: hmin, y: vmin, width, height,
         fill: theme?.background ?? "transparent",
         'fill-opacity': theme?.opacity,
         stroke: theme?.line_color ?? "none",
         'stroke-width': theme?.line_width,
         'stroke-opacity': theme?.opacity,
-        style: config.move ? "cursor:move;" : "pointer-events:none;"
+        transform: transform.value,
+        style: { transition, 'pointer-events': 'none' },
+    }
+})
+
+const interactiveBind = computed(() => {
+    if (!position.value || translating.value) return null
+    let size = 10
+    let { hmin, hmax, vmin, vmax, pos } = position.value
+    let width = hmax - hmin, height = vmax - vmin
+    let binds = {}
+    if (config.move) binds.tblr = {
+        x: hmin, y: vmin, width, height,
+        fill: "transparent",
+        style: "cursor:move;"
     }
     if (config.resize) {
         if (pos.hmin != null)
-            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
+            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;", class: "vvplot-interactive" }
         if (pos.hmax != null)
             binds.r = { x: hmax - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
         if (pos.vmin != null)
@@ -51,6 +117,12 @@ const borderBind = computed(() => {
             binds.bl = { x: hmin - size / 2, y: vmax - size / 2, width: size, height: size, style: "cursor:nesw-resize;" }
         if (pos.hmax != null && pos.vmax != null)
             binds.br = { x: hmax - size / 2, y: vmax - size / 2, width: size, height: size, style: "cursor:nwse-resize;" }
+    }
+    let tslH = layout.left, tslV = layout.top
+    if (tslH || tslV) {
+        for (let k in binds) {
+            binds[k].transform = `translate(${tslH}, ${tslV})`
+        }
     }
     return binds
 })
@@ -142,7 +214,9 @@ function selPointerdown(e, dir) {
 }
 </script>
 <template>
-    <g class="vvplot-interactive" v-if="borderBind">
-        <rect v-for="bind, k in borderBind" fill="transparent" v-bind="bind" @pointerdown="selPointerdown($event, k)" />
+    <g v-if="rectBind">
+        <rect v-bind="rectBind" />
+        <rect v-for="bind, k in interactiveBind" fill="transparent" v-bind="bind"
+            @pointerdown="selPointerdown($event, k)" class="vvplot-interactive" />
     </g>
 </template>

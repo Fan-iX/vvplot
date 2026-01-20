@@ -1,6 +1,6 @@
 # VVPlot
 
-VVPlot is a Vue based graphic library. It provides a grammar of graphics style API to create various types of plots.
+[VVPlot](https://fan-ix.github.io/vvplot/) is a Vue based graphic library. It provides a grammar of graphics style API to create various types of plots.
 
 ## Usage
 
@@ -12,7 +12,7 @@ VVPlot is a Vue based graphic library. It provides a grammar of graphics style A
 </template>
 
 <script setup>
-import { VVPlot, VVGeomPoint } from 'vvplot/components'
+import { VVPlot, VVGeomPoint } from 'vvplot'
 
 const data = [{ x: 1, y: 2 }, { x: 2, y: 3 }, { x: 3, y: 5 }]
 </script>

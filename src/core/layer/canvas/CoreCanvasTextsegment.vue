@@ -1,9 +1,9 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-const { extendX, extendY, data, coord2pos, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -23,7 +23,7 @@ const layerCanvas = computed(() => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
-    let path_data = new Map()
+    let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
             x, xend, y, yend, size = 4, label = "", title,
@@ -33,8 +33,6 @@ const layerCanvas = computed(() => {
         } of group) {
             ctx.save()
             ctx.translate(translateX, translateY)
-            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
-            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
             ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth
@@ -73,6 +71,9 @@ const layerCanvas = computed(() => {
             ctx.restore()
         }
     }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
+    }
     for (let evt of events) {
         canvas.addEventListener(evt, function (e) {
             if (e._vhandled) return
@@ -81,7 +82,7 @@ const layerCanvas = computed(() => {
             const y = e.clientY - rect.top
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, data)
+                    emit(evt, e, getCoord(e), data)
                     e._vhandled = true
                     break
                 }

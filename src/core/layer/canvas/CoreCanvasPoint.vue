@@ -1,9 +1,9 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-const { extendX, extendY, data, coord2pos, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -30,7 +30,7 @@ const layerCanvas = computed(() => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
-    let path_data = new Map()
+    let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
             x, y, size = 6,
@@ -52,7 +52,7 @@ const layerCanvas = computed(() => {
             } else {
                 path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)
             }
-            path_data.set(path2d, $raw)
+            _path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.beginPath()
@@ -66,6 +66,9 @@ const layerCanvas = computed(() => {
             }
         }
     }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
+    }
     for (let evt of events) {
         canvas.addEventListener(evt, function (e) {
             if (e._vhandled) return
@@ -74,7 +77,7 @@ const layerCanvas = computed(() => {
             const y = e.clientY - rect.top
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, data)
+                    emit(evt, e, getCoord(e), data)
                     e._vhandled = true
                     break
                 }
