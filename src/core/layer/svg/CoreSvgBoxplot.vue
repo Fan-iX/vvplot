@@ -20,7 +20,7 @@ const binds = computed(() => {
         x, xmin, xmax, y, ymin, ymax,
         lwisker, Q1, median, Q3, uwisker, outliers,
         $xmin, $xmax, $ymin, $ymax,
-        fill = 'white', color = "black", linewidth, linetype, alpha,
+        fill = 'white', color = "black", linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax })
@@ -41,7 +41,7 @@ const binds = computed(() => {
             rect: {
                 x: (rx1 + rx2) / 2, width: rx2 - rx1,
                 y: (ry1 + ry2) / 2, height: ry2 - ry1,
-                fill, color, linetype, linewidth, alpha,
+                fill, color, linetype, linewidth, alpha, title,
                 translateX, translateY,
             },
             line: {

@@ -15,7 +15,7 @@ const binds = computed(() => {
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
-        points, fill = "none", color = 'black', linewidth, linetype, alpha,
+        points, fill = "none", color = 'black', linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
         interpolate,
     }) => {
@@ -25,7 +25,7 @@ const binds = computed(() => {
             points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)
         ) return null
         let vbind = {
-            points, fill, color, linetype, linewidth, alpha,
+            points, fill, color, linetype, linewidth, alpha, title,
             translateX, translateY, interpolate,
         }
         let von = Object.fromEntries(

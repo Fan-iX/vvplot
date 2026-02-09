@@ -1,14 +1,14 @@
 <script setup>
 import { computed } from 'vue'
 const {
-    x, y, width, height, fill, color, linewidth, linetype, alpha,
+    x, y, width, height, fill, color, linewidth, linetype, alpha, title,
     translateX, translateY,
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     width: { type: Number, default: 0 }, height: { type: Number, default: 0 },
     fill: String,
     color: String, linewidth: Number, linetype: String,
-    alpha: { type: Number, default: 1 },
+    alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })
 const binds = computed(() => {
@@ -38,5 +38,7 @@ function parseLineType(linetype) {
 }
 </script>
 <template>
-    <rect v-bind="binds" />
+    <rect v-bind="binds">
+        <title v-if="title">{{ title }}</title>
+    </rect>
 </template>

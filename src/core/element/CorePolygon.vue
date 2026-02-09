@@ -1,13 +1,13 @@
 <script setup>
 import { computed } from 'vue'
 const {
-    points, fill, color, linewidth, linetype, alpha,
+    points, fill, color, linewidth, linetype, alpha, title,
     translateX, translateY,
 } = defineProps({
     points: { type: Array, default: () => [] },
     fill: String,
     color: String, linewidth: Number, linetype: String,
-    alpha: { type: Number, default: 1 },
+    alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })
 const binds = computed(() => {
@@ -37,5 +37,7 @@ function parseLineType(linetype) {
 }
 </script>
 <template>
-    <polygon v-bind="binds" />
+    <polygon v-bind="binds">
+        <title v-if="title">{{ title }}</title>
+    </polygon>
 </template>

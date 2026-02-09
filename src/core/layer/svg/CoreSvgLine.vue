@@ -16,7 +16,7 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         x, y, xend, yend,
-        color = 'black', linewidth, linetype, alpha,
+        color = 'black', linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     }) => {
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
@@ -26,7 +26,7 @@ const binds = computed(() => {
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
         let vbind = {
-            x1, x2, y1, y2, color, linetype, linewidth, alpha,
+            x1, x2, y1, y2, color, linetype, linewidth, alpha, title,
             translateX, translateY,
         }
         let von = Object.fromEntries(

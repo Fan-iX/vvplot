@@ -2,14 +2,14 @@
 import { computed } from 'vue'
 import * as d3 from 'd3'
 const {
-    points, interpolate, fill, color, stroke, linewidth, linetype, alpha,
+    points, interpolate, fill, color, stroke, linewidth, linetype, alpha, title,
     translateX, translateY,
 } = defineProps({
     points: { type: Array, default: () => [] }, interpolate: { default: 'natural' },
     fill: { type: String, default: 'none' },
     color: String,
     stroke: String, linewidth: Number, linetype: String,
-    alpha: { type: Number, default: 1 },
+    alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })
 const binds = computed(() => {
@@ -46,5 +46,7 @@ function parseLineType(linetype) {
 }
 </script>
 <template>
-    <path v-bind="binds" />
+    <path v-bind="binds">
+        <title v-if="title">{{ title }}</title>
+    </path>
 </template>

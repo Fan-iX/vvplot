@@ -16,13 +16,14 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         x, y, shape, size = 6,
-        color, stroke, linetype, linewidth, alpha,
+        color, stroke, linetype, linewidth, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
     }) => {
         const { h: cx, v: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
         let vbind = {
-            x: cx, y: cy, shape, size, color, stroke, linetype, linewidth, alpha,
+            x: cx, y: cy, shape, size,
+            color, stroke, linetype, linewidth, alpha, title,
             angle, translateX, translateY,
         }
         let von = Object.fromEntries(
