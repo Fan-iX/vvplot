@@ -29,7 +29,7 @@ const layerCanvas = computed(() => {
             x, xend, y, yend, size = 4, label = "", title,
             color, stroke, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0,
-            'text-length': textLength, $raw
+            'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
         } of group) {
             ctx.save()
             ctx.translate(translateX, translateY)
@@ -37,7 +37,7 @@ const layerCanvas = computed(() => {
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
-            ctx.font = `${size * 4}px sans-serif`
+            ctx.font = `${size * 4}px ${fontFamily}`
             let parts = splitLabel(String(label))
             let dx = (xend - x) / (parts.length - 1 || 1),
                 dy = (yend - y) / (parts.length - 1 || 1)

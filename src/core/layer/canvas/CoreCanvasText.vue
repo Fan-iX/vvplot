@@ -31,7 +31,7 @@ const layerCanvas = computed(() => {
             'anchor-x': anchorX, 'anchor-y': anchorY,
             'dock-x': dockX, 'dock-y': dockY,
             'translate-x': translateX = 0, 'translate-y': translateY = 0,
-            angle, 'text-length': textLength, $raw
+            angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
         } of group) {
             ctx.save()
             const { h: tx, v: ty } = coord2pos({ x, y })
@@ -39,7 +39,7 @@ const layerCanvas = computed(() => {
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
-            ctx.font = `${size * 4}px sans-serif`
+            ctx.font = `${size * 4}px ${fontFamily}`
             ctx.setLineDash(parseLineType(linetype))
             ctx.translate(tx + translateX, ty + translateY)
             let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),

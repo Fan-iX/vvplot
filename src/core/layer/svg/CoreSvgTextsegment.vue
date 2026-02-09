@@ -17,7 +17,7 @@ const binds = computed(() => {
         x, xend, y, yend, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        'text-length': textLength, $raw
+        'text-length': textLength, 'font-family': fontFamily, $raw
     }) => {
         if (label == null) return null
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
@@ -56,6 +56,7 @@ const binds = computed(() => {
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
             transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
+            'font-family': fontFamily,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
