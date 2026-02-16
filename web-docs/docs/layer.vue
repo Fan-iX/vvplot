@@ -11,6 +11,11 @@ const demo_polygon = [
     { points: [{ x: 1.5, y: 1 }, { x: 2, y: 3 }, { x: 2.5, y: 2.5 }] },
     { points: [{ x: 3, y: 3.5 }, { x: 4, y: 4 }, { x: 2.5, y: 4 }, { x: 3, y: 2 }] },
 ]
+const demo_markdown = [
+    { x: 2, y: 0, label: '***a***' },
+    { x: 0, y: 1.5, label: '**<font color="blue">b</font>**' },
+    { x: 1, y: 2, label: '*c*<sup>2</sup>=*a*<sup>2</sup>+*b*<sup>2</sup>' },
+]
 const render = ref('svg')
 </script>
 <template>
@@ -139,6 +144,19 @@ const render = ref('svg')
                         </tr>
                         <tr>
                             <td><code>y</code> <br> <code>xmin</code> <br> <code>xmax</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomMarkdown /&gt;</code></td>
+                            <td><code>x</code> <br> <code>y</code> <br> <code>label</code></td>
+                            <td>markdown</td>
+                            <td>none</td>
+                            <td>
+                                <VVPlot :data="demo_markdown">
+                                    <VVGeomMarkdown :x="d => d.x" :y="d => d.y" :label="d => d.label" :render />
+                                    <VVAxisX :expand-mult="0.2" />
+                                    <VVAxisY :expand-mult="0.2" />
+                                </VVPlot>
+                            </td>
                         </tr>
                         <tr>
                             <td><code>&lt;VVGeomPath /&gt;</code></td>
