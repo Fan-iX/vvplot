@@ -285,6 +285,34 @@ import iris from '../data/iris.json'
                             </td>
                         </tr>
                         <tr>
+                            <td>Tick text type</td>
+                            <td><code>tick_type</code></td>
+                            <td>
+                                <code>"markdown"</code> for markdown text
+                                <br>
+                                other values will be treated as normal text
+                            </td>
+                            <td>
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :limits="[-10, 10]" :breaks="[0]" :labels="t => `**${t}**`"
+                                        :show-grid="false" :theme="{ tick_type: 'markdown' }" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Title text type</td>
+                            <td><code>title_type</code></td>
+                            <td>same as <code>tick_type</code></td>
+                            <td>
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :limits="[-10, 10]" :show-grid="false" :theme="{ title_type: 'markdown' }"
+                                        title="***x***" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>Tick position</td>
                             <td><code>tick_position</code></td>
                             <td>
@@ -399,7 +427,8 @@ import iris from '../data/iris.json'
                 related to the x axis.
             </blockquote>
             <h3>List of built-in themes</h3>
-            <table class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼']">
+            <table
+                class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼']">
                 <tbody>
                     <tr>
                         <td>
