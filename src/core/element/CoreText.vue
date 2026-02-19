@@ -1,5 +1,6 @@
 <script setup>
 import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
     angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontFamily, fontSize, textLength
@@ -54,7 +55,7 @@ const binds = computed(() => {
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: stroke || null,
         'stroke-width': linewidth,
-        'stroke-dasharray': parseLineType(linetype),
+        'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
         'stroke-opacity': alpha == 1 ? null : alpha,
         transform,
         'font-family': fontFamily || null,
@@ -63,19 +64,6 @@ const binds = computed(() => {
         'transform-origin': `${x} ${y}`,
     }
 })
-
-function parseLineType(linetype) {
-    if (linetype == null) return null
-    if (Array.isArray(linetype)) return linetype.join(' ')
-    if (linetype === 'solid') return null
-    if (linetype === 'dashed') return '4 4'
-    if (linetype === 'dotted') return '1 3'
-    if (linetype === 'dotdash') return '1 3 4 3'
-    if (linetype === 'longdash') return '8 4'
-    if (linetype === 'twodash') return '2 2 6 2'
-    if (linetype.includes(' ')) return linetype
-    return linetype.split('').map(v => +('0x' + v)).join(' ')
-}
 </script>
 <template>
     <text ref="ele" text-anchor="middle" dominant-baseline="central" v-bind="binds"

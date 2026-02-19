@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -38,6 +39,7 @@ const layerCanvas = computed(() => {
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.font = `${size * 4}px ${fontFamily}`
+            ctx.setLineDash(parseLinetype(linetype))
             let parts = splitLabel(String(label))
             let dx = (xend - x) / (parts.length - 1 || 1),
                 dy = (yend - y) / (parts.length - 1 || 1)

@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -52,7 +53,7 @@ const binds = computed(() => {
             'font-size': size * 4,
             stroke: stroke,
             'stroke-width': linewidth,
-            'stroke-dasharray': linetype,
+            'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
             transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
