@@ -109,14 +109,14 @@ const textFragments = computed(() => {
                     offset -= 0.4 * scale
                     scales.push(scale * 0.7)
                 } else if (tag.includes('</sup>')) {
-                    scales.pop()
                     offset += 0.4 * scales.at(-1)
+                    scales.pop()
                 } else if (tag.includes('<sub>')) {
                     offset += 0.25 * scale
                     scales.push(scale * 0.7)
                 } else if (tag.includes('</sub>')) {
-                    scales.pop()
                     offset -= 0.25 * scales.at(-1)
+                    scales.pop()
                 }
             }
         } else {
