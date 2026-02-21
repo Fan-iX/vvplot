@@ -3,7 +3,7 @@ import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
 import { parseLinetype } from '#base/js/utils'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
-    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontFamily, fontSize, textLength
+    angle, translateX, translateY, anchorX, anchorY, dockX, dockY, fontFamily, fontSize, textLength, textAnchor
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     text: null, title: null, size: Number, color: String,
@@ -12,7 +12,7 @@ const {
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
     anchorX: Number, anchorY: Number, dockX: Number, dockY: Number,
-    fontFamily: String, fontSize: Number, textLength: Number,
+    fontFamily: String, fontSize: Number, textLength: Number, textAnchor: { type: String, default: 'middle' },
 })
 const ele = useTemplateRef('ele')
 const textBox = reactive({ width: 0, height: 0 })
@@ -27,27 +27,29 @@ watch(
     }
 )
 const binds = computed(() => {
-    let transform
+    let { width, height } = textBox, transform = ""
+    let xoffset = ({ start: -0.5, end: 0.5 }[textAnchor] ?? 0) * width
     if (dockX != null || dockY != null) {
         let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
         if (isNaN(alnX)) alnX = 0.5
         if (isNaN(alnY)) alnY = 0.5
-        let w = textBox.width * Math.abs(Math.cos(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.sin(angle * Math.PI / 180)),
-            h = textBox.width * Math.abs(Math.sin(angle * Math.PI / 180)) + textBox.height * Math.abs(Math.cos(angle * Math.PI / 180)),
+        let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
+            h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180)),
             dx = translateX, dy = translateY
         transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
         if (angle) transform += ` rotate(${angle})`
+        transform += ` translate(${xoffset},0)`
     } else {
         let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
         if (isNaN(alnX)) alnX = 0.5
         if (isNaN(alnY)) alnY = 0.5
-        let w = textBox.width, h = textBox.height,
+        let w = width, h = height,
             dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
             dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
-        transform = `translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`
-        if (angle) transform = `rotate(${angle}) ` + transform
+        if (angle) transform = `rotate(${angle}) `
+        transform += `translate(${w * (0.5 - alnX) + dx + xoffset},${h * (alnY - 0.5) + dy})`
     }
     return {
         x, y,
@@ -62,12 +64,13 @@ const binds = computed(() => {
         textLength,
         lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
         'transform-origin': `${x} ${y}`,
+        'text-anchor': textAnchor,
+        'dominant-baseline': 'central',
     }
 })
 </script>
 <template>
-    <text ref="ele" text-anchor="middle" dominant-baseline="central" v-bind="binds"
-        :font-size="(fontSize ?? size * 4) || null">
+    <text ref="ele" v-bind="binds" :font-size="(fontSize ?? size * 4) || null">
         <slot>
             <title v-if="title">{{ title }}</title>
             {{ text.replace(/ /g, "\u00a0") }}
