@@ -18,7 +18,8 @@ const binds = computed(() => {
         x, xend, y, yend, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        'text-length': textLength, 'font-family': fontFamily, $raw
+        'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto',
+        $raw
     }) => {
         if (label == null) return null
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
@@ -27,27 +28,7 @@ const binds = computed(() => {
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
-        let parts = splitLabel(String(label))
-        let dx = (xend - x) / (parts.length - 1 || 1),
-            dy = (yend - y) / (parts.length - 1 || 1)
-        let content = parts.map((label, i) => {
-            let $x = x + i * dx, $y = y + i * dy
-            const { h: tx, v: ty } = coord2pos({ x: $x, y: $y })
-            if (typeof (textLength) == "object") {
-                let { x: lx = 0, y: ly = 0 } = textLength
-                let { h: h1, v: v1 } = coord2pos({ x: $x + lx / 2, y: $y + ly / 2 }),
-                    { h: h2, v: v2 } = coord2pos({ x: $x - lx / 2, y: $y - ly / 2 })
-                textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
-            }
-            let vbind = {
-                x: tx, y: ty,
-                'text-anchor': 'middle',
-                'alignment-baseline': 'central',
-                textLength,
-                lengthAdjust: textLength ? 'spacingAndGlyphs' : null,
-            }
-            return [vbind, label]
-        })
+        if (textAlign !== 'justify' || angle === 'auto') angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI
         let vbind = {
             fill: color,
             'font-size': size * 4,
@@ -56,13 +37,58 @@ const binds = computed(() => {
             'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
             'fill-opacity': alpha,
             'stroke-opacity': alpha,
-            transform: (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null,
             'font-family': fontFamily,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
         )
-        return [vbind, von, content, String(title ?? label)]
+        if (["stretch", "start", "center", "end"].includes(textAlign)) {
+            let tx, ty, content = String(label).replace(/\x01|\x02/g, '')
+            if (textAlign === "start") {
+                tx = x1
+                ty = y1
+                vbind['text-anchor'] = 'start'
+            } else if (textAlign === "center") {
+                tx = (x1 + x2) / 2
+                ty = (y1 + y2) / 2
+                vbind['text-anchor'] = 'middle'
+            } else if (textAlign === "end") {
+                tx = x2
+                ty = y2
+                vbind['text-anchor'] = 'end'
+            } else if (textAlign === "stretch") {
+                tx = (x1 + x2) / 2
+                ty = (y1 + y2) / 2
+                vbind['text-anchor'] = 'middle'
+                vbind.textLength = Math.hypot(x2 - x1 || 0, y2 - y1 || 0)
+                vbind.lengthAdjust = 'spacingAndGlyphs'
+            }
+            let transform = ''
+            if (translateX || translateY) transform += `translate(${translateX}, ${translateY})`
+            if (angle) transform += ` rotate(${angle})`
+            Object.assign(vbind, {
+                x: tx, y: ty,
+                'dominant-baseline': 'central',
+                'transform-origin': `${tx} ${ty}`,
+                transform
+            })
+            return [vbind, von, content, String(title ?? String(label).replace(/\x01|\x02/g, ''))]
+        } else { // justify
+            let parts = splitLabel(String(label))
+            let dx = (x2 - x1) / (parts.length - 1 || 1),
+                dy = (y2 - y1) / (parts.length - 1 || 1)
+            let content = parts.map((label, i) => {
+                let vbind = {
+                    x: x1 + i * dx, y: y1 + i * dy,
+                    'text-anchor': 'middle',
+                    'dominant-baseline': 'central',
+                    rotate: angle,
+                }
+                return [vbind, label]
+            })
+            if (translateX || translateY) vbind.transform = `translate(${translateX}, ${translateY})`
+            return [vbind, von, content, String(title ?? String(label).replace(/\x01|\x02/g, ''))]
+        }
     }).filter(x => x != null))
 })
 /**
@@ -91,7 +117,10 @@ function splitLabel(label) {
             <template v-for="[vbind, von, content, title] in group">
                 <text v-bind="vbind" v-on="von">
                     <title>{{ title }}</title>
-                    <template v-for="[vbind, label] in content">
+                    <template v-if="typeof content === 'string'">
+                        {{ content.replace(/ /g, "\u00a0") }}
+                    </template>
+                    <template v-for="[vbind, label] in content" v-else>
                         <tspan v-if="label" v-bind="vbind">{{ label }}</tspan>
                     </template>
                 </text>

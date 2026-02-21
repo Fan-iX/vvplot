@@ -30,36 +30,35 @@ const layerCanvas = computed(() => {
             x, xend, y, yend, size = 4, label = "", title,
             color, stroke, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0,
-            'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
+            'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto',
+            $raw
         } of group) {
+            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
+            if (textAlign !== 'justify' || angle === 'auto') angle = Math.atan2(y2 - y1, x2 - x1)
             ctx.save()
             ctx.translate(translateX, translateY)
-            ctx.textAlign = 'center'
             ctx.textBaseline = 'middle'
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.font = `${size * 4}px ${fontFamily}`
             ctx.setLineDash(parseLinetype(linetype))
-            let parts = splitLabel(String(label))
-            let dx = (xend - x) / (parts.length - 1 || 1),
-                dy = (yend - y) / (parts.length - 1 || 1)
-            for (let i = 0; i < parts.length; i++) {
-                ctx.save()
-                let $x = x + i * dx, $y = y + i * dy
-                const { h: tx, v: ty } = coord2pos({ x: $x, y: $y })
-                ctx.translate(tx, ty)
-                let text = parts[i]
-                let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(text),
-                    width = w, height = a + d
-                if (typeof (textLength) == "object") {
-                    let { x: lx = 0, y: ly = 0 } = textLength
-                    let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
-                        { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
-                    width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
-                } else if (textLength != null) {
-                    width = textLength
+            if (["stretch", "start", "center", "end"].includes(textAlign)) {
+                let text = String(label).replace(/\x01|\x02/g, '')
+                if (textAlign === 'start') {
+                    ctx.translate(x1, y1)
+                    ctx.textAlign = 'start'
+                } else if (textAlign === 'center' || textAlign === 'stretch') {
+                    ctx.translate((x1 + x2) / 2, (y1 + y2) / 2)
+                    ctx.textAlign = 'center'
+                } else if (textAlign === 'end') {
+                    ctx.translate(x2, y2)
+                    ctx.textAlign = 'end'
                 }
-                if (width != w) ctx.scale(width / w, 1)
+                ctx.rotate(angle)
+                if (textAlign === 'stretch') {
+                    ctx.scale(Math.hypot(x2 - x1 || 0, y2 - y1 || 0) / ctx.measureText(text).width, 1)
+                }
                 if (color !== 'none') {
                     ctx.fillStyle = color
                     ctx.fillText(text, 0, 0)
@@ -68,7 +67,26 @@ const layerCanvas = computed(() => {
                     ctx.strokeStyle = stroke
                     ctx.strokeText(text, 0, 0)
                 }
-                ctx.restore()
+            } else {
+                ctx.textAlign = 'center'
+                let parts = splitLabel(String(label))
+                let dx = (x2 - x1) / (parts.length - 1 || 1),
+                    dy = (y2 - y1) / (parts.length - 1 || 1)
+                for (let i = 0; i < parts.length; i++) {
+                    ctx.save()
+                    ctx.translate(x1 + i * dx, y1 + i * dy)
+                    ctx.rotate(angle)
+                    let text = parts[i]
+                    if (color !== 'none') {
+                        ctx.fillStyle = color
+                        ctx.fillText(text, 0, 0)
+                    }
+                    if (stroke != null) {
+                        ctx.strokeStyle = stroke
+                        ctx.strokeText(text, 0, 0)
+                    }
+                    ctx.restore()
+                }
             }
             ctx.restore()
         }
