@@ -18,7 +18,7 @@ const binds = computed(() => {
         x, xend, y, yend, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto',
+        'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto', inset = 0,
         $raw
     }) => {
         if (label == null) return null
@@ -28,7 +28,6 @@ const binds = computed(() => {
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
-        if (textAlign !== 'justify' || angle === 'auto') angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI
         let vbind = {
             fill: color,
             'font-size': size * 4,
@@ -42,38 +41,64 @@ const binds = computed(() => {
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
         )
-        if (["stretch", "start", "center", "end"].includes(textAlign)) {
+        if (["stretch", "pre", "start", "center", "end", "post"].includes(textAlign)) {
+            let radian = Math.atan2(y2 - y1, x2 - x1)
             let tx, ty, content = String(label).replace(/\x01|\x02/g, '')
-            if (textAlign === "start") {
-                tx = x1
-                ty = y1
-                vbind['text-anchor'] = 'start'
-            } else if (textAlign === "center") {
-                tx = (x1 + x2) / 2
-                ty = (y1 + y2) / 2
-                vbind['text-anchor'] = 'middle'
-            } else if (textAlign === "end") {
-                tx = x2
-                ty = y2
-                vbind['text-anchor'] = 'end'
-            } else if (textAlign === "stretch") {
-                tx = (x1 + x2) / 2
-                ty = (y1 + y2) / 2
-                vbind['text-anchor'] = 'middle'
-                vbind.textLength = Math.hypot(x2 - x1 || 0, y2 - y1 || 0)
-                vbind.lengthAdjust = 'spacingAndGlyphs'
+            let insetX = Math.cos(radian) * inset, insetY = Math.sin(radian) * inset
+            switch (textAlign) {
+                case "stretch":
+                    tx = (x1 + x2) / 2
+                    ty = (y1 + y2) / 2
+                    vbind['text-anchor'] = 'middle'
+                    vbind.textLength = Math.hypot(x2 - x1 || 0, y2 - y1 || 0)
+                    vbind.lengthAdjust = 'spacingAndGlyphs'
+                    break
+                case "center":
+                    tx = (x1 + x2) / 2
+                    ty = (y1 + y2) / 2
+                    vbind['text-anchor'] = 'middle'
+                    break
+                case "pre":
+                    tx = x1
+                    ty = y1
+                    translateX -= insetX
+                    translateY -= insetY
+                    vbind['text-anchor'] = 'end'
+                    break
+                case "start":
+                    tx = x1
+                    ty = y1
+                    translateX += insetX
+                    translateY += insetY
+                    vbind['text-anchor'] = 'start'
+                    break
+                case "end":
+                    tx = x2
+                    ty = y2
+                    translateX -= insetX
+                    translateY -= insetY
+                    vbind['text-anchor'] = 'end'
+                    break
+                case "post":
+                    tx = x2
+                    ty = y2
+                    translateX += insetX
+                    translateY += insetY
+                    vbind['text-anchor'] = 'start'
+                    break
             }
-            let transform = ''
-            if (translateX || translateY) transform += `translate(${translateX}, ${translateY})`
-            if (angle) transform += ` rotate(${angle})`
+            let transform = []
+            if (translateX || translateY) transform.push(`translate(${translateX}, ${translateY})`)
+            if (radian) transform.push(`rotate(${radian * 180 / Math.PI})`)
             Object.assign(vbind, {
                 x: tx, y: ty,
                 'dominant-baseline': 'central',
                 'transform-origin': `${tx} ${ty}`,
-                transform
+                transform: transform.join(' ') || null
             })
             return [vbind, von, content, String(title ?? String(label).replace(/\x01|\x02/g, ''))]
         } else { // justify
+            if (angle === 'auto') angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI
             let parts = splitLabel(String(label))
             let dx = (x2 - x1) / (parts.length - 1 || 1),
                 dy = (y2 - y1) / (parts.length - 1 || 1)
