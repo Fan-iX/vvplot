@@ -41,7 +41,8 @@ const axisTitle = computed(() => {
         dockX, dockY,
         fontSize: theme.title_size,
         text: title,
-        'fill': theme.title_color,
+        fill: theme.title_color,
+        'font-family': "sans-serif",
         ...theme.title_style,
     }
 })
@@ -83,7 +84,7 @@ const tickTexts = computed(() => {
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
         let position = pos + layout.l
         if (position + tsl < 0 || position + tsl > width.value) continue
-        let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.tick_length) + 3)
+        let offset = (isTop ? -1 : 1) * ((tick.length ?? theme.tick_length))
         let anchorX, anchorY, dockX, dockY
         if (theme.tick_anchor_x != null || theme.tick_anchor_y != null) {
             anchorX = theme.tick_anchor_x ?? 0.5
@@ -106,7 +107,9 @@ const tickTexts = computed(() => {
                 text: tick.label,
                 title: tick.title ?? tick.label,
                 fontSize: tick.size ?? theme.label_size,
-                'fill': tick.color ?? theme.label_color
+                fill: tick.color ?? theme.label_color,
+                'font-family': "sans-serif",
+                ...theme.label_style,
             },
         })
     }
@@ -306,7 +309,7 @@ const axisVOn = {
         <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <g v-for="tick in tickTexts" v-bind="tick.wrapper">
-            <CoreMarkdown v-bind="tick.text" v-if="theme.tick_type == 'markdown'" />
+            <CoreMarkdown v-bind="tick.text" v-if="theme.label_type == 'markdown'" />
             <CoreText v-bind="tick.text" v-else />
         </g>
         <g class="vvplot-interactive" fill="transparent">
