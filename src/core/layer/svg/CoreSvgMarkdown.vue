@@ -21,7 +21,7 @@ const binds = computed(() => {
         'anchor-x': anchorX, 'anchor-y': anchorY,
         'dock-x': dockX, 'dock-y': dockY,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        angle, 'text-length': textLength, 'font-family': fontFamily, 'text-anchor': textAnchor,
+        angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-anchor': textAnchor,
         $raw
     }) => {
         if (label == null) return null

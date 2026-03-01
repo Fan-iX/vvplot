@@ -8,6 +8,7 @@ export { default as VVGeomHistogram } from './GeomHistogram.vue';
 export { default as VVGeomLine } from './GeomLine.vue';
 export { default as VVGeomLinerange } from './GeomLinerange.vue';
 export { default as VVGeomMarkdown } from './GeomMarkdown.vue';
+export { default as VVGeomMarkdownsegment } from './GeomMarkdownsegment.vue';
 export { default as VVGeomPath } from './GeomPath.vue';
 export { default as VVGeomPoint } from './GeomPoint.vue';
 export { default as VVGeomPolygon } from './GeomPolygon.vue';
