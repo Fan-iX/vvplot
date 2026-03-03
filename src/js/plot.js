@@ -1,5 +1,5 @@
-import vvgeom from './geom'
-import vvstat from './stat'
+import * as vvgeom from './geom'
+import * as vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
@@ -75,7 +75,7 @@ class GLayer {
         }
         data.$raw = $$data
 
-        // apply core attributes (attributes required in stat function)
+        // apply core attributes (attributes required in stat and coord_scale function)
         let core_aes = stat?.core_attrs ?? ['x', 'y', 'xnudge', 'ynudge']
         let length = $$data.length
         if (length == 0) {
