@@ -163,7 +163,7 @@ export const vecutils = {
         return Array.from({ length }, (_, i) => values.map(a => Array.isArray(a) ? a[i] : a).join(''))
     },
     /* vectorized function application */
-    apply(func, ...values){
+    apply(func, ...values) {
         if (values.some(x => x == null)) return null
         let arrs = values.filter(x => Array.isArray(x))
         if (arrs.length == 0) return [func(...values)]
@@ -411,6 +411,19 @@ export function intrazip(arrays) {
         return l
     }, null) ?? 0
     return Array.from({ length }, (_, i) => Object.fromEntries(Object.keys(arrays).map(k => [k, Array.isArray(arrays[k]) ? arrays[k][i] : arrays[k]])))
+}
+
+export function parseLinetype(linetype) {
+    if (linetype == null) return []
+    if (Array.isArray(linetype)) return linetype
+    if (linetype === 'solid') return []
+    if (linetype === 'dashed') return [4, 4]
+    if (linetype === 'dotted') return [1, 3]
+    if (linetype === 'dotdash') return [1, 3, 4, 3]
+    if (linetype === 'longdash') return [8, 4]
+    if (linetype === 'twodash') return [2, 2, 6, 2]
+    if (linetype.includes(' ')) return linetype.split(' ').map(v => +v)
+    return linetype.split('').map(v => +('0x' + v))
 }
 
 export function serializeSVG(svgElement) {

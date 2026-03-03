@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 import * as d3 from 'd3'
 const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
@@ -44,7 +45,7 @@ const layerCanvas = computed(() => {
             _path_data.set(path2d, $raw)
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
-            ctx.setLineDash(parseLineType(linetype))
+            ctx.setLineDash(parseLinetype(linetype))
             if (fill !== 'none') {
                 ctx.fillStyle = fill
                 ctx.fill(path2d)
@@ -84,18 +85,6 @@ const interpolators = {
     catmullRom: d3.curveCatmullRom,
     linear: d3.curveLinear,
     natural: d3.curveNatural,
-}
-function parseLineType(linetype) {
-    if (linetype == null) return []
-    if (Array.isArray(linetype)) return linetype
-    if (linetype === 'solid') return []
-    if (linetype === 'dashed') return [4, 4]
-    if (linetype === 'dotted') return [1, 3]
-    if (linetype === 'dotdash') return [1, 3, 4, 3]
-    if (linetype === 'longdash') return [8, 4]
-    if (linetype === 'twodash') return [2, 2, 6, 2]
-    if (linetype.includes(' ')) return linetype
-    return linetype.split('').map(v => +('0x' + v))
 }
 </script>
 <template>

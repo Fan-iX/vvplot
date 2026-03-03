@@ -1,5 +1,6 @@
-export { default as curve } from './CoreCanvasCurve.vue'
 export { default as boxplot } from './CoreCanvasBoxplot.vue'
+export { default as curve } from './CoreCanvasCurve.vue'
+export { default as ellipse } from './CoreCanvasEllipse.vue'
 export { default as line } from './CoreCanvasLine.vue'
 export { default as point } from './CoreCanvasPoint.vue'
 export { default as polygon } from './CoreCanvasPolygon.vue'

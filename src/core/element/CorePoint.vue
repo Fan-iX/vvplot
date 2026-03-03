@@ -1,13 +1,14 @@
 <script setup>
 import { computed } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 const {
-    x, y, shape, size, color, stroke, linewidth, linetype, alpha,
+    x, y, shape, size, color, stroke, linewidth, linetype, alpha, title,
     angle, translateX, translateY,
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     shape: String, size: { type: Number, default: 6 }, color: String,
     stroke: String, linewidth: Number, linetype: String,
-    alpha: { type: Number, default: 1 },
+    alpha: { type: Number, default: 1 }, title: String,
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })
@@ -27,7 +28,7 @@ const binds = computed(() => {
         stroke: stroke || null,
         'stroke-width': linewidth,
         'stroke-opacity': alpha == 1 ? null : alpha,
-        'stroke-dasharray': parseLineType(linetype),
+        'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
     }
     if (d != null) {
         let transform = `translate(${x + translateX},${y + translateY})`
@@ -40,21 +41,12 @@ const binds = computed(() => {
     }
     return result
 })
-
-function parseLineType(linetype) {
-    if (linetype == null) return null
-    if (Array.isArray(linetype)) return linetype.join(' ')
-    if (linetype === 'solid') return null
-    if (linetype === 'dashed') return '4 4'
-    if (linetype === 'dotted') return '1 3'
-    if (linetype === 'dotdash') return '1 3 4 3'
-    if (linetype === 'longdash') return '8 4'
-    if (linetype === 'twodash') return '2 2 6 2'
-    if (linetype.includes(' ')) return linetype
-    return linetype.split('').map(v => +('0x' + v)).join(' ')
-}
 </script>
 <template>
-    <path v-if="binds.d" v-bind="binds" />
-    <circle v-else v-bind="binds" />
+    <path v-if="binds.d" v-bind="binds">
+        <title v-if="title">{{ title }}</title>
+    </path>
+    <circle v-else v-bind="binds">
+        <title v-if="title">{{ title }}</title>
+    </circle>
 </template>

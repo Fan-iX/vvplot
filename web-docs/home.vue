@@ -55,6 +55,7 @@ function exportPNG() {
 <template>
     <div class="flex flex-row">
         <VVPlot :data="iris" :width="600" :height="400" legend-teleport="#legend-1">
+            <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
             <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species" />
         </VVPlot>
         <div id="legend-1"></div>
@@ -63,6 +64,7 @@ function exportPNG() {
             <p>Result:</p>
             <div class="flex flex-row">
                 <VVPlot ref="plot" :data="iris" :width="600" :height="400" legend-teleport="#legend-1">
+                    <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
                         :shape="d => d.Species" />
                 </VVPlot>

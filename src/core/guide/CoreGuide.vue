@@ -33,10 +33,10 @@ const binds = computed(() => {
     let result = { scales: scales.map(([s]) => s) }
     if (type == "legendkey") {
         result.appearances = {
-            text: obj_merge(...scales.flatMap(([s, a]) => [a.text])),
+            text: obj_merge(...scales.flatMap(([s, a]) => [a.text, a.markdown])),
             line: obj_merge(...scales.flatMap(([s, a]) => [a.line, a.linerange, a.curve])),
             point: obj_merge(...scales.flatMap(([s, a]) => [a.point])),
-            tile: obj_merge(...scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon])),
+            tile: obj_merge(...scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon, a.ellipse])),
         }
     } else if (type == "gradientbar") {
         let max = scales.map(([s]) => s.limits?.max).filter(v => v != null).reduce((a, b) => Math.min(a, b), Infinity)

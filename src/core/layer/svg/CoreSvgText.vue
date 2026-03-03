@@ -20,7 +20,7 @@ const binds = computed(() => {
         'anchor-x': anchorX, 'anchor-y': anchorY,
         'dock-x': dockX, 'dock-y': dockY,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        angle, 'text-length': textLength, $raw
+        angle, 'text-length': textLength, 'font-family': fontFamily, 'text-anchor': textAnchor, $raw
     }) => {
         if (label == null) return null
         const { h: tx, v: ty } = coord2pos({ x, y })
@@ -35,7 +35,7 @@ const binds = computed(() => {
             x: tx, y: ty, text: String(label), title: String(title ?? label),
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
-            anchorX, anchorY, dockX, dockY, textLength,
+            anchorX, anchorY, dockX, dockY, textLength, fontFamily, textAnchor,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])

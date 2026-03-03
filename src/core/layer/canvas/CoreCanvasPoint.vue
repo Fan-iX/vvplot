@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
+import { parseLinetype } from '#base/js/utils'
 const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -34,7 +35,7 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             x, y, size = 6,
-            shape, color, stroke, linewidth, alpha,
+            shape, color, stroke, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             const { h: cx, v: cy } = coord2pos({ x, y })
@@ -62,6 +63,7 @@ const layerCanvas = computed(() => {
             }
             if (stroke != null) {
                 ctx.strokeStyle = stroke
+                ctx.setLineDash(parseLinetype(linetype))
                 ctx.stroke(path2d)
             }
         }

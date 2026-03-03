@@ -2,6 +2,7 @@
 import { computed, inject, useTemplateRef } from 'vue'
 import { oob_squish_any, emitEvent, dropNull } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
+import CoreMarkdown from '../element/CoreMarkdown.vue'
 const { coord, ticks, title, coord2pos, pos2coord, layout, theme, action, position, activeTransform, transition } = defineProps({
     coord: String,
     ticks: { type: Array, default: () => [] }, title: String,
@@ -40,7 +41,8 @@ const axisTitle = computed(() => {
         dockX, dockY,
         fontSize: theme.title_size,
         text: title,
-        'fill': theme.title_color,
+        fill: theme.title_color,
+        'font-family': "sans-serif",
         ...theme.title_style,
     }
 })
@@ -105,7 +107,9 @@ const tickTexts = computed(() => {
                 text: tick.label,
                 title: tick.title ?? tick.label,
                 fontSize: tick.size ?? theme.label_size,
-                'fill': tick.color ?? theme.label_color,
+                fill: tick.color ?? theme.label_color,
+                'font-family': "sans-serif",
+                ...theme.label_style,
             }
         })
     }
@@ -305,7 +309,8 @@ const axisVOn = {
         <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <g v-for="tick in tickTexts" v-bind="tick.wrapper">
-            <CoreText v-bind="tick.text" />
+            <CoreMarkdown v-bind="tick.text" v-if="theme.label_type == 'markdown'" />
+            <CoreText v-bind="tick.text" v-else />
         </g>
         <g class="vvplot-interactive" fill="transparent">
             <rect :width="10" :height="height" :x="-5" v-on="axisVOn"
@@ -316,6 +321,9 @@ const axisVOn = {
             <rect :width="10" :height="20" :x="-5" :y="height - 20" style="cursor:ns-resize;"
                 @pointerdown="axisRescaleBottomPointerdown" />
         </g>
-        <CoreText v-bind="axisTitle" v-if="axisTitle.text" />
+        <template v-if="axisTitle.text">
+            <CoreMarkdown v-bind="axisTitle" v-if="theme.title_type == 'markdown'" />
+            <CoreText v-bind="axisTitle" v-else />
+        </template>
     </g>
 </template>
