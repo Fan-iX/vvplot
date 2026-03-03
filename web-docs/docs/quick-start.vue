@@ -381,7 +381,7 @@ const render = ref('canvas')
             </p>
         </section>
         <section>
-            <h3><code>SVG</code> and <code>canvas</code> render mode</h3>
+            <h3><code>SVG</code> and <code>canvas</code> rendering mode</h3>
             <p>
                 Usually, VVPlot uses SVG to render plots.
             </p>
@@ -390,8 +390,8 @@ const render = ref('canvas')
                 SVG.
             </p>
             <p>
-                VVPlot automatically switches render mode to HTML5 Canvas when the number of geometric elements exceeds
-                a certain threshold (default: 1000) for each layer.
+                VVPlot automatically switches rendering mode to HTML5 Canvas when the number of geometric elements
+                exceeds a certain threshold (default: 1000) for each layer.
             </p>
             <p>
                 You can force rendering mode via the <code>render</code> layer property.
@@ -403,7 +403,7 @@ const render = ref('canvas')
                 </p>
             </blockquote>
             <label>
-                render mode:
+                rendering mode:
                 <select v-model="render">
                     <option value="canvas">Canvas</option>
                     <option value="svg">SVG</option>
