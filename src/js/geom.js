@@ -128,13 +128,13 @@ export default {
         },
         get_range(ds, orientation) {
             if (orientation == 'x') {
-                let xmin = (ds.x ?? []).map((v, i) => +v - (ds.width?.[i] ?? 0) / 2),
-                    xmax = (ds.x ?? []).map((v, i) => +v + (ds.width?.[i] ?? 0) / 2)
+                let xmin = vecutils.apply((v, l) => +v - l / 2, ds.x ?? [], ds.width ?? []),
+                    xmax = vecutils.apply((v, l) => +v + l / 2, ds.x ?? [], ds.width ?? [])
                 return xmin.concat(xmax)
             }
             if (orientation == 'y') {
-                let ymin = (ds.y ?? []).map((v, i) => +v - (ds.height?.[i] ?? 0) / 2),
-                    ymax = (ds.y ?? []).map((v, i) => +v + (ds.height?.[i] ?? 0) / 2)
+                let ymin = vecutils.apply((v, l) => +v - l / 2, ds.y ?? [], ds.height ?? []),
+                    ymax = vecutils.apply((v, l) => +v + l / 2, ds.y ?? [], ds.height ?? [])
                 return ymin.concat(ymax)
             }
         },
@@ -314,6 +314,31 @@ export default {
         },
         validate(d) {
             if ([d.$xmin, d.$xmax, d.$ymin, d.$ymax].some(v => isNaN(v))) return null
+            return d
+        }
+    },
+    ellipse: {
+        scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
+        coord_scale(ds, levels) {
+            let { A, B, C } = ds
+            let xnudge = ds.xnudge ?? 0,
+                ynudge = ds.ynudge ?? 0,
+                cx = psum(levels.x?.apply?.(ds.cx) ?? ds.cx, xnudge),
+                cy = psum(levels.y?.apply?.(ds.cy) ?? ds.cy, ynudge)
+            return { cx, cy, A, B, C }
+        },
+        get_range(ds, orientation) {
+            if (orientation == 'x') {
+                let dx = vecutils.apply((A, B, C) => Math.sqrt(C / (A * C - B * B)), ds.A ?? [], ds.B ?? [], ds.C ?? [])
+                return psum(ds.cx ?? [], dx).concat(psum(ds.cx ?? [], vecutils.opposite(dx)) ?? [])
+            }
+            if (orientation == 'y') {
+                let dy = vecutils.apply((A, B, C) => Math.sqrt(A / (A * C - B * B)), ds.A ?? [], ds.B ?? [], ds.C ?? [])
+                return psum(ds.cy ?? [], dy).concat(psum(ds.cy ?? [], vecutils.opposite(dy)) ?? [])
+            }
+        },
+        validate(d) {
+            if (isNaN(d.cx) || isNaN(d.cy) || isNaN(d.A) || isNaN(d.B) || isNaN(d.C) || !(d.A * d.C > d.B * d.B)) return null
             return d
         }
     },

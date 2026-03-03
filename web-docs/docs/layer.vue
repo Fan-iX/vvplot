@@ -140,6 +140,19 @@ const render = ref('svg')
                             <td><code>y</code></td>
                         </tr>
                         <tr>
+                            <td><code>&lt;VVGeomEllipse /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code>
+                            </td>
+                            <td>ellipse</td>
+                            <td>ellipse</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomEllipse :x="d => d.Petal_Length" :y="d => d.Petal_Width" :group="d => d.Species" :render />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
                             <td rowspan="2"><code>&lt;VVGeomHistogram /&gt;</code></td>
                             <td><code>x</code></td>
                             <td rowspan="2">rectangle</td>
@@ -811,7 +824,7 @@ const render = ref('svg')
                 <VVPlot :render :width="600" :height="400" resize>
                     <VVAxisY :levels="['title', 'alpha', 'translate-x', 'translate-y', 'xnudge', 'ynudge'].reverse()" />
                     <VVAxisX :levels="['point', 'line', 'rectangle', 'text']"
-                        :labels="['point', 'line', 'rectangle/\ncurve/polygon', 'text/\nmarkdown']"
+                        :labels="['point', 'line', 'rectangle/ellipse/\ncurve/polygon', 'text/\nmarkdown']"
                         :theme="{ label_type: 'markdown' }" />
                     <VVGeomPoint x="point" y="title" title="point" />
                     <VVGeomPoint x="point" y="alpha" :alpha="0.5" />

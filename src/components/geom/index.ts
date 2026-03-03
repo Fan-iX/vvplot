@@ -4,6 +4,7 @@ export { default as VVGeomBlank } from './GeomBlank.vue';
 export { default as VVGeomBoxplot } from './GeomBoxplot.vue';
 export { default as VVGeomCurve } from './GeomCurve.vue';
 export { default as VVGeomDensity } from './GeomDensity.vue';
+export { default as VVGeomEllipse } from './GeomEllipse.vue';
 export { default as VVGeomHistogram } from './GeomHistogram.vue';
 export { default as VVGeomLine } from './GeomLine.vue';
 export { default as VVGeomLinerange } from './GeomLinerange.vue';

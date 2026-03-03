@@ -1,6 +1,7 @@
 export { default as blank } from './CoreSvgBlank.vue'
 export { default as boxplot } from './CoreSvgBoxplot.vue'
 export { default as curve } from './CoreSvgCurve.vue'
+export { default as ellipse } from './CoreSvgEllipse.vue'
 export { default as line } from './CoreSvgLine.vue'
 export { default as markdown } from './CoreSvgMarkdown.vue'
 export { default as markdownsegment } from './CoreSvgMarkdownsegment.vue'
