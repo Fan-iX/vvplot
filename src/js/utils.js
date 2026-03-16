@@ -37,6 +37,15 @@ export class GEnumLevel extends Array {
         throw new Error(`Invalid level values: ${x}`)
     }
     /**
+     * Check if two GEnumLevel are equal, i.e. they have the same labels in the same order
+     * @param {string[]} level
+     */
+    static isEqual(a, b) {
+        if (a instanceof this && b instanceof this) {
+            return a.length === b.length && Array(a.length).fill().every((_, i) => a[i].label === b[i].label)
+        }
+    }
+    /**
      * build a GEnumLevel
      * @param {string[]} level
      */

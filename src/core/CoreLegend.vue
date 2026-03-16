@@ -1,21 +1,19 @@
 <script setup>
 import { computed } from 'vue'
-import { interaction } from '#base/js/utils'
+import { interaction, GEnumLevel } from '#base/js/utils'
 import CoreGuide from './guide/CoreGuide.vue'
 const { scales, theme } = defineProps({
     theme: { type: Object, default: () => ({}) },
     scales: Map,
 })
 const guides = computed(() => {
-    let guide_scales = new Map(
-        Array.from(scales).filter(([fn]) => fn.legend !== false)
-    )
+    let guide_scales = new Map(Array.from(scales).filter(([fn]) => fn.legend !== false))
     let scale_fns = Array.from(guide_scales.keys())
     let keys = scale_fns.map(s => s.key)
-    let j = 1
-    for (let i in keys) {
-        while (keys.includes("_guide_" + j)) j++
-        if (keys[i] == null) keys[i] = "_guide_" + j
+    let n = 1
+    for (let i = 0; i < keys.length; i++) {
+        while (keys.includes("_guide_" + n)) n++
+        keys[i] ??= keys.find((_, j) => keys[j] != null && GEnumLevel.isEqual(scale_fns[j].level, scale_fns[i].level)) ?? "_guide_" + n
     }
     let types = scale_fns.map(s => getGuideType(s))
     let groups = interaction(keys, types)
