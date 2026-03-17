@@ -300,19 +300,24 @@ function getPadding({ min: $min, max: $max } = {}, { min: mmin = 0, max: mmax = 
 
 function getCoord(event) {
     let rect = svgRef.value.getBoundingClientRect()
-    let l = Math.trunc(event.clientX) - (rect.left + panel.left + innerRect.left),
-        t = Math.trunc(event.clientY) - (rect.top + panel.top + innerRect.top),
-        r = rect.left + panel.left + innerRect.right - Math.trunc(event.clientX),
-        b = rect.top + panel.top + innerRect.bottom - Math.trunc(event.clientY)
+    let scaleX = rect.width / svgRef.value.clientWidth,
+        scaleY = rect.height / svgRef.value.clientHeight
+    let offsetX = event.clientX - rect.left, offsetY = event.clientY - rect.top
+    let l = offsetX / scaleX - (panel.left + innerRect.left),
+        t = offsetY / scaleY - (panel.top + innerRect.top),
+        r = (panel.left + innerRect.right) - offsetX / scaleX,
+        b = (panel.top + innerRect.bottom) - offsetY / scaleY
     let { x, y } = pos2coord({ h: l, v: t })
     return { l, t, r, b, x, y }
 }
 function isInPlot(event) {
     let rect = svgRef.value.getBoundingClientRect()
-    return event.clientX > rect.left + panel.l &&
-        event.clientX < rect.right - panel.r &&
-        event.clientY > rect.top + panel.t &&
-        event.clientY < rect.bottom - panel.b
+    let scaleX = rect.width / svgRef.value.clientWidth,
+        scaleY = rect.height / svgRef.value.clientHeight
+    return event.clientX - rect.left > panel.l * scaleX &&
+        rect.right - event.clientX > panel.r * scaleX &&
+        event.clientY - rect.top > panel.t * scaleY &&
+        rect.bottom - event.clientY > panel.b * scaleY
 }
 
 function dispatchPointerEvent(e) {
@@ -449,6 +454,9 @@ function svgPointerdown(e) {
     }
     let act = props.action.find(a => a.action == "move" && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
     if (act) {
+        let rect = svgRef.value.getBoundingClientRect()
+        let scaleX = rect.width / svgRef.value.clientWidth,
+            scaleY = rect.height / svgRef.value.clientHeight
         e.target.setPointerCapture(e.pointerId)
         svg.style.userSelect = 'none'
         moveTimer = clearTimeout(moveTimer)
@@ -461,13 +469,13 @@ function svgPointerdown(e) {
             let [h, v] = flip ? [y, x] : [x, y]
             if (h) {
                 movementX += ev.movementX
-                let dh = oob_squish_any(-movementX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
+                let dh = oob_squish_any(-movementX / scaleX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
                 h1 = hmin0 + dh
                 h2 = hmax0 + dh
             }
             if (v) {
                 movementY += ev.movementY
-                let dv = oob_squish_any(-movementY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
+                let dv = oob_squish_any(-movementY / scaleY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
                 v1 = vmin0 + dv
                 v2 = vmax0 + dv
             }

@@ -54,8 +54,8 @@ const layerCanvas = computed(() => {
         canvas.addEventListener(evt, function (e) {
             if (e._vhandled) return
             const rect = canvas.getBoundingClientRect()
-            const x = e.clientX - rect.left
-            const y = e.clientY - rect.top
+            const x = (e.clientX - rect.left) * canvas.width / rect.width
+            const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
                     emit(evt, e, getCoord(e), data)
