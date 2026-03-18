@@ -14,7 +14,7 @@ const guide = {
     gradientbar: CoreGuideGradientbar,
 }
 const title = computed(() => {
-    return scales.map(([s]) => s.title).find(v => v != null)
+    return scales.reduce((v, [s]) => v ?? s.title, null) ?? scales.reduce((v, [s]) => v ?? s._title, null)
 })
 const breaks = computed(() => {
     let scale_funcs = scales.map(([s]) => s)

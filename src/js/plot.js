@@ -9,6 +9,12 @@ function object_map(obj, expr) {
     if (obj == null) return {}
     return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, expr(k, v)]))
 }
+function is_categorical(v) {
+    return typeof v === 'string' ||
+        typeof v === 'boolean' ||
+        typeof v === 'symbol' ||
+        typeof v === 'object' && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
+}
 
 /**
  * Graphic Layer object
@@ -68,9 +74,9 @@ class GLayer {
         if ($$data == null) $$data = $data
         $$aes = { ...$aes, ...$$aes }
         let data = {}
-        let fns = {} // function names for legend titles
+        this.$fnames = {} // function names for legend titles
         for (const aes in $$aes) {
-            fns[aes] = String($$aes[aes])
+            this.$fnames[aes] = String($$aes[aes])
             data[aes] = $$data.map($$aes[aes])
         }
         data.$raw = $$data
@@ -119,21 +125,18 @@ class GLayer {
         ])
 
         this.$data = data
-        this.$fns = fns
         this.data = { ...data }
         for (const aes in data) {
             if ($$scales[aes] != null) {
                 let scale = new Scale($$scales[aes])
                 scale.aesthetics = aes
-                if (scale.title === undefined) {
-                    scale.title = fns[aes]
-                }
+                scale._title = this.$fnames[aes]
                 let values = this.$data[aes]
                 if (!values?.length) continue
                 if (!scale.asis) {
                     if ($$levels?.[aes] != null) {
                         scale.level = $$levels[aes]
-                    } else if (values.some(v => typeof v === 'string')) {
+                    } else if (values.some(is_categorical)) {
                         scale.level = GEnumLevel.from(values)
                     } else {
                         scale.extent = numutils.extent(values)
@@ -208,15 +211,13 @@ export class GPlot {
                 if (!scale.asis) {
                     if (levels?.[aes] != null) {
                         scale.level = levels[aes]
-                    } else if (values.some(v => typeof v === 'string')) {
+                    } else if (values.some(is_categorical)) {
                         scale.level = GEnumLevel.from(values)
                     } else {
                         scale.extent = numutils.extent(values)
                     }
                 }
-                if (scale.title == null) {
-                    scale.title = this.layers.map(layer => layer.$fns?.[aes]).find(s => s != null)
-                }
+                scale._title = this.layers.reduce((v, layer) => v ?? layer.$fnames?.[aes], null)
                 for (const layer of this.layers) {
                     if (!layer.localScales.has(aes)) {
                         layer.applyScale(aes, scale)
@@ -252,7 +253,7 @@ export class GPlot {
                     let fn = vvgeom[layer.geom].get_values ?? vvgeom[layer.geom].get_range
                     return fn?.(layer.$data, aes)
                 })
-                if (values.some(v => typeof v === 'string')) {
+                if (values.some(is_categorical)) {
                     this.levels[aes] = GEnumLevel.from(values)
                 } else {
                     values = this.layers.flatMap(layer => vvgeom[layer.geom].get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
@@ -372,6 +373,9 @@ export class Scale extends Function {
         let min = this.$limits?.min ?? (this.level ? 0 : this._limits?.min),
             max = this.$limits?.max ?? this.level?.length ?? this._limits?.max
         return { 0: min, 1: max, length: 2, min, max }
+    }
+    toString() {
+        return this.title ?? String(this._fn)
     }
 }
 
