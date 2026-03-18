@@ -16,17 +16,24 @@ const guide_breaks = computed(() => {
     }))
     let binds = categorize(keys.map(v => v.bind))
     let group = Map.groupBy(keys.map(v => v.label), (v, i) => binds.categories[binds[i]])
-    return Array.from(group).map(([bind, labels]) => ({
-        bind, label: labels.join('; ')
-    }))
+
+    return Array.from(group).map(([$bind, labels]) => {
+        let bind = { tile: {}, line: {}, point: {}, text: {} }
+        for (let geom in bind) {
+            for (let prop of Object.keys(element[geom].props)) {
+                if ($bind[prop]) bind[geom][prop] = $bind[prop]
+            }
+        }
+        return { bind, label: labels.join('; ') }
+    })
 })
 const geoms = computed(() => {
     let { text, line, point, tile } = appearances
     let result = {}
-    if (text != null) result.text = { size: 4, text: 'a', ...text }
+    if (tile != null) result.tile = { width: 10, height: 10, fill: 'transparent', ...tile }
     if (line != null) result.line = { x1: -5, x2: 5, color: 'black', ...line }
     if (point != null) result.point = { size: 6, ...point }
-    if (tile != null) result.tile = { width: 10, height: 10, fill: 'transparent', ...tile }
+    if (text != null) result.text = { size: 4, text: 'a', ...text }
     return result
 })
 const width = ref(0)
@@ -42,7 +49,7 @@ watch(guide_breaks, async () => {
     <svg :height="guide_breaks.length * 20" :width="width" ref="svg">
         <g v-for="v, i in guide_breaks" :transform="`translate(0, ${i * 20})`">
             <g :transform="`translate(10, 10)`">
-                <component :is="element[geom]" v-for="bind, geom in geoms" v-bind="{ ...bind, ...v.bind }" />
+                <component :is="element[geom]" v-for="bind, geom in geoms" v-bind="{ ...bind, ...v.bind[geom] }" />
             </g>
             <text x="20" y="10" alignment-baseline="central">{{ v.label }}</text>
         </g>
