@@ -47,4 +47,4 @@ export default Object.assign(function (data, { }) {
         result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
     }
     return result
-}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] })
+}, { core_attrs: ['x', 'y', 'width', 'height', 'xnudge', 'ynudge'] })
