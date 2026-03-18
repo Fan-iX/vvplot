@@ -119,8 +119,10 @@ const tickTexts = computed(() => {
 const iRef = useTemplateRef("i")
 function getPosition(event) {
     let rect = iRef.value.getBoundingClientRect()
-    let l = Math.trunc(event.clientX) - rect.left - layout.left,
-        r = rect.left + layout.left + layout.width - Math.trunc(event.clientX)
+    let scaleX = rect.width / iRef.value.getBBox().width
+    let offsetX = event.clientX - rect.left
+    let l = offsetX / scaleX - layout.left,
+        r = layout.left + layout.width - offsetX / scaleX
     let result = { l, r }
     let { x, y } = pos2coord({ h: l })
     if (x) result.x = x
@@ -159,11 +161,13 @@ function axisMovePointerdown(e) {
     moveTimer = clearTimeout(moveTimer)
     let hmin0 = 0, hmax0 = layout.width
     let boundary = coord2pos(act)
+    let rect = iRef.value.getBoundingClientRect()
+    let scaleX = rect.width / iRef.value.getBBox().width
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         movementX += ev.movementX
         if (!pointerMoved) return
-        let dh = oob_squish_any(-movementX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
+        let dh = oob_squish_any(-movementX / scaleX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
         let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: hmin0 + dh, hmax: hmax0 + dh })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
@@ -191,12 +195,14 @@ function axisRescaleLeftPointerdown(e) {
         min: coord2pos(act).hmin,
         max: coord2pos({ hmin: coord0.hmax - mrh, hmax: coord0.hmin + mrh }).hmin,
     }
+    let rect = iRef.value.getBoundingClientRect()
+    let scaleX = rect.width / iRef.value.getBBox().width
     let movementX = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         movementX += ev.movementX
         let { xmin, xmax, ymin, ymax } = pos2coord({
-            hmin: oob_squish_any(hmax - (hmax - hmin) * position.r / Math.max(position.r - movementX, 1), boundary),
+            hmin: oob_squish_any(hmax - (hmax - hmin) * position.r / Math.max(position.r - movementX / scaleX, 1), boundary),
             hmax,
         })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
@@ -220,6 +226,8 @@ function axisRescaleRightPointerdown(e) {
         min: coord2pos({ hmin: coord0.hmax - mrh, hmax: coord0.hmin + mrh }).hmax,
         max: coord2pos(act).hmax,
     }
+    let rect = iRef.value.getBoundingClientRect()
+    let scaleX = rect.width / iRef.value.getBBox().width
     let movementX = 0
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {

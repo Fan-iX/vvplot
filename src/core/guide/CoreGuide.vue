@@ -14,7 +14,7 @@ const guide = {
     gradientbar: CoreGuideGradientbar,
 }
 const title = computed(() => {
-    return scales.map(([s]) => s.title).find(v => v != null)
+    return scales.reduce((v, [s]) => v ?? s.title, null) ?? scales.reduce((v, [s]) => v ?? s._title, null)
 })
 const breaks = computed(() => {
     let scale_funcs = scales.map(([s]) => s)
@@ -33,10 +33,10 @@ const binds = computed(() => {
     let result = { scales: scales.map(([s]) => s) }
     if (type == "legendkey") {
         result.appearances = {
-            text: obj_merge(...scales.flatMap(([s, a]) => [a.text, a.markdown])),
+            tile: obj_merge(...scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon, a.ellipse])),
             line: obj_merge(...scales.flatMap(([s, a]) => [a.line, a.linerange, a.curve])),
             point: obj_merge(...scales.flatMap(([s, a]) => [a.point])),
-            tile: obj_merge(...scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon, a.ellipse])),
+            text: obj_merge(...scales.flatMap(([s, a]) => [a.text, a.markdown])),
         }
     } else if (type == "gradientbar") {
         let max = scales.map(([s]) => s.limits?.max).filter(v => v != null).reduce((a, b) => Math.min(a, b), Infinity)

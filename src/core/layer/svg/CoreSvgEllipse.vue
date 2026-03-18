@@ -32,8 +32,8 @@ const binds = computed(() => {
         const disc = Math.sqrt(Math.max(0, tr * tr / 4 - det))
         let vbind = {
             cx: ch, cy: cv,
-            rx: 1 / Math.sqrt(tr / 2 + disc), ry: 1 / Math.sqrt(tr / 2 - disc),
-            angle: -Math.atan2(2 * B, A - C) / 2 * 180 / Math.PI,
+            rx: 1 / Math.sqrt(tr / 2 + disc) || 0, ry: 1 / Math.sqrt(tr / 2 - disc) || 0,
+            angle: -Math.atan2(2 * B, A - C) / 2 * 180 / Math.PI || 0,
             fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
         }

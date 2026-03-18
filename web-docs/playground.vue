@@ -1,6 +1,6 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed } from 'vue'
-import { useTextareaAutosize, asyncComputed, useStorage } from '@vueuse/core'
+import { useTextareaAutosize, asyncComputed } from '@vueuse/core'
 
 function read_table(text, { header = true, sep = ',' } = {}) {
     function parse_value(v) {
@@ -225,13 +225,15 @@ onMounted(() => { useData('iris') })
 </script>
 
 <template>
-    <div class="grid grid-cols-2 grid-rows-3 grid-flow-col overflow-auto flex-1 gap-2 p-2">
-        <div class="flex flex-col border">
-            <h4>1. data</h4>
+    <div
+        class="grid grid-cols-2 grid-rows-3 grid-flow-col overflow-auto flex-1 gap-2 p-2 [&>div]:overflow-auto [&>div]:border playground">
+        <div class="flex flex-col">
+            <h2>1. data</h2>
             <label><input type="radio" name="data-input-mode" value="file" v-model="dataInputMode"> file</label>
             <div class="flex flex-row justify-between whitespace-nowrap">
                 <input type="file" ref="file-input" @change="fileChanged" class="cursor-pointer">
-                <button @click="previewFile" class="cursor-pointer">preview file content</button>
+                <button @click="previewFile" class="cursor-pointer" v-if="dataInputMode == 'file'">preview file
+                    content</button>
             </div>
             <div v-if="dataInputMode == 'file'">
                 presets:
@@ -245,8 +247,8 @@ onMounted(() => { useData('iris') })
             <textarea v-model="textInput" @blur="textBlur"
                 class="border-2 border-[#cccccc] rounded-lg flex-1 resize-none"></textarea>
         </div>
-        <div class="flex flex-col border">
-            <h4>2. preprocess</h4>
+        <div class="flex flex-col">
+            <h2>2. preprocess</h2>
             <pre class="w-full h-full font-mono leading-none flex-1 flex flex-col">async function(text) {
 <textarea v-model="preprocessFunc" class="ml-[4ch] resize-none overflow-x flex-1"></textarea>}</pre>
             <div class="flex flex-row justify-between whitespace-nowrap">
@@ -254,26 +256,26 @@ onMounted(() => { useData('iris') })
                 <button @click="previewData" class="cursor-pointer">preview processed data</button>
             </div>
         </div>
-        <div class="flex flex-col border">
-            <h4>3. plot definition</h4>
-            <pre class="w-full h-full font-mono leading-none flex flex-col">&lt;VVPlot :data="data"
+        <div class="flex flex-col overflow-none">
+            <h2>3. plot definition</h2>
+            <pre class="w-full flex-1 font-mono leading-none flex flex-col">&lt;VVPlot :data="data"
 <textarea ref="attrsTextarea" v-model="attrsText" class="ml-[2ch] resize-none"></textarea>
 <textarea class="ml-[4ch] flex-1 resize-none overflow-auto" v-model="templateText"></textarea>&lt;/VVPlot&gt;</pre>
         </div>
-        <div class="border overflow-auto row-span-2">
+        <div class="row-span-2">
             <div id="plot"></div>
         </div>
-        <div class="border flex flex-col">
+        <div class="flex flex-col">
             <div>
-                <button @click="buildPlot">refresh plot</button>
+                <button @click="buildPlot">reset plot</button>
                 <button @click="exportSVG">download as SVG</button>
                 <button @click="exportPNG">download as PNG</button>
             </div>
         </div>
     </div>
-    <dialog ref="dialog" class="w-2/3 h-2/3 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+    <dialog ref="dialog" class="w-2/3 h-2/3 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 playground-dialog">
         <div class="flex flex-col overflow-auto h-full p-4">
-            <h4>data</h4>
+            <h2>data</h2>
             <div v-if="dialogContentColumns?.length" class="overflow-auto font-mono">
                 <table
                     class="whitespace-nowrap w-full [&_th,&_td]:p-1 [&_th,&_td]:text-center [&_td]:shadow-[-0.5px_-0.5px_0_0_black,_-0.5px_-0.5px_0_0_black_inset] [&_th]:sticky [&_th]:bg-white">
@@ -302,8 +304,26 @@ onMounted(() => { useData('iris') })
             </div>
             <pre v-else class="overflow-auto flex-1 whitespace-pre-wrap">{{ dialogContent }}</pre>
             <div>
-                <button @click="closeDialog">close</button>
+                <button @click="closeDialog" class="float-right">close</button>
             </div>
         </div>
     </dialog>
 </template>
+<style>
+.playground,
+.playground-dialog {
+    h2 {
+        font-weight: bold;
+        font-size: large;
+    }
+
+    button {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 2px 4px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: small;
+    }
+}
+</style>

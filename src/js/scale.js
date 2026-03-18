@@ -76,7 +76,7 @@ function disable_scale({ title, ...etc } = {}) {
 }
 
 function palette_scale_hue({
-    h = [15, 375], c = 100, l = 65, h_start = 0,
+    h = [15, 375], c = 100, l = 65, h_start = 0, alpha = 1,
     direction = 1,
     limits, oob = oob_censor,
     na_value = "#7f7f7f", null_value = null,
@@ -92,7 +92,7 @@ function palette_scale_hue({
             v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
             if (isNaN(v)) return na_value
-            return d3.hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l).toString()
+            return d3.hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l, alpha).toString()
         })
     }
     return Object.assign(fn, { title, limits, oob }, etc)
@@ -185,10 +185,11 @@ function palette_scale_gradientn({
 }
 
 function palette_scale_auto({
+    alpha,
     limits, oob = oob_censor,
     title, ...etc
 } = {}) {
-    let scale_hue = palette_scale_hue(),
+    let scale_hue = palette_scale_hue({ alpha }),
         scale_gradient = palette_scale_gradient()
     let fn = function (arr) {
         if (arr.level != null) {
@@ -201,12 +202,10 @@ function palette_scale_auto({
 }
 
 function palette_scale_dynamic({
-    discrete, continuous,
+    discrete = palette_scale_hue(), continuous = palette_scale_gradient(),
     limits, oob = oob_censor,
     title, ...etc
 } = {}) {
-    discrete ??= palette_scale_hue()
-    continuous ??= palette_scale_gradient()
     let fn = function (arr) {
         if (arr.level != null) {
             return discrete.call(this, arr)

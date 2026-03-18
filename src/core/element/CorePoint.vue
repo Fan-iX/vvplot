@@ -31,10 +31,11 @@ const binds = computed(() => {
         'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
     }
     if (d != null) {
-        let transform = `translate(${x + translateX},${y + translateY})`
-        if (size != 1) transform += `scale(${size})`
-        if (angle) transform += `rotate(${angle})`
-        Object.assign(result, { d, transform })
+        let transform = [], tslX = x + translateX, tslY = y + translateY
+        if (tslX !== 0 || tslY !== 0) transform.push(`translate(${tslX},${tslY})`)
+        if (size != 1) transform.push(`scale(${size})`)
+        if (angle) transform.push(`rotate(${angle})`)
+        Object.assign(result, { d, transform: transform.join(' ') || null })
     } else {
         let transform = (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null
         Object.assign(result, { cx: x, cy: y, r: size / 2, transform })
