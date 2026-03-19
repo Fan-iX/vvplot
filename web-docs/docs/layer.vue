@@ -148,7 +148,8 @@ const render = ref('svg')
                             <td>ellipse</td>
                             <td>
                                 <VVPlot :data="iris">
-                                    <VVGeomEllipse :x="d => d.Petal_Length" :y="d => d.Petal_Width" :group="d => d.Species" :render />
+                                    <VVGeomEllipse :x="d => d.Petal_Length" :y="d => d.Petal_Width"
+                                        :group="d => d.Species" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -721,8 +722,8 @@ const render = ref('svg')
                                         label="<font color='blue'>**mark**</font><sub>*down*</sub>" y="pre" :inset="5"
                                         text-align="pre" title="text-align='pre'" />
                                     <VVGeomMarkdownsegment x="start" xend="end"
-                                        label="<font color='blue'>**mark**</font><sub>*down*</sub>" y="start"
-                                        :inset="5" text-align="start" title="text-align='start'" />
+                                        label="<font color='blue'>**mark**</font><sub>*down*</sub>" y="start" :inset="5"
+                                        text-align="start" title="text-align='start'" />
                                     <VVGeomMarkdownsegment x="start" xend="end"
                                         label="<font color='blue'>**mark**</font><sub>*down*</sub>" y="center"
                                         text-align="center" title="text-align='center'" />
@@ -852,6 +853,49 @@ const render = ref('svg')
                     <VVGeomText x="text" label="text" y="ynudge" :ynudge="0.1" />
                 </VVPlot>
             </div>
+            <h4>Class and style forwarding</h4>
+            <p>
+                Mordern browsers support styling SVG elements with CSS, which allows for more flexible and powerful
+                styling options.
+            </p>
+            <p>
+                In VVPlot, you can pass CSS classes and styles to geometric elements with the following component
+                properties:
+            </p>
+            <ul>
+                <li>
+                    The <code>class</code> and <code>style</code> attributes will be directly forwarded to the SVG
+                    layer.
+                </li>
+                <li>
+                    The <code>group-class</code> and <code>group-style</code> attributes will be applied to geometric
+                    groups (defined by the <code>group</code> aesthetic).
+                </li>
+                <li>
+                    The <code>item-class</code> and <code>item-style</code> will be applied to individual geometric
+                    elements.
+                </li>
+            </ul>
+            <hr>
+            <pre-highlight lang="html">{{`<VVPlot ref="plot" :data="iris" :width="600" :height="400">
+    <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+        item-style="fill: currentColor; fill-opacity: 0.2;" />
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+        :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
+        class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
+</VVPlot>` }}</pre-highlight>
+            <blockquote class="tip">
+                <p>
+                    Hover over the points to see the style.
+                </p>
+            </blockquote>
+            <VVPlot ref="plot" :data="iris" :width="600" :height="400">
+                <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                    item-style="fill: currentColor; fill-opacity: 0.2;" />
+                <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                    :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
+                    class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
+            </VVPlot>
         </section>
     </article>
 </template>

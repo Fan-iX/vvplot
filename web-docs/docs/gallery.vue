@@ -33,7 +33,8 @@ const vBind = {
             <h2>Gallery</h2>
             <pre-highlight lang="html">{{templates[1] = `<VVPlot :data="mtcars">
     <VVGeomPoint :x="d => d.wt" :y="d => d.mpg" shape="triangle" />
-    <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15" :anchor-x="0" :anchor-y="0.5" :translate-x="6" :translate-y="-2" />
+    <VVGeomText :x="d => d.wt" :y="d => d.mpg" :label="d => d.model" :alpha="0.5" :angle="-15"
+        :anchor-x="0" :anchor-y="0.5" :translate-x="6" :translate-y="-2" />
     <VVGeomSegment :x="d => d.x1" :y="d => d.y1" :xend="d => d.x2" :yend="d => d.y2"
         :data="[{ x1: 2.62, x2: 3.57, y1: 21, y2: 15 }]" color="red" linetype="dashed" />
 </VVPlot>`}}</pre-highlight>
@@ -55,8 +56,9 @@ const vBind = {
             <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="economics" legend-teleport="#legend-3">
     <VVAxisX title="unemployment rate" />
     <VVAxisY title="personal savings rate" />
-    <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert" :color="(d, i) => i" :linewidth="d => d.pop" linetype="22"
-        :scales="{ color: vvscale.color.hue({ guide: 'legendkey', key: 'pop' }), linetype: vvscale.linetype.default({ key: 'pop' }) }" />
+    <VVGeomPath :x="d => d.unemploy / d.pop" :y="d => d.psavert"
+        :color="(d, i) => i" :linewidth="d => d.pop" linetype="22"
+        :scales="{ color: vvscale.color.hue({ guide: 'legendkey' }) }" />
 </VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -65,7 +67,8 @@ const vBind = {
             <hr>
             <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="letters" legend-teleport="#legend-4">
     <VVAxisY :min="0" :expand-mult="0" />
-    <VVGeomBar :x="d => d" :fill="d => d" :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
+    <VVGeomBar :x="d => d" :fill="d => d"
+        :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
 </VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -73,10 +76,9 @@ const vBind = {
             </div>
             <hr>
             <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="iris" legend-teleport="#legend-5">
-    <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" :alpha="0.5" 
-        :scales="{ color: vvscale.color.hue({ l: 45, key: 'Species' }), fill: vvscale.fill.default({ key: 'Species' }) }" />
-    <VVGeomDensity :x="d => d.Petal_Width" :color="d => d.Species"
-        :scales="{ color: vvscale.fill.default({ key: 'Species' }) }" />
+    <VVGeomHistogram :x="d => d.Petal_Width" :color="d => d.Species" :fill="d => d.Species" 
+        :scales="{ color: vvscale.color.hue({ l: 45 }) }" :alpha="0.5" />
+    <VVGeomDensity :x="d => d.Petal_Width" :color="d => d.Species" />
 </VVPlot>`}}</pre-highlight>
             <div class="flex flex-row">
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
@@ -112,8 +114,9 @@ const vBind = {
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
     </VVAxisX>
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" :shape="d => d.Species"
-         :scales="{ color: vvscale.color.default({ key: 'Species' }), shape: vvscale.shape.default({ key: 'Species' }) }" />
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
+        :color="d => d.Species" :shape="d => d.Species" :group="d => d.Species"
+        class="stroke-current stroke-[0.2]" group-class="hover:stroke-[black]" />
     <VVSelection x />
     <VVAction nudge shift />
     <VVAction :move="{ button: 'right' }" :xmin="-2" :xmax="10" :ymin="-2" />
