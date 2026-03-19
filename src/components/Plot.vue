@@ -208,7 +208,7 @@ const layers = computed(() => {
                     aes[key] = etc[key]
                 }
             } else {
-                if (['class', 'style', 'render'].includes(key)) {
+                if (['class', 'style', 'group-class', 'group-style', 'render'].includes(key)) {
                     vBind[key] = etc[key]
                 } else if (["item-class", "item-style"].includes(key)) {
                     attrs[key.slice(5)] = etc[key]
