@@ -56,6 +56,7 @@ const binds = computed(() => {
     }
     return {
         x, y,
+        color: color || null,
         fill: color || null,
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: stroke || null,

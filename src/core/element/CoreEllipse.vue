@@ -20,6 +20,7 @@ const binds = computed(() => {
     if (angle) transform.push(`rotate(${angle})`)
     return {
         cx, cy, rx, ry,
+        color: color || null,
         fill: fill || null,
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: color || null,

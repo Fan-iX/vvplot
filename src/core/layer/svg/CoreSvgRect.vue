@@ -17,7 +17,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         xmin, xmax, ymin, ymax,
         fill = 'black', color, linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
         if (
@@ -29,6 +30,7 @@ const binds = computed(() => {
             y: (y1 + y2) / 2, height: y2 - y1,
             fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])

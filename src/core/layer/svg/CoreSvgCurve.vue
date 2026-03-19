@@ -16,7 +16,8 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         points, fill = "none", color = 'black', linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw,
         interpolate,
     }) => {
         points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
@@ -26,7 +27,8 @@ const binds = computed(() => {
         ) return null
         let vbind = {
             points, fill, color, linetype, linewidth, alpha, title,
-            translateX, translateY, interpolate,
+            translateX, translateY,
+            class: className, style, interpolate,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])

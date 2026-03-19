@@ -22,7 +22,7 @@ const binds = computed(() => {
         'dock-x': dockX, 'dock-y': dockY,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-anchor': textAnchor,
-        $raw
+        class: className, style, $raw
     }) => {
         if (label == null) return null
         const { h: tx, v: ty } = coord2pos({ x, y })
@@ -37,6 +37,7 @@ const binds = computed(() => {
             x: tx, y: ty, text: String(label), title: String(title ?? label),
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
+            class: className, style,
             anchorX, anchorY, dockX, dockY,
             textLength, fontFamily, textAnchor,
         }

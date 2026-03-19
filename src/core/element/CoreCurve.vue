@@ -17,7 +17,9 @@ const binds = computed(() => {
     let interpolatorFn = interpolators[interpolate] ?? d3.curveNatural
     return {
         d: d3.line().curve(interpolatorFn)(points.map(p => [p.x, p.y])),
+        color: color || null,
         fill: fill || null,
+        'fill-opacity': alpha == 1 ? null : alpha,
         stroke: color || null,
         'stroke-width': linewidth,
         'stroke-opacity': alpha == 1 ? null : alpha,

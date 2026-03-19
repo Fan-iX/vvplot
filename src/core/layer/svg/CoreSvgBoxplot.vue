@@ -21,7 +21,8 @@ const binds = computed(() => {
         lwisker, Q1, median, Q3, uwisker, outliers,
         $xmin, $xmax, $ymin, $ymax,
         fill = 'white', color = "black", linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax })
         if (
@@ -43,32 +44,38 @@ const binds = computed(() => {
                 y: (ry1 + ry2) / 2, height: ry2 - ry1,
                 fill, color, linetype, linewidth, alpha, title,
                 translateX, translateY,
+                class: className, style,
             },
             line: {
                 x1: lx1, y1: ly1, x2: lx2, y2: ly2,
                 color, linetype, linewidth, alpha,
                 translateX, translateY,
+                class: className, style,
             },
             midline: {
                 x1: mx1, y1: my1, x2: mx2, y2: my2,
                 color, linetype, linewidth: (linewidth ?? 1) * 2, alpha,
                 translateX, translateY,
+                class: className, style,
             },
             uwisker: {
                 x1: uwx1, y1: uwy1, x2: uwx2, y2: uwy2,
                 color, linetype, linewidth, alpha,
                 translateX, translateY,
+                class: className, style,
             },
             lwisker: {
                 x1: lwx1, y1: lwy1, x2: lwx2, y2: lwy2,
                 color, linetype, linewidth, alpha,
                 translateX, translateY,
+                class: className, style,
             },
             outliers: outliers?.map(({ x, y, $raw }) => {
                 const { h: cx, v: cy } = coord2pos({ x, y })
                 let vbind = {
                     x: cx, y: cy, shape: 'circle', size: 4, color, alpha,
                     translateX, translateY,
+                    class: className, style,
                 }
                 let von = Object.fromEntries(
                     events.map(evt => [evt, (e) => emit(evt, e, $raw)])

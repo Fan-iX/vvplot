@@ -202,10 +202,16 @@ const layers = computed(() => {
             } else if (key.startsWith('on')) {
                 vBind[key] = etc[key]
             } else if (typeof etc[key] === 'function') {
-                aes[key] = etc[key]
+                if (["item-class", "item-style"].includes(key)) {
+                    aes[key.slice(5)] = etc[key]
+                } else {
+                    aes[key] = etc[key]
+                }
             } else {
-                if (["class", 'style', 'render'].includes(key)) {
+                if (['class', 'style', 'render'].includes(key)) {
                     vBind[key] = etc[key]
+                } else if (["item-class", "item-style"].includes(key)) {
+                    attrs[key.slice(5)] = etc[key]
                 } else {
                     attrs[key] = etc[key]
                 }

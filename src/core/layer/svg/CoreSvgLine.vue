@@ -17,7 +17,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         x, y, xend, yend,
         color = 'black', linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
         const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
@@ -28,6 +29,7 @@ const binds = computed(() => {
         let vbind = {
             x1, x2, y1, y2, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])

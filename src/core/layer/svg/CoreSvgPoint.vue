@@ -4,7 +4,7 @@ import CorePoint from '../../element/CorePoint.vue'
 const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -17,7 +17,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         x, y, shape, size = 6,
         color, stroke, linetype, linewidth, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle,
+        class: className, style, $raw
     }) => {
         const { h: cx, v: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
@@ -25,6 +26,7 @@ const binds = computed(() => {
             x: cx, y: cy, shape, size,
             color, stroke, linetype, linewidth, alpha, title,
             angle, translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])

@@ -23,6 +23,7 @@ const paths = {
 const binds = computed(() => {
     let d = shape?.startsWith?.("path:") ? shape?.slice?.(5) : paths[shape]
     let result = {
+        color: color || null,
         fill: color || null,
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: stroke || null,

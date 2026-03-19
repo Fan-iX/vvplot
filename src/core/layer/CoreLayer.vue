@@ -1,5 +1,5 @@
 <script setup>
-import { computed, useTemplateRef } from 'vue'
+import { computed, useAttrs, useTemplateRef } from 'vue'
 const { data, geom, render: $render, defaultRender: $$render } = defineProps({
     data: Object, geom: String, render: String,
     defaultRender: { type: String, default: "auto" },
