@@ -1,6 +1,10 @@
 name: Deploy
 
 on:
+  workflow_run:
+    workflows: ["Demo Sync"]
+    types:
+      - completed
   push:
     branches:
       - demo

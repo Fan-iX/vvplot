@@ -1,0 +1,27 @@
+name: Demo Sync
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  merge-to-demo:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into demo
+        run: |
+          git checkout demo
+          git merge origin/main --no-ff -m "Merge main to demo for release ${{ github.event.release.tag_name }}"
+          git push origin demo
