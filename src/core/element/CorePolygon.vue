@@ -14,6 +14,7 @@ const {
 const binds = computed(() => {
     return {
         points: points.map(p => `${p.x},${p.y}`).join(' '),
+        color: color || null,
         fill: fill || null,
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: color || null,

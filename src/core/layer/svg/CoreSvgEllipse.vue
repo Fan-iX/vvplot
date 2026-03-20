@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import CoreEllipse from '../../element/CoreEllipse.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -17,7 +18,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         cx, cy, A, B, C,
         fill = "none", color = 'black', linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         let dx = Math.sqrt(C / (A * C - B * B)),
             dy = Math.sqrt(A / (A * C - B * B))
@@ -36,6 +38,7 @@ const binds = computed(() => {
             angle: -Math.atan2(2 * B, A - C) / 2 * 180 / Math.PI || 0,
             fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
@@ -46,7 +49,7 @@ const binds = computed(() => {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CoreEllipse v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>

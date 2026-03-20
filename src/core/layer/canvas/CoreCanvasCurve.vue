@@ -35,7 +35,7 @@ const layerCanvas = computed(() => {
             points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
             if (points.length === 0) continue
             const path2d = new Path2D()
-            let interpolatorFn = interpolators[interpolate] ?? d3.curveNatural
+            let interpolatorFn = typeof interpolate == "function" ? interpolate : interpolators[interpolate] ?? d3.curveNatural
             let interpolator = interpolatorFn(path2d)
             interpolator.lineStart()
             for (let i = 0; i < points.length; i++) {

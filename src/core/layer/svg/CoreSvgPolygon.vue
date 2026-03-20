@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import CorePolygon from '../../element/CorePolygon.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -16,7 +17,8 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         points, fill, color, linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
         if (
@@ -26,6 +28,7 @@ const binds = computed(() => {
         let vbind = {
             points, fill, color, linewidth, linetype, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
@@ -36,7 +39,7 @@ const binds = computed(() => {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CorePolygon v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>

@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import { Parser as MarkdownParser, HtmlRenderer } from 'commonmark'
 import CoreMarkdown from '../../element/CoreMarkdown.vue';
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -22,7 +23,7 @@ const binds = computed(() => {
         'dock-x': dockX, 'dock-y': dockY,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-anchor': textAnchor,
-        $raw
+        class: className, style, $raw
     }) => {
         if (label == null) return null
         const { h: tx, v: ty } = coord2pos({ x, y })
@@ -37,6 +38,7 @@ const binds = computed(() => {
             x: tx, y: ty, text: String(label), title: String(title ?? label),
             size, color, stroke, linetype, linewidth, alpha,
             angle, translateX, translateY,
+            class: className, style,
             anchorX, anchorY, dockX, dockY,
             textLength, fontFamily, textAnchor,
         }
@@ -49,7 +51,7 @@ const binds = computed(() => {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CoreMarkdown v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>

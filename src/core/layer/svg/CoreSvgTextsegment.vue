@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import { parseLinetype } from '#base/js/utils'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -19,7 +20,7 @@ const binds = computed(() => {
         color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto', inset = 0,
-        $raw
+        class: className, style, $raw
     }) => {
         if (label == null) return null
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
@@ -29,14 +30,16 @@ const binds = computed(() => {
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
         let vbind = {
-            fill: color,
+            color: color || null,
+            fill: color || null,
+            'fill-opacity': alpha == 1 ? null : alpha,
             'font-size': size * 4,
-            stroke: stroke,
+            stroke: stroke || null,
             'stroke-width': linewidth,
             'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
-            'fill-opacity': alpha,
-            'stroke-opacity': alpha,
+            'stroke-opacity': alpha == 1 ? null : alpha,
             'font-family': fontFamily,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
@@ -138,7 +141,7 @@ function splitLabel(label) {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <template v-for="[vbind, von, content, title] in group">
                 <text v-bind="vbind" v-on="von">
                     <title>{{ title }}</title>

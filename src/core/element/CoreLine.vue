@@ -16,6 +16,7 @@ const {
 const binds = computed(() => {
     return {
         x1, x2, y1, y2,
+        color: color || null,
         stroke: color || null,
         'stroke-width': linewidth,
         'stroke-opacity': alpha == 1 ? null : alpha,

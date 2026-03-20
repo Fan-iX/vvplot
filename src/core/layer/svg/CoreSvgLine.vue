@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import CoreLine from '../../element/CoreLine.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -17,7 +18,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         x, y, xend, yend,
         color = 'black', linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
         const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
@@ -28,6 +30,7 @@ const binds = computed(() => {
         let vbind = {
             x1, x2, y1, y2, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
@@ -38,7 +41,7 @@ const binds = computed(() => {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CoreLine v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>

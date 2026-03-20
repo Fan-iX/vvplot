@@ -217,7 +217,7 @@ function palette_scale_dynamic({
 }
 
 function shape_scale_discrete({ title, ...etc } = {}) {
-    let shapes = ["circle", "square", "triangle", "diamond", "plus"]
+    let shapes = ["circle", "square", "triangle", "diamond", "plus", "cross"]
     let fn = function (arr) {
         return arr.map(v => shapes[+v])
     }

@@ -1,10 +1,11 @@
 <script setup>
 import { computed } from 'vue'
 import CoreTile from '../../element/CoreTile.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    groupClass: null, groupStyle: null,
 })
 let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -17,7 +18,8 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         xmin, xmax, ymin, ymax,
         fill = 'black', color, linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        class: className, style, $raw
     }) => {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
         if (
@@ -29,6 +31,7 @@ const binds = computed(() => {
             y: (y1 + y2) / 2, height: y2 - y1,
             fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            class: className, style,
         }
         let von = Object.fromEntries(
             events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
@@ -39,7 +42,7 @@ const binds = computed(() => {
 </script>
 <template>
     <g>
-        <g v-for="group in binds">
+        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CoreTile v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
