@@ -78,14 +78,14 @@ import iris from '../data/iris.json'
                         <tr>
                             <td>Space for top axis</td>
                             <td><code>padding</code>, <code>padding_v</code>, <code>padding_top</code></td>
-                            <td><code>20</code></td>
+                            <td><code>30</code></td>
                             <td rowspan="4">
                                 <VVPlot :data="iris" :width="300" :height="200">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                     <template #tooltip>
                                         <svg width="300" height="200" class="absolute top-0 left-0">
-                                            <path d="M20 20V180H280V160H70V20H20" fill="green" fill-opacity="0.2" />
+                                            <path d="M20 20V180H280V150H70V20H20" fill="green" fill-opacity="0.2" />
                                         </svg>
                                     </template>
                                 </VVPlot>
@@ -94,7 +94,7 @@ import iris from '../data/iris.json'
                         <tr>
                             <td>Space for bottom axis</td>
                             <td><code>padding</code>, <code>padding_v</code>, <code>padding_bottom</code></td>
-                            <td><code>20</code></td>
+                            <td><code>30</code></td>
                         </tr>
                         <tr>
                             <td>Space for left axis</td>

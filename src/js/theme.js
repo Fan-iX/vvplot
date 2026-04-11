@@ -38,7 +38,7 @@ export const theme_base = {
     plot: {
         margin: 20,
         padding_h: 50,
-        padding_v: 20,
+        padding_v: 30,
     },
     legend: {
         spacing: 4
