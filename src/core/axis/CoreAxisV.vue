@@ -76,7 +76,7 @@ const tickLines = computed(() => {
     return result.filter(t => t.stroke != null).sort((a, b) => a.y1 - b.y1)
 })
 const tickTexts = computed(() => {
-    let isRight = theme.tick_position == "right"
+    let isRight = (theme.label_position ?? theme.tick_position) == "right"
     let result = []
     for (let tick of ticks) {
         if (typeof tick == 'number') tick = { position: tick }
@@ -84,14 +84,14 @@ const tickTexts = computed(() => {
         let tsl = pos * (activeTransform.scaleV - 1) + activeTransform.translateV
         let position = pos + layout.t
         if (position + tsl < 0 || position + tsl > height.value) continue
-        let offset = (isRight ? 1 : -1) * ((tick.length ?? theme.tick_length) + 3)
+        let offset = (isRight ? 1 : -1) * ((theme.label_offset ?? tick.length ?? theme.tick_length) + 3)
         let anchorX, anchorY, dockX, dockY
-        if (theme.tick_anchor_x != null || theme.tick_anchor_y != null) {
-            anchorX = theme.tick_anchor_x ?? (isRight ? 0 : 1)
-            anchorY = theme.tick_anchor_y ?? 0.5
+        if (theme.label_anchor_x != null || theme.label_anchor_y != null) {
+            anchorX = theme.label_anchor_x ?? (isRight ? 0 : 1)
+            anchorY = theme.label_anchor_y ?? 0.5
         } else {
-            dockX = theme.tick_dock_x ?? (isRight ? 0 : 1)
-            dockY = theme.tick_dock_y ?? 0.5
+            dockX = theme.label_dock_x ?? (isRight ? 0 : 1)
+            dockY = theme.label_dock_y ?? 0.5
         }
         result.push({
             wrapper: {
@@ -102,7 +102,7 @@ const tickTexts = computed(() => {
             text: {
                 y: position,
                 x: offset,
-                angle: theme.text_angle,
+                angle: theme.label_angle,
                 anchorX, anchorY, dockX, dockY,
                 text: tick.label,
                 title: tick.title ?? tick.label,
