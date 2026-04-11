@@ -13,7 +13,7 @@ function is_categorical(v) {
     return typeof v === 'string' ||
         typeof v === 'boolean' ||
         typeof v === 'symbol' ||
-        typeof v === 'object' && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
+        typeof v === 'object' && v !== null && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
 }
 
 /**
