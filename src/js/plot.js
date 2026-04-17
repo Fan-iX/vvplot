@@ -3,7 +3,7 @@ import * as vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
-import { numutils, GEnumLevel, plus } from './utils'
+import { numutils, EnumLevel, Asis, plus } from './utils'
 
 function object_map(obj, expr) {
     if (obj == null) return {}
@@ -77,7 +77,7 @@ class GLayer {
         this.$fnames = {} // function names for legend titles
         for (const aes in $$aes) {
             this.$fnames[aes] = String($$aes[aes])
-            data[aes] = $$data.map($$aes[aes])
+            data[aes] = $$data.map($$aes[aes]).map(x => x instanceof String || x instanceof Number ? new Asis(x) : x)
         }
         data.$raw = $$data
 
@@ -137,9 +137,9 @@ class GLayer {
                     if ($$levels?.[aes] != null) {
                         scale.level = $$levels[aes]
                     } else if (values.some(is_categorical)) {
-                        scale.level = GEnumLevel.from(values)
+                        scale.level = EnumLevel.from(values)
                     } else {
-                        scale.extent = numutils.extent(values)
+                        scale.extent = numutils.extent(values.filter(v => !(v instanceof Asis)))
                     }
                 }
                 this.applyScale(aes, scale)
@@ -170,7 +170,8 @@ class GLayer {
         if (scale.level) values = scale.level.apply(values)
         if (scale.limits) values.extent = scale.limits
         scale.aes = aes
-        this.data[aes] = scale(values)
+        let scaled = scale(values)
+        this.data[aes] = values.map((v, i) => v instanceof Asis ? v.valueOf() : scaled[i])
         this.scales[aes] = scale
     }
 
@@ -212,9 +213,9 @@ export class GPlot {
                     if (levels?.[aes] != null) {
                         scale.level = levels[aes]
                     } else if (values.some(is_categorical)) {
-                        scale.level = GEnumLevel.from(values)
+                        scale.level = EnumLevel.from(values)
                     } else {
-                        scale.extent = numutils.extent(values)
+                        scale.extent = numutils.extent(values.filter(v => !(v instanceof Asis)))
                     }
                 }
                 scale._title = this.layers.reduce((v, layer) => v ?? layer.$fnames?.[aes], null)
@@ -247,17 +248,17 @@ export class GPlot {
     useCoordLevels(levels = {}) {
         for (const aes of ['x', 'y']) {
             if (levels[aes]) {
-                this.levels[aes] = new GEnumLevel(...levels[aes])
+                this.levels[aes] = new EnumLevel(...levels[aes])
             } else {
                 let values = this.layers.flatMap(layer => {
                     let fn = vvgeom[layer.geom].get_values ?? vvgeom[layer.geom].get_range
                     return fn?.(layer.$data, aes)
                 })
                 if (values.some(is_categorical)) {
-                    this.levels[aes] = GEnumLevel.from(values)
+                    this.levels[aes] = EnumLevel.from(values)
                 } else {
                     values = this.layers.flatMap(layer => vvgeom[layer.geom].get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
-                    this.extents[aes] = numutils.extent(values)
+                    this.extents[aes] = numutils.extent(values.filter(v => !(v instanceof Asis)))
                 }
             }
         }

@@ -1,4 +1,42 @@
-export class GEnumElement {
+class AsisString extends String {
+    static #cache = new Map();
+    constructor(str) {
+        const s = String(str)
+        if (AsisString.#cache.has(s)) {
+            return AsisString.#cache.get(s)
+        }
+        super(s)
+        AsisString.#cache.set(s, this)
+    }
+}
+class AsisNumber extends Number {
+    static #cache = new Map();
+    constructor(num) {
+        const n = Number(num)
+        if (AsisNumber.#cache.has(n)) {
+            return AsisNumber.#cache.get(n)
+        }
+        super(n)
+        AsisNumber.#cache.set(n, this)
+    }
+}
+export class Asis extends String {
+    static #cache = new Map();
+    constructor(value) {
+        if (typeof value === 'string' || value instanceof String) {
+            return new AsisString(value)
+        }
+        if (typeof value === 'number' || value instanceof Number) {
+            return new AsisNumber(value)
+        }
+        throw new Error("Unsupported type")
+    }
+    static [Symbol.hasInstance](obj) {
+        return obj instanceof AsisString || obj instanceof AsisNumber
+    }
+}
+
+export class EnumElement {
     constructor(label, value, level) {
         this.label = label
         this.value = value
@@ -15,20 +53,20 @@ export class GEnumElement {
     }
 }
 
-export class GEnumLevel extends Array {
+export class EnumLevel extends Array {
     /**
      * return:
-     *   x if x is a GEnumLevel
-     *   new GEnumLevel from distinct values of x, ordered by natural order, if x is iterable
-     *   new GEnumLevel from keys of x, orderd by coresponing values, if x is an object
+     *   x if x is a EnumLevel
+     *   new EnumLevel from distinct values of x, ordered by natural order, if x is iterable
+     *   new EnumLevel from keys of x, orderd by coresponing values, if x is an object
      * @param {*} x
      * @param {function} [sortkey]
-     * @returns {GEnumLevel}
+     * @returns {EnumLevel}
      */
     static from(x) {
         if (x instanceof this) return x
         if (x[Symbol.iterator]) {
-            let lvl = unique(Array.from(x).map(x => String(x))).sort((a, b) => compare(a, b, { numeric: true }))
+            let lvl = unique(Array.from(x).filter(x => !(x instanceof Asis)).map(x => String(x))).sort((a, b) => compare(a, b, { numeric: true }))
             return new this(...lvl)
         } else if (typeof x === 'object') {
             let lvl = Object.keys(x).map(x => String(x)).sort((a, b) => compare(x[a], x[b]))
@@ -37,7 +75,7 @@ export class GEnumLevel extends Array {
         throw new Error(`Invalid level values: ${x}`)
     }
     /**
-     * Check if two GEnumLevel are equal, i.e. they have the same labels in the same order
+     * Check if two EnumLevel are equal, i.e. they have the same labels in the same order
      * @param {string[]} level
      */
     static isEqual(a, b) {
@@ -46,20 +84,20 @@ export class GEnumLevel extends Array {
         }
     }
     /**
-     * build a GEnumLevel
+     * build a EnumLevel
      * @param {string[]} level
      */
     constructor(...level) {
-        level = level.map((x, i) => new GEnumElement(String(x), i))
+        level = level.map((x, i) => new EnumElement(String(x), i))
         level.forEach(l => l.level = level)
         level.mapping = Object.fromEntries(level.map(fct => [fct, fct]))
-        Object.setPrototypeOf(level, GEnumLevel.prototype)
+        Object.setPrototypeOf(level, EnumLevel.prototype)
         return level
     }
     /**
      * get the level instance by index or key
      * @param {(number|string)} idx 
-     * @returns {GEnumElement}
+     * @returns {EnumElement}
      */
     getItem(idx) {
         if (typeof idx === 'number' || idx instanceof Number) {
@@ -71,16 +109,16 @@ export class GEnumLevel extends Array {
     /**
      * convert an array to a GEnum array
      * @param {string[]} arr array to be converted, preferably a string array (items of other types will be converted to string)
-     * @returns {GEnumElement[]}
+     * @returns {EnumElement[]}
      */
     apply(arr) {
-        let result = arr.map(x => this.mapping[x])
+        let result = arr.map(x => x instanceof Asis ? x : this.mapping[x])
         result.level = this
         return result
     }
 }
 
-function isContinuous(x) {
+function is_continuous(x) {
     return typeof x === 'number' || x instanceof Number || x instanceof Date
 }
 export function plus(a, b = 0) {
@@ -91,30 +129,30 @@ export function plus(a, b = 0) {
 
 export const numutils = {
     min(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity)
     },
     max(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
     },
     mean(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length == 0) return NaN
         return Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
     },
     sd(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length <= 1) return NaN
         let mean = Array.from(arr).reduce((a, v) => a + v, 0) / arr.length
         return Math.sqrt(Array.from(arr).reduce((a, v) => a + (v - mean) ** 2, 0) / (arr.length - 1))
     },
     quantile(arr, p, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length == 0) return NaN
         arr = Array.from(arr).sort((a, b) => a - b)
@@ -124,7 +162,7 @@ export const numutils = {
         return arr[lo] * (hi - idx) + arr[hi] * (idx - lo)
     },
     extent(arr, { na_rm = true, infinity_rm = true } = {}) {
-        if (na_rm) arr = arr.filter(isContinuous)
+        if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         if (arr.length == 0) return new Array(2)
         let min = Array.from(arr).reduce((a, b) => a < b ? a : b, Infinity),

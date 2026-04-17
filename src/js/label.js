@@ -1,4 +1,4 @@
-import { GEnumElement } from './utils'
+import { EnumElement } from './utils'
 
 let $datetime_fn = {
     y: d => d.getUTCFullYear(),
@@ -112,7 +112,7 @@ function format_auto(opts) {
     let formatter_number = format_number(opts),
         formatter_datetime = format_datetime(opts)
     return function (x, i, arr = [x]) {
-        if (x instanceof GEnumElement) return String(x)
+        if (x instanceof EnumElement) return String(x)
         if (x instanceof Date) return formatter_datetime(x, i, arr)
         return formatter_number(x, i, arr)
     }
