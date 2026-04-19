@@ -13,19 +13,19 @@ function exportSVG() {
         URL.revokeObjectURL(url)
     }
 }
-function exportPNG() {
+function exportPNG({ dpi = 96 } = {}) {
     const img = new Image()
     img.onload = () => {
         const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
+        canvas.width = img.naturalWidth * dpi / 96
+        canvas.height = img.naturalHeight * dpi / 96
         const ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         canvas.toBlob((blob) => {
             let url = URL.createObjectURL(blob)
             const win = window.open(url, '_blank')
             if (win) {
-                win.onload = () => URL.revokeObjectURL(url)
+                win.onload = () => { win.onpagehide = () => URL.revokeObjectURL(url) }
             } else {
                 URL.revokeObjectURL(url)
             }
@@ -75,7 +75,7 @@ function exportPNG() {
             <p>
                 The plot can be exported as
                 <a href="javascript:void(0)" @click="exportSVG">SVG</a> or
-                <a href="javascript:void(0)" @click="exportPNG">PNG</a>
+                <a href="javascript:void(0)" @click="exportPNG({ dpi: 300 })">PNG</a>
             </p>
             <p>
                 You may refer to the <a href="#quick_start">getting started</a> page to learn about how VVPlot

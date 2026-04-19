@@ -473,7 +473,17 @@ export function parseLinetype(linetype) {
     return linetype.split('').map(v => +('0x' + v))
 }
 
-export function serializeSVG(svgElement) {
+const unitInPx = {
+    '': 1,
+    'px': 1,
+    'in': 96,
+    'cm': 96 / 2.54,
+    'mm': 96 / 25.4,
+    'pt': 96 / 72,
+    'pc': 16
+}
+
+export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
     if (!(svgElement instanceof SVGElement)) return null
     function removeComments(node) {
         let i = node.childNodes.length
@@ -508,8 +518,9 @@ export function serializeSVG(svgElement) {
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
     svgClone.setAttribute('version', '1.1')
-    svgClone.setAttribute('width', svgElement.scrollWidth)
-    svgClone.setAttribute('height', svgElement.scrollHeight)
+    if (!unitInPx[unit]) unit = ''
+    svgClone.setAttribute('width', svgElement.scrollWidth / unitInPx[unit] + unit)
+    svgClone.setAttribute('height', svgElement.scrollHeight / unitInPx[unit] + unit)
     svgClone.setAttribute('viewBox', `0 0 ${svgElement.scrollWidth} ${svgElement.scrollHeight}`)
     const serializer = new XMLSerializer()
     return serializer.serializeToString(svgClone)
