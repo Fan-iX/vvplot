@@ -33,3 +33,9 @@ function getGuideType(scale) {
         <CoreGuide :key :type :scales v-for="[[key, type], scales] in guides" />
     </div>
 </template>
+<style>
+.vvplot-legend {
+    display: flex;
+    flex-direction: column;
+}
+</style>
