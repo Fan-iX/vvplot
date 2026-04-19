@@ -117,6 +117,8 @@ const vBind = computed(() => {
             let arr = Array.isArray($attrs[key]) ? $attrs[key] : [$attrs[key]]
             plot[key] = arr.filter(f => typeof f === 'function')
             wrapper[key] = arr.filter(f => typeof f !== 'function')
+        } else if (key.startsWith("svg-")) {
+            plot[key.slice(4)] = $attrs[key]
         } else {
             wrapper[key] = $attrs[key]
         }
