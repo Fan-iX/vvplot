@@ -118,9 +118,16 @@ export class EnumLevel extends Array {
     }
 }
 
-function is_continuous(x) {
+export function is_continuous(x) {
     return typeof x === 'number' || x instanceof Number || x instanceof Date
 }
+export function is_categorical(v) {
+    return typeof v === 'string' ||
+        typeof v === 'boolean' ||
+        typeof v === 'symbol' ||
+        typeof v === 'object' && v !== null && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
+}
+
 export function plus(a, b = 0) {
     if (b == 0 || a == null) return a
     if (a instanceof Date) return new a.constructor(+a + b)

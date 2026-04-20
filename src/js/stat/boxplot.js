@@ -1,4 +1,4 @@
-import { numutils, intraaction } from '#base/js/utils'
+import { numutils, intraaction, is_categorical } from '#base/js/utils'
 
 /**
  * boxplot transformation
@@ -9,8 +9,8 @@ export default Object.assign(function (data, { }) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatBoxplot": "${missingAes.join('", "')}"`)
-    let isXdiscrete = data.x.some(x => typeof x !== 'number')
-    let isYdiscrete = data.y.some(y => typeof y !== 'number')
+    let isXdiscrete = data.x.some(is_categorical)
+    let isYdiscrete = data.y.some(is_categorical)
     if (isXdiscrete && isYdiscrete)
         throw new Error(`Both "x" and "y" are discrete, "StatBoxplot" requires one continuous and one discrete aesthetic`)
     if (!isXdiscrete && !isYdiscrete)

@@ -3,17 +3,11 @@ import * as vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
-import { numutils, EnumLevel, Asis, plus } from './utils'
+import { numutils, EnumLevel, Asis, plus, is_categorical } from './utils'
 
 function object_map(obj, expr) {
     if (obj == null) return {}
     return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, expr(k, v)]))
-}
-function is_categorical(v) {
-    return typeof v === 'string' ||
-        typeof v === 'boolean' ||
-        typeof v === 'symbol' ||
-        typeof v === 'object' && v !== null && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
 }
 
 /**
