@@ -308,7 +308,6 @@ const axisVOn = {
     click(e) { emit('click', e, getPosition(e)) },
     contextmenu(e) { emit('contextmenu', e, getPosition(e)) },
     pointermove(e) { emit('pointermove', e, getPosition(e)) },
-    pointerdown: axisMovePointerdown,
     wheel: axisWheel
 }
 </script>
@@ -321,13 +320,13 @@ const axisVOn = {
             <CoreText v-bind="tick.text" v-else />
         </g>
         <g class="vvplot-interactive" fill="transparent">
-            <rect :width="width" :height="10" :y="-5" v-on="axisVOn"
+            <rect :width="width" :height="10" :y="-5" v-on="axisVOn" @pointerdown="axisMovePointerdown"
                 :cursor="action.some?.(a => a.action == 'move') ? 'grab' : null" />
         </g>
         <g v-if="action.some?.(a => a.action == 'rescale')" class="vvplot-interactive" fill="transparent">
-            <rect :width="20" :height="10" :y="-5" style="cursor:ew-resize;"
+            <rect :width="20" :height="10" :y="-5" style="cursor:ew-resize;" v-on="axisVOn"
                 @pointerdown="axisRescaleLeftPointerdown" />
-            <rect :width="20" :height="10" :y="-5" :x="width - 20" style="cursor:ew-resize;"
+            <rect :width="20" :height="10" :y="-5" :x="width - 20" style="cursor:ew-resize;" v-on="axisVOn"
                 @pointerdown="axisRescaleRightPointerdown" />
         </g>
         <template v-if="axisTitle.text">
