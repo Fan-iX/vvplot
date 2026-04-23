@@ -38,15 +38,16 @@ const layerCanvas = computed(() => {
             let dx = Math.sqrt(C / (A * C - B * B)),
                 dy = Math.sqrt(A / (A * C - B * B))
             const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-            let { hmin, hmax, vmin, vmax } = coord2pos({ xmin: cx - dx, xmax: cx + dx, ymin: cy - dy, ymax: cy + dy })
-            let scaleX = (hmax - hmin) / (2 * dx), scaleY = (vmax - vmin) / (2 * dy)
+            let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
+                { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+            let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
             A /= scaleX * scaleX
             B /= scaleX * scaleY
             C /= scaleY * scaleY
             const tr = A + C, det = A * C - B * B
             const disc = Math.sqrt(Math.max(0, tr * tr / 4 - det))
             let rx = 1 / Math.sqrt(tr / 2 + disc), ry = 1 / Math.sqrt(tr / 2 - disc),
-                angle = -Math.atan2(2 * B, A - C) / 2
+                angle = Math.atan2(2 * B, A - C) / 2
             const path2d = new Path2D()
             path2d.ellipse(ch + translateX, cv + translateY, rx, ry, angle, 0, 2 * Math.PI)
             _path_data.set(path2d, $raw)
