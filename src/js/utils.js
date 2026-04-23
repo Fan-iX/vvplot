@@ -20,7 +20,7 @@ class AsisNumber extends Number {
         AsisNumber.#cache.set(n, this)
     }
 }
-export class Asis extends String {
+export class Asis {
     static #cache = new Map();
     constructor(value) {
         if (typeof value === 'string' || value instanceof String) {
@@ -32,7 +32,7 @@ export class Asis extends String {
         throw new Error("Unsupported type")
     }
     static [Symbol.hasInstance](obj) {
-        return obj instanceof AsisString || obj instanceof AsisNumber
+        return obj instanceof AsisString || obj instanceof AsisNumber 
     }
 }
 
@@ -66,7 +66,7 @@ export class EnumLevel extends Array {
     static from(x) {
         if (x instanceof this) return x
         if (x[Symbol.iterator]) {
-            let lvl = unique(Array.from(x).filter(x => !(x instanceof Asis)).map(x => String(x))).sort((a, b) => compare(a, b, { numeric: true }))
+            let lvl = unique(Array.from(x).filter(x => !(x instanceof Asis) && x != null).map(x => String(x))).sort((a, b) => compare(a, b, { numeric: true }))
             return new this(...lvl)
         } else if (typeof x === 'object') {
             let lvl = Object.keys(x).map(x => String(x)).sort((a, b) => compare(x[a], x[b]))
