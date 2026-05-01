@@ -38,7 +38,7 @@ export default {
                     ($y, { x: xs, $raw }, nudge) => psum(xs, nudge).map(($x, i) => ({ x: $x, y: $y, $raw: $raw[i] })),
                     y, ds.outliers ?? [], xnudge
                 ),
-                $xmin = psum(ds.xmin, xnudge), $xmax = psum(ds.xmax, xnudge)
+                $xmin = psum(ds.min, xnudge), $xmax = psum(ds.max, xnudge)
             return {
                 y, ymin, ymax, lwisker, Q1, median, Q3, uwisker, outliers,
                 $xmin, $xmax, $ymin: ymin, $ymax: ymax

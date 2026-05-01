@@ -1,4 +1,3 @@
-import './style.css'
 export * from './components'
 export * as components from './components'
 export { default as vvtheme } from './js/theme.js'

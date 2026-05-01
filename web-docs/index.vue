@@ -1,5 +1,4 @@
 <script setup>
-import '#base/style.css'
 import { ref } from 'vue'
 
 const page = ref(window.location.hash.slice(1) || 'home')

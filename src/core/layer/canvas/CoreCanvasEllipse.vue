@@ -1,10 +1,11 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { parseLinetype } from '#base/js/utils'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    dpi: { type: Number, default: 96 },
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -19,10 +20,13 @@ const containerRef = useTemplateRef('container')
 const layerCanvas = computed(() => {
     if (containerRef.value == null) return
     const canvas = document.createElement('canvas')
-    canvas.width = layout.fullWidth * (1 + extendX * 2)
-    canvas.height = layout.fullHeight * (1 + extendY * 2)
+    canvas.style.width = vBind.value.width + 'px'
+    canvas.style.height = vBind.value.height + 'px'
+    canvas.width = vBind.value.width * dpi / 96
+    canvas.height = vBind.value.height * dpi / 96
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
@@ -34,15 +38,16 @@ const layerCanvas = computed(() => {
             let dx = Math.sqrt(C / (A * C - B * B)),
                 dy = Math.sqrt(A / (A * C - B * B))
             const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-            let { hmin, hmax, vmin, vmax } = coord2pos({ xmin: cx - dx, xmax: cx + dx, ymin: cy - dy, ymax: cy + dy })
-            let scaleX = (hmax - hmin) / (2 * dx), scaleY = (vmax - vmin) / (2 * dy)
+            let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
+                { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+            let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
             A /= scaleX * scaleX
             B /= scaleX * scaleY
             C /= scaleY * scaleY
             const tr = A + C, det = A * C - B * B
             const disc = Math.sqrt(Math.max(0, tr * tr / 4 - det))
             let rx = 1 / Math.sqrt(tr / 2 + disc), ry = 1 / Math.sqrt(tr / 2 - disc),
-                angle = -Math.atan2(2 * B, A - C) / 2
+                angle = Math.atan2(2 * B, A - C) / 2
             const path2d = new Path2D()
             path2d.ellipse(ch + translateX, cv + translateY, rx, ry, angle, 0, 2 * Math.PI)
             _path_data.set(path2d, $raw)

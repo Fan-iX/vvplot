@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
-import { reactiveComputed, useResizeObserver } from '@vueuse/core'
+import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c, serializeSVG } from '../js/utils'
@@ -33,14 +33,14 @@ const {
     expandAdd: $expandAdd, expandMult: $expandMult, extend: $extend,
     levels: $levels, range: $range, minRange: $minRange, rangePreview: $rangePreview,
     axes: $axes, theme: $theme, action: $action, reverse: $reverse,
-    render, flip, clip, resize, legendTeleport
+    render, flip, clip, resize, legendTeleport, dpi,
 } = defineProps({
     data: Array, scales: Object, aes: Object,
     expandAdd: Object, expandMult: Object, extend: Object,
     levels: Object, range: Object, minRange: Object, rangePreview: Object,
     axes: [Object, Array], theme: [Object, Array], action: [Object, Array], reverse: Object,
     render: String, flip: Boolean, clip: { type: Boolean, default: true }, resize: null,
-    legendTeleport: null,
+    legendTeleport: null, dpi: Number,
 })
 const selectionPreview = defineModel('selectionPreview', { default: () => ({}) })
 const selectionPreviewTheme = defineModel('selectionPreviewTheme', { default: () => ({}) })
@@ -117,6 +117,8 @@ const vBind = computed(() => {
             let arr = Array.isArray($attrs[key]) ? $attrs[key] : [$attrs[key]]
             plot[key] = arr.filter(f => typeof f === 'function')
             wrapper[key] = arr.filter(f => typeof f !== 'function')
+        } else if (key.startsWith("svg-")) {
+            plot[key.slice(4)] = $attrs[key]
         } else {
             wrapper[key] = $attrs[key]
         }
@@ -211,7 +213,7 @@ const layers = computed(() => {
                     aes[key] = etc[key]
                 }
             } else {
-                if (['class', 'style', 'group-class', 'group-style', 'render'].includes(key)) {
+                if (['class', 'style', 'group-class', 'group-style', 'dpi', 'render'].includes(key)) {
                     vBind[key] = etc[key]
                 } else if (["item-class", "item-style"].includes(key)) {
                     attrs[key.slice(5)] = etc[key]
@@ -475,6 +477,7 @@ const selections = computed(() => {
             }
         })
 })
+const { pixelRatio } = useDevicePixelRatio()
 // size control
 const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
@@ -522,7 +525,7 @@ const wrapperStyle = computed(() => {
 
 defineExpose({
     get svg() { return plotRef.value.svg },
-    serialize() { return serializeSVG(plotRef.value.svg) },
+    serialize(options) { return serializeSVG(plotRef.value.svg, options) },
 })
 </script>
 <template>
@@ -532,8 +535,8 @@ defineExpose({
             :coord-levels="coordLevels" :levels="levels" :scales="$scales" :axes="axes" :theme="theme"
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
-            :action="action" :clip="clip" :render="render" :legendTeleport="legendTeleport"
-            @select="(d, e) => emit('select', d, e)" />
+            :action="action" :clip="clip" :render="render" :dpi="dpi ?? 96 * pixelRatio"
+            :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" style="pointer-events:auto;display:contents;" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />

@@ -16,13 +16,24 @@ const { coord2pos, pos2coord, layout, theme, flip, activeTransform, transition, 
     activeTransform: Object, transition: String,
 })
 
+function normalize({ xmin, xmax, ymin, ymax, xreverse = false, yreverse = false } = {}) {
+    if ([xmin, xmax, ymin, ymax].every(v => v == null)) return null
+    if (xmin != null && xmax != null && xmin > xmax) [xmin, xmax, xreverse] = [xmax, xmin, !xreverse]
+    if (ymin != null && ymax != null && ymin > ymax) [ymin, ymax, yreverse] = [ymax, ymin, !yreverse]
+    let coord = { xreverse, yreverse }
+    if (xmin != null && isFinite(xmin)) coord.xmin = xmin
+    if (xmax != null && isFinite(xmax)) coord.xmax = xmax
+    if (ymin != null && isFinite(ymin)) coord.ymin = ymin
+    if (ymax != null && isFinite(ymax)) coord.ymax = ymax
+    return coord
+}
+
 const position = computed(() => {
     if (model.value == null || model.value.hidden) return null
-    if (['xmin', 'xmax', 'ymin', 'ymax'].every(k => model.value?.[k] == null)) return null
-    let { hmin, hmax, vmin, vmax } = coord2pos(model.value, { limited: true }),
-        pos = coord2pos(model.value)
-    if (hmin != null && hmax != null) [hmin, hmax] = [hmin, hmax].sort((a, b) => a - b)
-    if (vmin != null && vmax != null) [vmin, vmax] = [vmin, vmax].sort((a, b) => a - b)
+    let coord = normalize(model.value)
+    if (coord == null) return null
+    let { hmin, hmax, vmin, vmax } = coord2pos(coord, { limited: true }),
+        pos = coord2pos(coord)
     return { hmin, hmax, vmin, vmax, pos }
 })
 
@@ -134,7 +145,8 @@ function selPointerdown(e, dir) {
     e.stopPropagation()
     e.preventDefault()
     e.target.setPointerCapture(e.pointerId)
-    let pos0 = coord2pos(model.value)
+    let { xreverse: $xreverse, yreverse: $yreverse, ...coord0 } = normalize(model.value)
+    let pos0 = coord2pos(coord0)
     let { h: coordL, v: coordT } = pos2coord({ h: pos0.hmin, v: pos0.vmin }),
         { h: coordR, v: coordB } = pos2coord({ h: pos0.hmax, v: pos0.vmax })
 
@@ -203,8 +215,8 @@ function selPointerdown(e, dir) {
         }
         if (!pointerMoved) return
         let res = {
-            xmin, xmax, xreverse: Boolean(xreverse ^ model.value.xreverse),
-            ymin, ymax, yreverse: Boolean(yreverse ^ model.value.yreverse)
+            xmin, xmax, xreverse: Boolean(xreverse ^ $xreverse),
+            ymin, ymax, yreverse: Boolean(yreverse ^ $yreverse)
         },
             event = new PointerEvent("select", e)
         model.value = dropNull(res)

@@ -1,19 +1,19 @@
 <script setup>
 import { computed } from 'vue'
-import { interaction, GEnumLevel } from '#base/js/utils'
+import { interaction, EnumLevel } from '#base/js/utils'
 import CoreGuide from './guide/CoreGuide.vue'
 const { scales, theme } = defineProps({
     theme: { type: Object, default: () => ({}) },
     scales: Map,
 })
 const guides = computed(() => {
-    let guide_scales = new Map(Array.from(scales).filter(([fn]) => fn.legend !== false))
+    let guide_scales = new Map(Array.from(scales).filter(([fn]) => fn.legend !== false && (fn.limits?.min != fn.limits?.max)))
     let scale_fns = Array.from(guide_scales.keys())
     let keys = scale_fns.map(s => s.key)
     let n = 1
     for (let i = 0; i < keys.length; i++) {
         while (keys.includes("_guide_" + n)) n++
-        keys[i] ??= keys.find((_, j) => keys[j] != null && GEnumLevel.isEqual(scale_fns[j].level, scale_fns[i].level)) ?? "_guide_" + n
+        keys[i] ??= keys.find((_, j) => keys[j] != null && EnumLevel.isEqual(scale_fns[j].level, scale_fns[i].level)) ?? "_guide_" + n
     }
     let types = scale_fns.map(s => getGuideType(s))
     let groups = interaction(keys, types)
@@ -33,3 +33,9 @@ function getGuideType(scale) {
         <CoreGuide :key :type :scales v-for="[[key, type], scales] in guides" />
     </div>
 </template>
+<style>
+.vvplot-legend {
+    display: flex;
+    flex-direction: column;
+}
+</style>

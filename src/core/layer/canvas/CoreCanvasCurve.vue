@@ -2,10 +2,11 @@
 import { computed, watch, useTemplateRef } from 'vue'
 import { parseLinetype } from '#base/js/utils'
 import * as d3 from 'd3'
-const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
+const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    dpi: { type: Number, default: 96 },
 })
 let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
 const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
@@ -20,10 +21,13 @@ const containerRef = useTemplateRef('container')
 const layerCanvas = computed(() => {
     if (containerRef.value == null) return
     const canvas = document.createElement('canvas')
-    canvas.width = layout.fullWidth * (1 + extendX * 2)
-    canvas.height = layout.fullHeight * (1 + extendY * 2)
+    canvas.style.width = vBind.value.width + 'px'
+    canvas.style.height = vBind.value.height + 'px'
+    canvas.width = vBind.value.width * dpi / 96
+    canvas.height = vBind.value.height * dpi / 96
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
     for (const group of data) {

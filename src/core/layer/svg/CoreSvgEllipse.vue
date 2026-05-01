@@ -24,9 +24,15 @@ const binds = computed(() => {
         let dx = Math.sqrt(C / (A * C - B * B)),
             dy = Math.sqrt(A / (A * C - B * B))
         const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-        let { hmin, hmax, vmin, vmax } = coord2pos({ xmin: cx - dx, xmax: cx + dx, ymin: cy - dy, ymax: cy + dy })
-        if (hmax < xlim_min || hmin > xlim_max || vmax < ylim_min || vmin > ylim_max) return null
-        let scaleX = (hmax - hmin) / (2 * dx), scaleY = (vmax - vmin) / (2 * dy)
+        let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
+            { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+        if (
+            h1 < xlim_min && h2 < xlim_min ||
+            h2 > xlim_max && h1 > xlim_max ||
+            v1 < ylim_min && v2 < ylim_min ||
+            v2 > ylim_max && v1 > ylim_max
+        ) return null
+        let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
         A /= scaleX * scaleX
         B /= scaleX * scaleY
         C /= scaleY * scaleY
@@ -35,7 +41,7 @@ const binds = computed(() => {
         let vbind = {
             cx: ch, cy: cv,
             rx: 1 / Math.sqrt(tr / 2 + disc) || 0, ry: 1 / Math.sqrt(tr / 2 - disc) || 0,
-            angle: -Math.atan2(2 * B, A - C) / 2 * 180 / Math.PI || 0,
+            angle: Math.atan2(2 * B, A - C) / 2 * 180 / Math.PI || 0,
             fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
             class: className, style,

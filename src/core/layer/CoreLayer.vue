@@ -1,8 +1,9 @@
 <script setup>
-import { computed, useAttrs, useTemplateRef } from 'vue'
-const { data, geom, render: $render, defaultRender: $$render } = defineProps({
-    data: Object, geom: String, render: String,
-    defaultRender: { type: String, default: "auto" },
+import { computed, useTemplateRef } from 'vue'
+const { data, geom, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
+    data: Object, geom: String,
+    render: String, defaultRender: { type: String, default: "auto" },
+    dpi: Number, defaultDpi: Number
 })
 import * as canvas from './canvas'
 import * as svg from './svg'
@@ -22,7 +23,8 @@ defineExpose({
     render: rend,
     dispatchEvent: e => layer.value?.dispatchEvent?.(e)
 })
+const dpi = computed(() => rend.value === "canvas" ? $dpi ?? $$dpi : undefined)
 </script>
 <template>
-    <component ref="layer" :is="geoms[rend][geom]" :style="style" :data="data" />
+    <component ref="layer" :is="geoms[rend][geom]" :style="style" :data="data" :dpi="dpi" />
 </template>

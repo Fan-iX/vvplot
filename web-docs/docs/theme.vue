@@ -1,5 +1,6 @@
 <script setup>
 import vvtheme from '#base/js/theme'
+import { themeMerge } from '#base/js/theme'
 import iris from '../data/iris.json'
 </script>
 <template>
@@ -13,58 +14,8 @@ import iris from '../data/iris.json'
                 two-level nested objects.
                 Here shows the full content of the <code>default</code> theme:
             </p>
-            <pre-highlight lang="json" class="h-96 overflow-auto">{
-    axis: {
-        line_width: 1,
-        tick_width: 1,
-        tick_length: 5,
-        label_size: 12,
-        title_size: 18,
-        line_color: 'black',
-        tick_color: 'black',
-        label_color: 'black',
-        title_color: 'black'
-    },
-    axis_h: {
-        title_offset: 20
-    },
-    axis_v: {
-        title_offset: 30,
-        title_angle: 90
-    },
-    axis_left: {
-        tick_position: 'left',
-        title_position: 'left'
-    },
-    axis_right: {
-        tick_position: 'right',
-        title_position: 'right'
-    },
-    axis_top: {
-        tick_position: 'top',
-        title_position: 'top'
-    },
-    axis_bottom: {
-        tick_position: 'bottom',
-        title_position: 'bottom'
-    },
-    grid: {
-        line_width: 1,
-        line_width_major: 2,
-        line_color: '#eeeeee'
-    },
-    plot: {
-        margin: 20,
-        padding_h: 50,
-        padding_v: 20
-    },
-    legend: {
-        spacing: 4
-    },
-    selection: {
-        background: "#00000020"
-    }
-}</pre-highlight>
+            <pre-highlight lang="json"
+                class="h-96 overflow-auto">{{ themeMerge(vvtheme.base, vvtheme.default) }}</pre-highlight>
             <p>
                 Theme objects can be passed to the <code>theme</code> prop of <code>VVPlot</code> components.
                 They will be deep merged together with the default theme.
@@ -87,7 +38,7 @@ import iris from '../data/iris.json'
                         <tr>
                             <th>Target</th>
                             <th>Theme property</th>
-                            <th>Defalt</th>
+                            <th>Default</th>
                             <th>In plot</th>
                         </tr>
                     </thead>
@@ -127,14 +78,14 @@ import iris from '../data/iris.json'
                         <tr>
                             <td>Space for top axis</td>
                             <td><code>padding</code>, <code>padding_v</code>, <code>padding_top</code></td>
-                            <td><code>20</code></td>
+                            <td><code>30</code></td>
                             <td rowspan="4">
                                 <VVPlot :data="iris" :width="300" :height="200">
                                     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
                                         :color="d => d.Species" />
                                     <template #tooltip>
                                         <svg width="300" height="200" class="absolute top-0 left-0">
-                                            <path d="M20 20V180H280V160H70V20H20" fill="green" fill-opacity="0.2" />
+                                            <path d="M20 20V180H280V150H70V20H20" fill="green" fill-opacity="0.2" />
                                         </svg>
                                     </template>
                                 </VVPlot>
@@ -143,7 +94,7 @@ import iris from '../data/iris.json'
                         <tr>
                             <td>Space for bottom axis</td>
                             <td><code>padding</code>, <code>padding_v</code>, <code>padding_bottom</code></td>
-                            <td><code>20</code></td>
+                            <td><code>30</code></td>
                         </tr>
                         <tr>
                             <td>Space for left axis</td>
@@ -192,35 +143,40 @@ import iris from '../data/iris.json'
                 The <code>axis</code> and <code>axis_*</code> property sets control the appearance of the plot axes.
             </p>
             <div class="w-full overflow-auto">
-                <table class="w-full doc-demo-table">
+                <table class="w-full doc-demo-table whitespace-nowrap">
                     <thead>
                         <tr>
                             <th>Element</th>
+                            <th>Attribute</th>
                             <th>Theme property</th>
                             <th>Default</th>
-                            <th>Example</th>
+                            <th colspan="2">Example</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Axis line width</td>
+                            <td rowspan="2">Axis line</td>
+                            <td>width</td>
                             <td><code>line_width</code></td>
                             <td><code>1</code></td>
+                            <td><code>2</code></td>
                             <td rowspan="2">
                                 <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false"
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
                                         :theme="{ line_width: 2, line_color: 'red' }" title="x" />
                                     <VVAxisY position="none" :show-grid="false" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td>Axis line color</td>
+                            <td>color</td>
                             <td><code>line_color</code></td>
                             <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
                         </tr>
                         <tr>
-                            <td>Tick position</td>
+                            <td rowspan="4">Tick bar</td>
+                            <td>position</td>
                             <td><code>tick_position</code></td>
                             <td>
                                 <code>"bottom"</code> for horizontal axes
@@ -231,106 +187,219 @@ import iris from '../data/iris.json'
                                 <br>
                                 <code>"right"</code> for right axes
                             </td>
-                            <td>
-                                <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false" :theme="{ tick_position: 'top' }"
-                                        title="x" />
-                                    <VVAxisY position="none" :show-grid="false" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tick bar width</td>
-                            <td><code>tick_width</code></td>
-                            <td><code>1</code></td>
-                            <td rowspan="3">
-                                <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false"
-                                        :theme="{ tick_width: 2, tick_color: 'red', tick_length: 10 }" title="x" />
-                                    <VVAxisY position="none" :show-grid="false" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tick bar color</td>
-                            <td><code>tick_color</code></td>
-                            <td><code>"black"</code></td>
-                        </tr>
-                        <tr>
-                            <td>Tick bar length</td>
-                            <td><code>tick_length</code></td>
-                            <td><code>5</code></td>
-                        </tr>
-                        <tr>
-                            <td>Tick text size</td>
-                            <td><code>label_size</code></td>
-                            <td><code>12</code></td>
-                            <td rowspan="3">
-                                <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false" :labels="t => `*${t}*`"
-                                        :theme="{ label_size: 18, label_color: 'red', label_type: 'markdown' }"
-                                        title="x" />
-                                    <VVAxisY position="none" :show-grid="false" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Tick text color</td>
-                            <td><code>label_color</code></td>
-                            <td><code>"black"</code></td>
-                        </tr>
-                        <tr>
-                            <td>Tick text type</td>
-                            <td><code>label_type</code></td>
-                            <td>
-                                <code>"markdown"</code> for markdown text
-                                <br>
-                                other values will be treated as normal text
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Title position</td>
-                            <td><code>title_position</code></td>
-                            <td>same as <code>tick_position</code></td>
-                            <td>
-                                <VVPlot :data="iris" :width="300" :height="50">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false" :theme="{ title_position: 'right' }"
-                                        title="x" />
-                                    <VVAxisY position="none" :show-grid="false" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Title text size</td>
-                            <td><code>title_size</code></td>
-                            <td><code>18</code></td>
+                            <td><code>"top"</code></td>
                             <td rowspan="4">
                                 <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :limits="[-10, 10]" :show-grid="false"
-                                        :theme="{ title_size: 24, title_color: 'red', title_offset: 15, title_type: 'markdown' }"
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ tick_position: 'top', tick_width: 2, tick_color: 'red', tick_length: 3 }"
+                                        title="x" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>width</td>
+                            <td><code>tick_width</code></td>
+                            <td><code>1</code></td>
+                            <td><code>2</code></td>
+                        </tr>
+                        <tr>
+                            <td>color</td>
+                            <td><code>tick_color</code></td>
+                            <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
+                        </tr>
+                        <tr>
+                            <td>length</td>
+                            <td><code>tick_length</code></td>
+                            <td><code>5</code></td>
+                            <td><code>3</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="10">Tick text</td>
+                            <td>size</td>
+                            <td><code>label_size</code></td>
+                            <td><code>12</code></td>
+                            <td><code>18</code></td>
+                            <td rowspan="7">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false" :labels="t => `*${t}*`"
+                                        :theme="{ tick_position: 'top', label_position: 'bottom', label_size: 18, label_color: 'red', label_offset: 15, label_type: 'markdown', label_anchor_x: 0.5, label_anchor_y: 0.5 }"
+                                        title="x" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>color</td>
+                            <td><code>label_color</code></td>
+                            <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
+                        </tr>
+                        <tr>
+                            <td>type</td>
+                            <td><code>label_type</code></td>
+                            <td><code>"text"</code></td>
+                            <td><code>"markdown"</code></td>
+                        </tr>
+                        <tr>
+                            <td>offset</td>
+                            <td><code>label_offset</code></td>
+                            <td>tick bar length</td>
+                            <td><code>15</code></td>
+                        </tr>
+                        <tr>
+                            <td>position</td>
+                            <td><code>label_position</code></td>
+                            <td>same as <code>tick_position</code></td>
+                            <td><code>"bottom"</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">anchor</td>
+                            <td><code>label_anchor_x</code></td>
+                            <td>
+                                <code>0</code> for position: right
+                                <br>
+                                <code>1</code> for position: left
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0.5</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>label_anchor_y</code></td>
+                            <td>
+                                <code>0</code> for position: top
+                                <br>
+                                <code>1</code> for position: bottom
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0.5</code></td>
+                        </tr>
+                        <tr>
+                            <td>rotation</td>
+                            <td><code>label_angle</code></td>
+                            <td><code>0</code></td>
+                            <td><code>-45</code></td>
+                            <td rowspan="3">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ label_angle: -45, label_dock_x: 1, label_dock_y: 1 }" title="x" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">docking</td>
+                            <td><code>label_dock_x</code></td>
+                            <td>
+                                <code>0</code> for position: right
+                                <br>
+                                <code>1</code> for position: left
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>1</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>label_dock_y</code></td>
+                            <td>
+                                <code>0</code> for position: top
+                                <br>
+                                <code>1</code> for position: bottom
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>1</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="8">Title text</td>
+                            <td>size</td>
+                            <td><code>title_size</code></td>
+                            <td><code>18</code></td>
+                            <td><code>24</code></td>
+                            <td rowspan="5">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ title_size: 24, title_color: 'red', title_offset: 15, title_angle: 90, title_type: 'markdown' }"
                                         title="***x***" />
                                     <VVAxisY position="none" :show-grid="false" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td>Title text color</td>
+                            <td>color</td>
                             <td><code>title_color</code></td>
                             <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
                         </tr>
                         <tr>
-                            <td>Title text color</td>
+                            <td>offset</td>
                             <td><code>title_offset</code></td>
                             <td>
                                 <code>20</code> for horizontal axes
                                 <br>
                                 <code>30</code> for vertical axes
                             </td>
+                            <td><code>15</code></td>
                         </tr>
                         <tr>
-                            <td>Title text type</td>
+                            <td>type</td>
                             <td><code>title_type</code></td>
-                            <td>same as <code>tick_type</code></td>
+                            <td><code>"text"</code></td>
+                            <td><code>"markdown"</code></td>
+                        </tr>
+                        <tr>
+                            <td>rotation</td>
+                            <td><code>title_angle</code></td>
+                            <td><code>0</code></td>
+                            <td><code>90</code></td>
+                        </tr>
+                        <tr>
+                            <td>position</td>
+                            <td><code>title_position</code></td>
+                            <td>
+                                <code>"bottom"</code> for horizontal axes
+                                <br>
+                                <code>"left"</code> for vertical axes
+                                <br>
+                                <code>"top"</code> for top axes
+                                <br>
+                                <code>"right"</code> for right axes
+                            </td>
+                            <td><code>"right"</code></td>
+                            <td rowspan="3">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ title_dock_x: 0, title_dock_y: 0, title_position: 'right' }"
+                                        title="x" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">docking</td>
+                            <td><code>title_dock_x</code></td>
+                            <td>
+                                <code>0</code> for position: right
+                                <br>
+                                <code>1</code> for position: left
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>title_dock_y</code></td>
+                            <td>
+                                <code>0</code> for position: top
+                                <br>
+                                <code>1</code> for position: bottom
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0</code></td>
                         </tr>
                     </tbody>
                 </table>
@@ -363,43 +432,50 @@ import iris from '../data/iris.json'
                     <thead>
                         <tr>
                             <th>Element</th>
+                            <th>Attribute</th>
                             <th>Theme property</th>
                             <th>Default</th>
-                            <th>Example</th>
+                            <th colspan="2">Example</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Major grid line width</td>
+                            <td rowspan="2">Major grid</td>
+                            <td>line width</td>
                             <td><code>line_width_major</code>, <code>line_width</code></td>
+                            <td><code>2</code></td>
                             <td><code>2</code></td>
                             <td rowspan="2">
                                 <VVPlot :width="300" :height="200" :theme="{ grid: { line_color_major: 'red' } }">
-                                    <VVAxisX :limits="[-10, 10]" />
-                                    <VVAxisY :limits="[-10, 10]" />
+                                    <VVAxisX :min="-10" :max="10" />
+                                    <VVAxisY :min="-10" :max="10" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td>Major grid line color</td>
+                            <td>line color</td>
                             <td><code>line_color_major</code>, <code>line_color</code></td>
                             <td><code>"#eeeeee"</code></td>
+                            <td><code>"red"</code></td>
                         </tr>
                         <tr>
-                            <td>Minor grid line width</td>
+                            <td rowspan="2">Minor grid</td>
+                            <td>line width</td>
                             <td><code>line_width_minor</code>, <code>line_width</code></td>
+                            <td><code>1</code></td>
                             <td><code>1</code></td>
                             <td rowspan="3">
                                 <VVPlot :width="300" :height="200" :theme="{ grid: { line_color_minor: 'red' } }">
-                                    <VVAxisX :limits="[-10, 10]" />
-                                    <VVAxisY :limits="[-10, 10]" />
+                                    <VVAxisX :min="-10" :max="10" />
+                                    <VVAxisY :min="-10" :max="10" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td>Minor grid line color</td>
+                            <td>line color</td>
                             <td><code>line_color_minor</code>, <code>line_color</code></td>
                             <td><code>"#eeeeee"</code></td>
+                            <td><code>"red"</code></td>
                         </tr>
                     </tbody>
                 </table>
