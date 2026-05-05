@@ -1,11 +1,11 @@
 <script setup>
 import iris from './data/iris.json'
 import { useTemplateRef } from 'vue'
+import { svg2png, svg2svg } from './script/utils'
 const plot = useTemplateRef('plot')
 
-function exportSVG() {
-    let blob = new Blob([plot.value.serialize()], { type: 'image/svg+xml;charset=utf-8' })
-    let url = URL.createObjectURL(blob)
+async function exportSVG(options) {
+    let url = URL.createObjectURL(await svg2svg(plot.value.serialize(), options))
     const win = window.open(url, '_blank')
     if (win) {
         win.onload = () => URL.revokeObjectURL(url)
@@ -13,27 +13,14 @@ function exportSVG() {
         URL.revokeObjectURL(url)
     }
 }
-function exportPNG({ dpi = 96 } = {}) {
-    const img = new Image()
-    img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth * dpi / 96
-        canvas.height = img.naturalHeight * dpi / 96
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        canvas.toBlob((blob) => {
-            let url = URL.createObjectURL(blob)
-            const win = window.open(url, '_blank')
-            if (win) {
-                win.onload = () => { win.onpagehide = () => URL.revokeObjectURL(url) }
-            } else {
-                URL.revokeObjectURL(url)
-            }
-        }, 'image/png')
+async function exportPNG(options) {
+    let url = URL.createObjectURL(await svg2png(plot.value.serialize(), options))
+    const win = window.open(url, '_blank')
+    if (win) {
+        win.onload = () => URL.revokeObjectURL(url)
+    } else {
+        URL.revokeObjectURL(url)
     }
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
-        '<?xml version="1.0" standalone="no"?>\r\n' + plot.value.serialize()
-    )))
 }
 </script>
 <template>

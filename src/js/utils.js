@@ -520,7 +520,7 @@ export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
         img.setAttribute('height', foreignElement.getAttribute('height'))
         foreignClone.parentNode.replaceChild(img, foreignClone)
     }
-    for (let node of svgClone.querySelectorAll('.vvplot-interactive')) node.remove()
+    for (let node of svgClone.querySelectorAll('.vvplot-interactive,foreignObject')) node.remove()
     removeComments(svgClone)
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
