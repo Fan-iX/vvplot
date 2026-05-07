@@ -9,6 +9,10 @@ on:
     branches:
       - demo
 
+permissions:
+  pages: write
+  id-token: write
+
 jobs:
   build:
     name: Build
@@ -16,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
 
       - name: Install dependencies
         run: npm install
@@ -27,27 +31,14 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Upload production-ready build files
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-files
-          path: ./dist
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
 
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/demo'
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: production-files
-          path: ./dist
+          path: './dist'
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+        id: deployment
+        uses: actions/deploy-pages@v5
