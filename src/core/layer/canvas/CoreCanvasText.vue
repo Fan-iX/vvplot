@@ -57,6 +57,11 @@ const layerCanvas = computed(() => {
             } else if (textLength != null) {
                 width = textLength
             }
+            if (typeof (angle) == "object") {
+                let { dx = 0, dy = 0 } = angle
+                let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+                angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
+            }
             if (dockX != null || dockY != null) {
                 let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
                     alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)

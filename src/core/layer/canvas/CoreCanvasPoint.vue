@@ -41,19 +41,24 @@ const layerCanvas = computed(() => {
         for (let {
             x, y, size = 6,
             shape, color, stroke, linewidth, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
         } of group) {
             const { h: cx, v: cy } = coord2pos({ x, y })
+            if (typeof (angle) == "object") {
+                let { dx = 0, dy = 0 } = angle
+                let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+                angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
+            }
             const path2d = new Path2D()
             if (String(shape).startsWith("path:")) {
                 path2d.addPath(
                     new Path2D(shape.slice(5)),
-                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY)
+                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY).rotate(angle)
                 )
             } else if (shape in paths) {
                 path2d.addPath(
                     new Path2D(paths[shape](size)),
-                    new DOMMatrix().translate(cx + translateX, cy + translateY)
+                    new DOMMatrix().translate(cx + translateX, cy + translateY).rotate(angle)
                 )
             } else {
                 path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)
