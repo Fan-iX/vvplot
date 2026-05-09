@@ -488,8 +488,8 @@ const render = ref('svg')
                             </td>
                             <td>
                                 <VVPlot :render resize>
-                                    <VVAxisY :levels="['normal', 'fixed', 'dynamic'].reverse()" />
-                                    <VVGeomText x="text" y="normal" label="text" />
+                                    <VVAxisY :levels="['unset', 'fixed', 'dynamic'].reverse()" />
+                                    <VVGeomText x="text" y="unset" label="text" title="text-length=null" />
                                     <VVGeomText x="text" y="fixed" label="text" :text-length="48"
                                         title="text-length=48" />
                                     <VVGeomText x="text" y="dynamic" label="text" :text-length="{ x: 1 }"
@@ -881,7 +881,7 @@ const render = ref('svg')
     <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
         item-style="fill: currentColor; fill-opacity: 0.2;" />
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-        :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
+        :shape="d => d.Species" :group="d => d.Species"
         class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
 </VVPlot>` }}</pre-highlight>
             <blockquote class="tip">
@@ -893,8 +893,8 @@ const render = ref('svg')
                 <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
                     item-style="fill: currentColor; fill-opacity: 0.2;" />
                 <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-                    :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
-                    class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
+                    :shape="d => d.Species" :group="d => d.Species" class="cursor-pointer stroke-current"
+                    group-class="hover:stroke-[black]" />
             </VVPlot>
         </section>
     </article>
