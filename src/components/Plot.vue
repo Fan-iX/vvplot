@@ -2,6 +2,7 @@
 import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
 import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
+import { isSVGTag } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
 import { str_c, serializeSVG } from '../js/utils'
 defineOptions({ inheritAttrs: false })
@@ -108,6 +109,8 @@ const vaxis = computed(() => Object.values(vnodes.axis).flat())
 const vaction = computed(() => Object.values(vnodes.action).flat())
 const vselection = computed(() => Object.values(vnodes.selection).flat())
 const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'panel' ? [] : vnodes.dom[k]))
+const vdom_svg = computed(() => vdom.value.filter(v => isSVGTag(v.type)))
+const vdom_etc = computed(() => vdom.value.filter(v => !isSVGTag(v.type)))
 
 const vBind = computed(() => {
     let plot = {}
@@ -536,12 +539,14 @@ defineExpose({
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
             :action="action" :clip="clip" :render="render" :dpi="dpi ?? 96 * pixelRatio"
-            :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
+            :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)">
+            <component v-for="c in vdom_svg" :is="c" />
+        </CorePlot>
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" style="pointer-events:auto;display:contents;" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>
-        <component v-for="c in vdom" :is="c" />
+        <component v-for="c in vdom_etc" :is="c" />
     </div>
 </template>

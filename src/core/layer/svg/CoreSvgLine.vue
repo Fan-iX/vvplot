@@ -19,6 +19,7 @@ const binds = computed(() => {
         x, y, xend, yend,
         color = 'black', linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        'marker-start': markerStart, 'marker-end': markerEnd,
         class: className, style, $raw
     }) => {
         const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
@@ -30,6 +31,7 @@ const binds = computed(() => {
         let vbind = {
             x1, x2, y1, y2, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            'marker-start': markerStart, 'marker-end': markerEnd,
             class: className, style,
         }
         let von = Object.fromEntries(

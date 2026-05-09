@@ -18,6 +18,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         points, fill = "none", color = 'black', linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        'marker-start': markerStart, 'marker-end': markerEnd,
         class: className, style, $raw,
         interpolate,
     }) => {
@@ -29,6 +30,7 @@ const binds = computed(() => {
         let vbind = {
             points, fill, color, linetype, linewidth, alpha, title,
             translateX, translateY,
+            'marker-start': markerStart, 'marker-end': markerEnd,
             class: className, style, interpolate,
         }
         let von = Object.fromEntries(

@@ -738,6 +738,7 @@ const axes = computed(() => {
                     v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
             </g>
         </g>
+        <slot></slot>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
                 <CoreLegend :scales="vplot?.scales" :theme="theme.legend" />
