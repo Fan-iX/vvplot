@@ -146,13 +146,6 @@ function axisMovePointerdown(e) {
         }
     }
     e.target.addEventListener('pointermove', detectMove, { passive: true })
-    e.target.addEventListener('pointerup', function (ev) {
-        e.target.removeEventListener('pointermove', detectMove)
-        if (!pointerMoved) {
-            let position = getPosition(ev)
-            emit('singleclick', new PointerEvent("singleclick", ev), position)
-        }
-    }, { once: true })
     let act = action.find(a => a.action == "move")
     if (!act) return
     e.preventDefault()
@@ -304,8 +297,9 @@ const axisVOn = {
     pointerout(e) { emit('pointerout', e, getPosition(e)) },
     pointerenter(e) { emit('pointerenter', e, getPosition(e)) },
     pointerleave(e) { emit('pointerleave', e, getPosition(e)) },
-    dblclick(e) { emit('dblclick', e, getPosition(e)) },
     click(e) { emit('click', e, getPosition(e)) },
+    singleclick(e) { emit('singleclick', e, getPosition(e)) },
+    dblclick(e) { emit('dblclick', e, getPosition(e)) },
     contextmenu(e) { emit('contextmenu', e, getPosition(e)) },
     pointermove(e) { emit('pointermove', e, getPosition(e)) },
     wheel: axisWheel
