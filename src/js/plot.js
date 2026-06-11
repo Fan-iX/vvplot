@@ -3,7 +3,7 @@ import * as vvstat from './stat'
 import vvscale from './scale'
 import vvbreak from './break'
 import vvlabel from './label'
-import { numutils, EnumLevel, Asis, plus, is_categorical } from './utils'
+import { numutils, EnumLevel, Asis, plus, is_categorical, expandFragment } from './utils'
 
 function object_map(obj, expr) {
     if (obj == null) return {}
@@ -422,7 +422,8 @@ export class GAxis {
         this.titles = titles ?? vvlabel.asis()
         this.minorBreaks = minorBreaks ?? breaks ?? scale.minorBreaks ?? scale.breaks
     }
-    getBindings({ range, expandMult } = {}) {
+
+    getBreaks({ range, expandMult, breakSlot } = {}) {
         let majorBreaks = this.breaks, minorBreaks = this.minorBreaks,
             labels = this.labels, titles = this.titles
         let min = range?.min ?? this?.range?.min,
@@ -431,34 +432,37 @@ export class GAxis {
         min = min == null ? min : plus(min, -(expandMult?.min ?? 0) * interval)
         max = max == null ? max : plus(max, +(expandMult?.max ?? 0) * interval)
 
-        function normalizeBreaks(val) {
-            if (val.position != null) return val
-            return { position: val }
-        }
         if (typeof majorBreaks == 'function') majorBreaks = majorBreaks({ min, max })
-        majorBreaks = Array.isArray(majorBreaks) ? majorBreaks.map(normalizeBreaks) : []
-        let breaks = majorBreaks.map(x => x.position)
+        if (!Array.isArray(majorBreaks)) majorBreaks = []
 
-        if (typeof minorBreaks == 'function') minorBreaks = minorBreaks({ min, max, minor: true })
-        minorBreaks = Array.isArray(minorBreaks) ? minorBreaks.map(normalizeBreaks) : []
-
-        if (typeof labels === 'function') labels = breaks.map(labels)
+        if (typeof labels === 'function') labels = majorBreaks.map(labels)
         if (!Array.isArray(labels)) {
             labels = []
-        } else if (labels.length != breaks.length) {
+        } else if (labels.length != majorBreaks.length) {
             throw new Error('Length of labels must be the same as breaks')
         }
 
-        if (typeof titles === 'function') titles = breaks.map(titles)
+        if (typeof titles === 'function') titles = majorBreaks.map(titles)
         if (!Array.isArray(titles)) {
             titles = []
-        } else if (titles.length != breaks.length) {
+        } else if (titles.length != majorBreaks.length) {
             throw new Error('Length of titles must be the same as breaks')
         }
 
-        return {
-            majorBreaks, minorBreaks,
-            ticks: breaks.map((position, i) => ({ position, label: labels[i], title: titles[i] }))
+        if (typeof minorBreaks == 'function') minorBreaks = minorBreaks({ min, max, minor: true })
+        if (!Array.isArray(minorBreaks)) minorBreaks = []
+
+        majorBreaks = majorBreaks.map((value, i) => ({ type: "major", value, label: labels[i], title: titles[i] }))
+        minorBreaks = minorBreaks.map(x => ({ type: "minor", value: x }))
+
+        let breaks = majorBreaks.concat(minorBreaks)
+
+        if (breakSlot instanceof Function) {
+            breaks = expandFragment(breakSlot({ breaks, majorBreaks, minorBreaks, min, max }))
+                .filter(c => c.type.$_type == "axis-break")
+                .map(c => ({ ...c.type.$_props, ...c.props }))
         }
+
+        return breaks
     }
 }

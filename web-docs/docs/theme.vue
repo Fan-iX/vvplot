@@ -138,7 +138,7 @@ import iris from '../data/iris.json'
                     </tbody>
                 </table>
             </div>
-            <h4>Theme properties for axes</h4>
+            <h4>Theme properties for axes and grid lines</h4>
             <p>
                 The <code>axis</code> and <code>axis_*</code> property sets control the appearance of the plot axes.
             </p>
@@ -174,6 +174,98 @@ import iris from '../data/iris.json'
                             <td><code>"black"</code></td>
                             <td><code>"red"</code></td>
                         </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td rowspan="8">Title text</td>
+                            <td>size</td>
+                            <td><code>title_size</code></td>
+                            <td><code>18</code></td>
+                            <td><code>24</code></td>
+                            <td rowspan="5">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ title_size: 24, title_color: 'red', title_offset: 15, title_angle: 90, title_type: 'markdown' }"
+                                        title="***x***" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>color</td>
+                            <td><code>title_color</code></td>
+                            <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
+                        </tr>
+                        <tr>
+                            <td>offset</td>
+                            <td><code>title_offset</code></td>
+                            <td>
+                                <code>20</code> for horizontal axes
+                                <br>
+                                <code>30</code> for vertical axes
+                            </td>
+                            <td><code>15</code></td>
+                        </tr>
+                        <tr>
+                            <td>type</td>
+                            <td><code>title_type</code></td>
+                            <td><code>"text"</code></td>
+                            <td><code>"markdown"</code></td>
+                        </tr>
+                        <tr>
+                            <td>rotation</td>
+                            <td><code>title_angle</code></td>
+                            <td><code>0</code></td>
+                            <td><code>90</code></td>
+                        </tr>
+                        <tr>
+                            <td>position</td>
+                            <td><code>title_position</code></td>
+                            <td>
+                                <code>"bottom"</code> for horizontal axes
+                                <br>
+                                <code>"left"</code> for vertical axes
+                                <br>
+                                <code>"top"</code> for top axes
+                                <br>
+                                <code>"right"</code> for right axes
+                            </td>
+                            <td><code>"right"</code></td>
+                            <td rowspan="3">
+                                <VVPlot :data="iris" :width="300" :height="60">
+                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
+                                        :theme="{ title_dock_x: 0, title_dock_y: 0, title_position: 'right' }"
+                                        title="x" />
+                                    <VVAxisY position="none" :show-grid="false" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">docking</td>
+                            <td><code>title_dock_x</code></td>
+                            <td>
+                                <code>0</code> for position: right
+                                <br>
+                                <code>1</code> for position: left
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>title_dock_y</code></td>
+                            <td>
+                                <code>0</code> for position: top
+                                <br>
+                                <code>1</code> for position: bottom
+                                <br>
+                                <code>0.5</code> for others
+                            </td>
+                            <td><code>0</code></td>
+                        </tr>
+                    </tbody>
+                    <tbody>
                         <tr>
                             <td rowspan="4">Tick bar</td>
                             <td>position</td>
@@ -313,103 +405,54 @@ import iris from '../data/iris.json'
                             </td>
                             <td><code>1</code></td>
                         </tr>
+                    </tbody>
+                    <tbody>
                         <tr>
-                            <td rowspan="8">Title text</td>
-                            <td>size</td>
-                            <td><code>title_size</code></td>
-                            <td><code>18</code></td>
-                            <td><code>24</code></td>
-                            <td rowspan="5">
-                                <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
-                                        :theme="{ title_size: 24, title_color: 'red', title_offset: 15, title_angle: 90, title_type: 'markdown' }"
-                                        title="***x***" />
-                                    <VVAxisY position="none" :show-grid="false" />
+                            <td rowspan="2">Major grid</td>
+                            <td>line width</td>
+                            <td><code>grid_width_major</code><br><code>grid_width</code></td>
+                            <td><code>2</code></td>
+                            <td><code>1</code></td>
+                            <td rowspan="2">
+                                <VVPlot :width="300" :height="200"
+                                    :theme="{ axis: { grid_width_major: 1, grid_color_major: 'red' } }">
+                                    <VVAxisX :min="-10" :max="10" />
+                                    <VVAxisY :min="-10" :max="10" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td>color</td>
-                            <td><code>title_color</code></td>
-                            <td><code>"black"</code></td>
+                            <td>line color</td>
+                            <td><code>grid_color_major</code><br><code>grid_color</code></td>
+                            <td><code>"#eeeeee"</code></td>
                             <td><code>"red"</code></td>
                         </tr>
                         <tr>
-                            <td>offset</td>
-                            <td><code>title_offset</code></td>
-                            <td>
-                                <code>20</code> for horizontal axes
-                                <br>
-                                <code>30</code> for vertical axes
-                            </td>
-                            <td><code>15</code></td>
-                        </tr>
-                        <tr>
-                            <td>type</td>
-                            <td><code>title_type</code></td>
-                            <td><code>"text"</code></td>
-                            <td><code>"markdown"</code></td>
-                        </tr>
-                        <tr>
-                            <td>rotation</td>
-                            <td><code>title_angle</code></td>
-                            <td><code>0</code></td>
-                            <td><code>90</code></td>
-                        </tr>
-                        <tr>
-                            <td>position</td>
-                            <td><code>title_position</code></td>
-                            <td>
-                                <code>"bottom"</code> for horizontal axes
-                                <br>
-                                <code>"left"</code> for vertical axes
-                                <br>
-                                <code>"top"</code> for top axes
-                                <br>
-                                <code>"right"</code> for right axes
-                            </td>
-                            <td><code>"right"</code></td>
+                            <td rowspan="2">Minor grid</td>
+                            <td>line width</td>
+                            <td><code>grid_width_minor</code><br><code>grid_width</code></td>
+                            <td><code>1</code></td>
+                            <td><code>0.5</code></td>
                             <td rowspan="3">
-                                <VVPlot :data="iris" :width="300" :height="60">
-                                    <VVAxisX :min="-10" :max="10" :show-grid="false"
-                                        :theme="{ title_dock_x: 0, title_dock_y: 0, title_position: 'right' }"
-                                        title="x" />
-                                    <VVAxisY position="none" :show-grid="false" />
+                                <VVPlot :width="300" :height="200"
+                                    :theme="{ axis: { grid_width_minor: 0.5, grid_color_minor: 'red' } }">
+                                    <VVAxisX :min="-10" :max="10" />
+                                    <VVAxisY :min="-10" :max="10" />
                                 </VVPlot>
                             </td>
                         </tr>
                         <tr>
-                            <td rowspan="2">docking</td>
-                            <td><code>title_dock_x</code></td>
-                            <td>
-                                <code>0</code> for position: right
-                                <br>
-                                <code>1</code> for position: left
-                                <br>
-                                <code>0.5</code> for others
-                            </td>
-                            <td><code>0</code></td>
-                        </tr>
-                        <tr>
-                            <td><code>title_dock_y</code></td>
-                            <td>
-                                <code>0</code> for position: top
-                                <br>
-                                <code>1</code> for position: bottom
-                                <br>
-                                <code>0.5</code> for others
-                            </td>
-                            <td><code>0</code></td>
+                            <td>line color</td>
+                            <td><code>grid_color_minor</code><br><code>grid_color</code></td>
+                            <td><code>"#eeeeee"</code></td>
+                            <td><code>"red"</code></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <p>
-                Additional CSS styles for tick and title labels can be applied throught the <code>label_style</code> and
-                <code>title_style</code> property.
-            </p>
-            <p>
-                <code>VVAxis</code> components may have an inline <code>theme</code> property as well.
+                <code>VVAxis</code> and <code>VVAxisBreak</code> components may have an inline <code>theme</code>
+                property as well.
             </p>
             <p>
                 For axes, theme property sets will be merged in the following order (from low to high priority):
@@ -423,76 +466,10 @@ import iris from '../data/iris.json'
                 </li>
                 <li>The inline <code>theme</code> property of the axis component</li>
             </ol>
-            <h4>Theme properties for grid lines</h4>
-            <p>
-                The <code>grid</code> and <code>grid_*</code> property sets control the appearance of the grid lines.
-            </p>
-            <div class="w-full overflow-auto">
-                <table class="w-full doc-demo-table whitespace-nowrap">
-                    <thead>
-                        <tr>
-                            <th>Element</th>
-                            <th>Attribute</th>
-                            <th>Theme property</th>
-                            <th>Default</th>
-                            <th colspan="2">Example</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td rowspan="2">Major grid</td>
-                            <td>line width</td>
-                            <td><code>line_width_major</code>, <code>line_width</code></td>
-                            <td><code>2</code></td>
-                            <td><code>2</code></td>
-                            <td rowspan="2">
-                                <VVPlot :width="300" :height="200" :theme="{ grid: { line_color_major: 'red' } }">
-                                    <VVAxisX :min="-10" :max="10" />
-                                    <VVAxisY :min="-10" :max="10" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>line color</td>
-                            <td><code>line_color_major</code>, <code>line_color</code></td>
-                            <td><code>"#eeeeee"</code></td>
-                            <td><code>"red"</code></td>
-                        </tr>
-                        <tr>
-                            <td rowspan="2">Minor grid</td>
-                            <td>line width</td>
-                            <td><code>line_width_minor</code>, <code>line_width</code></td>
-                            <td><code>1</code></td>
-                            <td><code>1</code></td>
-                            <td rowspan="3">
-                                <VVPlot :width="300" :height="200" :theme="{ grid: { line_color_minor: 'red' } }">
-                                    <VVAxisX :min="-10" :max="10" />
-                                    <VVAxisY :min="-10" :max="10" />
-                                </VVPlot>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>line color</td>
-                            <td><code>line_color_minor</code>, <code>line_color</code></td>
-                            <td><code>"#eeeeee"</code></td>
-                            <td><code>"red"</code></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <p>
-                Horizontal and vertical grid lines can be styled with property sets
-                <code>grid_h</code> and <code>grid_v</code>, respectively.
-            </p>
             <blockquote class="tip">
                 Apart from the <code>*_h</code> and <code>*_v</code> properties for horizontal and vertical elements,
                 you can also use the <code>*_x</code> and <code>*_y</code> properties that are related to x and y axes,
                 which follows the <code>flip</code> behavior of the plot.
-            </blockquote>
-            <blockquote class="info">
-                Notice that in normal plots, <code>axis_x</code> stands for the horizontal axis (<code>axis_h</code>),
-                while <code>grid_x</code> stands for the <i>vertical</i> grid lines (<code>grid_v</code>) which are
-                related to the x axis.
             </blockquote>
             <h3>List of built-in themes</h3>
             <table

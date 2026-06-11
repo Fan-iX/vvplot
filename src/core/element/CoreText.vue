@@ -74,7 +74,7 @@ const binds = computed(() => {
     <text ref="ele" v-bind="binds" :font-size="(fontSize ?? size * 4) || null">
         <slot>
             <title v-if="title">{{ title }}</title>
-            {{ text.replace(/ /g, "\u00a0") }}
+            {{ text?.replace(/ /g, "\u00a0") }}
         </slot>
     </text>
 </template>

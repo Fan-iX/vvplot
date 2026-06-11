@@ -1,3 +1,19 @@
+import { Fragment } from 'vue'
+export function expandFragment(componentList) {
+    if (componentList == null) return []
+    return componentList.flatMap(layer => {
+        if (layer.type == Fragment) {
+            return expandFragment(layer.children)
+        } else if (layer.type == "template") {
+            return expandFragment(layer.children).map(c => {
+                c.props = { ...c.props, ...layer.props }
+                return c
+            })
+        }
+        return layer
+    })
+}
+
 class AsisString extends String {
     static #cache = new Map();
     constructor(str) {
@@ -32,7 +48,7 @@ export class Asis {
         throw new Error("Unsupported type")
     }
     static [Symbol.hasInstance](obj) {
-        return obj instanceof AsisString || obj instanceof AsisNumber 
+        return obj instanceof AsisString || obj instanceof AsisNumber
     }
 }
 
@@ -268,13 +284,16 @@ export function str_c(...args) {
 /**
  * return unique values in an array
  * @param {Array} arr 
+ * @param {function} [key] function to get the key of an item, default to identity function
+ * @param {function} [priority] function to get the priority of an item when there are duplicate keys, default to keep the first one
  * @returns {Array}
  */
-export function unique(arr, mapper = null) {
+export function unique(arr, key = null, priority = null) {
     let map = new Map()
     for (let i in arr) {
-        let key = mapper ? mapper(arr[i]) : arr[i]
-        if (!map.has(key)) map.set(key, arr[i])
+        let k = key ? key(arr[i]) : arr[i]
+        if (!map.has(k)) map.set(k, arr[i])
+        else if (priority) map.set(k, priority(map.get(k), arr[i]))
     }
     return Array.from(map.values())
 }
