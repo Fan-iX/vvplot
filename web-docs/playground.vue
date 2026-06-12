@@ -1,6 +1,6 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed } from 'vue'
-import { useTextareaAutosize, asyncComputed } from '@vueuse/core'
+import { useTextareaAutosize, computedAsync } from '@vueuse/core'
 
 function read_table(text, { header = true, sep = ',' } = {}) {
     function parse_value(v) {
@@ -113,9 +113,9 @@ const preprocessFunc = ref("")
 const templateText = ref("")
 
 const fileContentLoading = ref(false)
-const fileContent = asyncComputed(() => file.value?.text?.() ?? "", "", { evaluating: fileContentLoading })
+const fileContent = computedAsync(() => file.value?.text?.() ?? "", "", { evaluating: fileContentLoading })
 
-const processedData = asyncComputed(async () => {
+const processedData = computedAsync(async () => {
     let text = dataInputMode.value === "file" ? fileContent.value : textInput.value
     let scope = { read_table }
     try {

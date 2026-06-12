@@ -164,11 +164,11 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
                         </VVAxisX>
                         <VVAxisY v-on="axisVOn" position="center" />
                     </VVPlot>
-                    <pre class="overflow-auto h-40" ref="hist-container">{{ eventHist.join('\n') }}</pre>
+                    <pre class="overflow-auto h-36" ref="hist-container">{{ eventHist.join('\n') }}</pre>
                     <div class="row-span-full">
                         <div>
                             <p>plot event data:</p>
-                            <pre class="overflow-auto h-36">{{ plotEventData }}</pre>
+                            <pre class="overflow-auto h-24">{{ plotEventData }}</pre>
                         </div>
                         <div>
                             <p>axis event data:</p>
@@ -179,7 +179,7 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
                         </div>
                         <div>
                             <p>layer event data:</p>
-                            <pre class="overflow-auto h-36">{{ layerEventData }}</pre>
+                            <pre class="overflow-auto h-24">{{ layerEventData }}</pre>
                         </div>
                         <div>
                             <p>layer raw data:</p>
