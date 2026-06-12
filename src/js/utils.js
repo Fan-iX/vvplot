@@ -209,7 +209,7 @@ export const vecutils = {
         let length = values[0].length
         if (values.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
-        return Array.from({ length }, (_, i) => values.reduce((s, a) => +a[i] + s, nums))
+        return Array.from({ length }, (_, i) => values.reduce((s, a) => +(a[i] ?? 0) + s, nums))
     },
     /* vectorized opposite of numbers */
     opposite(value) {
