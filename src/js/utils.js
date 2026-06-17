@@ -260,8 +260,7 @@ export function obj_merge(...arr) {
     if (arr.length == 0) return null
     return arr.reduce((a, c) => {
         for (let k in c) {
-            if (c[k] === null) delete a[k]
-            if (c[k] != undefined) a[k] = c[k]
+            if (c[k] !== undefined) a[k] = c[k]
         }
         return a
     }, {})

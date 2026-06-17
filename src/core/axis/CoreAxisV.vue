@@ -308,7 +308,7 @@ const axisVOn = {
 </script>
 <template>
     <g :transform="transform" :style="{ transition }">
-        <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" />
+        <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" v-if="axisLine.stroke != null" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <g v-for="tick in tickTexts" v-bind="tick.wrapper">
             <CoreAxisLabel v-bind="tick.text" :getPosition />
