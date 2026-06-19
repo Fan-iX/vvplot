@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import vvscale from '#base/js/scale'
+import { vvscale } from '#base/index.ts'
 import iris from '../data/iris.json'
 const demo_point = [
     { x: 1, y: 1 },

@@ -1,5 +1,5 @@
 <script setup>
-import vvtheme from '#base/js/theme'
+import { vvtheme } from '#base/index.ts'
 import { themeMerge } from '#base/js/theme'
 import iris from '../data/iris.json'
 </script>

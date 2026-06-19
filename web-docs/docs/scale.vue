@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import vvscale, { oob } from '#base/js/scale'
+import { vvscale, oob } from '#base/index.ts'
 
 import CO2 from '../data/CO2.json'
 import iris from '../data/iris.json'

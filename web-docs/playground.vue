@@ -1,5 +1,6 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed } from 'vue'
+import { components, vvscale, oob, vvbreak, vvlabel, vvtheme } from '#base/index.ts'
 import { useTextareaAutosize, computedAsync } from '@vueuse/core'
 
 function read_table(text, { header = true, sep = ',' } = {}) {
@@ -22,12 +23,6 @@ function read_table(text, { header = true, sep = ',' } = {}) {
     }
     return data.map(x => Object.fromEntries(columns.map((c, i) => [c, x[i]])))
 }
-
-import * as components from '#base/components'
-import vvscale, { oob } from '#base/js/scale'
-import vvtheme from '#base/js/theme'
-import vvbreak from '#base/js/break'
-import vvlabel from '#base/js/label'
 
 import iris_text from './data/iris.json?raw'
 import UCBAdmissions_text from './data/UCBAdmissions.json?raw'
