@@ -28,8 +28,11 @@ const binds = computed(() => {
 
 const interpolators = {
     cardinal: d3.curveCardinal,
+    cardinalClosed: d3.curveCardinalClosed,
     catmullRom: d3.curveCatmullRom,
+    catmullRomClosed: d3.curveCatmullRomClosed,
     linear: d3.curveLinear,
+    linearClosed: d3.curveLinearClosed,
     natural: d3.curveNatural,
 }
 </script>
