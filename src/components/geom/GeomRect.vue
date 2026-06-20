@@ -4,6 +4,6 @@ export default {
         geom: 'rect',
         stat: 'rect',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>

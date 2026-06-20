@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { interaction, EnumLevel } from '#base/js/utils'
+import { interaction, EnumLevel } from '#base/js/utils.js'
 import CoreGuide from './guide/CoreGuide.vue'
 const { scales, theme } = defineProps({
     theme: { type: Object, default: () => ({}) },

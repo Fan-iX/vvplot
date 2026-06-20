@@ -1,8 +1,8 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, inject, useTemplateRef, useId } from 'vue'
-import { GPlot, GAxis } from '#base/js/plot'
-import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#base/js/utils'
+import { GPlot, GAxis } from '#base/js/plot.js'
+import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#base/js/utils.js'
 import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { parseLinetype } from '#base/js/utils'
+import { parseLinetype } from '#base/js/utils.js'
 import * as d3 from 'd3'
 const {
     points, interpolate, fill, color, linewidth, linetype, alpha, title,

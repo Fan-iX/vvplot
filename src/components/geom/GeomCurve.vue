@@ -7,6 +7,6 @@ export default {
         color: 'black',
     },
     $_type: 'layer',
-    $_attrnames: ["interpolate"]
+    $_attrnames: ["interpolate"],
 }
 </script>

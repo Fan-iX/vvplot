@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
 import * as element from '../element'
-import { categorize } from '#base/js/utils'
+import { categorize } from '#base/js/utils.js'
 const { scales, appearances, theme, breaks } = defineProps({
     scales: Array,
     appearances: { type: Object, default: () => ({}) },

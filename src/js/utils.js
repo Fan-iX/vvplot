@@ -15,7 +15,7 @@ export function expandFragment(componentList) {
 }
 
 class AsisString extends String {
-    static #cache = new Map();
+    static #cache = new Map()
     constructor(str) {
         const s = String(str)
         if (AsisString.#cache.has(s)) {
@@ -26,7 +26,7 @@ class AsisString extends String {
     }
 }
 class AsisNumber extends Number {
-    static #cache = new Map();
+    static #cache = new Map()
     constructor(num) {
         const n = Number(num)
         if (AsisNumber.#cache.has(n)) {
@@ -37,7 +37,7 @@ class AsisNumber extends Number {
     }
 }
 export class Asis {
-    static #cache = new Map();
+    static #cache = new Map()
     constructor(value) {
         if (typeof value === 'string' || value instanceof String) {
             return new AsisString(value)

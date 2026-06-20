@@ -1,4 +1,4 @@
-import { intraaction, intrazip } from '#base/js/utils'
+import { intraaction, intrazip } from '#base/js/utils.js'
 
 /**
  * polygon transformation

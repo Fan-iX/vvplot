@@ -3,8 +3,8 @@ import { computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactiv
 import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { isSVGTag } from '@vue/shared'
-import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
-import { str_c, serializeSVG, expandFragment } from '../js/utils'
+import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme.js'
+import { str_c, serializeSVG, expandFragment } from '../js/utils.js'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from '../core/CorePlot.vue'

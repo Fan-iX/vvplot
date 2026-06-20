@@ -4,6 +4,6 @@ export default {
         geom: 'markdown',
         stat: 'text',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>

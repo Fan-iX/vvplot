@@ -1,5 +1,5 @@
 // Metadata and coordinate system helpers for curve geometry
-import { is_continuous } from '#base/js/utils'
+import { is_continuous } from '#base/js/utils.js'
 
 export default {
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],

@@ -4,6 +4,6 @@ export default {
         geom: 'line',
         stat: 'segment',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>

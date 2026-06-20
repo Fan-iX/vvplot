@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { parseLinetype } from '#base/js/utils'
+import { parseLinetype } from '#base/js/utils.js'
 const {
     cx, cy, rx, ry, angle,
     fill, color, linewidth, linetype, alpha, title,

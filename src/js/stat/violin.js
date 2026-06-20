@@ -1,4 +1,4 @@
-import { numutils, intraaction, is_categorical } from '#base/js/utils'
+import { numutils, intraaction, is_categorical } from '#base/js/utils.js'
 
 /**
  * violin transformation

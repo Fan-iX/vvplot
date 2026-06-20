@@ -1,4 +1,4 @@
-import { intraaction } from '#base/js/utils'
+import { intraaction } from '#base/js/utils.js'
 
 /**
  * bar transformation

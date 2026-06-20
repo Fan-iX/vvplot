@@ -4,6 +4,6 @@ export default {
         geom: 'stick',
         stat: 'stick',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>

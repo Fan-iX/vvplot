@@ -4,6 +4,6 @@ export default {
         geom: 'textsegment',
         stat: 'textsegment',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>
