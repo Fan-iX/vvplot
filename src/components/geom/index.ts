@@ -19,3 +19,4 @@ export { default as VVGeomStick } from './GeomStick.vue';
 export { default as VVGeomText } from './GeomText.vue';
 export { default as VVGeomTextsegment } from './GeomTextsegment.vue';
 export { default as VVGeomTile } from './GeomTile.vue';
+export { default as VVGeomViolin } from './GeomViolin.vue';
