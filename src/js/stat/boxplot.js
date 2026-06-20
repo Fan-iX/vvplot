@@ -5,7 +5,7 @@ import { numutils, intraaction, is_categorical } from '#base/js/utils'
  *   { x, y } => { x, min, lwisker, Q1, median, Q3, uwisker, max, outliers }
  *   { x, y } => { y, min, lwisker, Q1, median, Q3, uwisker, max, outliers }
  */
-export default Object.assign(function (data, { }) {
+export default Object.assign(function (data, { position = "dodge", width = 0.9, height = 0.9 }) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatBoxplot": "${missingAes.join('", "')}"`)
@@ -43,8 +43,25 @@ export default Object.assign(function (data, { }) {
         $group: cates.map(x => x.group),
         min, lwisker, Q1, median, Q3, uwisker, max, outliers
     }
+    if (position == "dodge") {
+        let cate_group = Object.groupBy(result.$group, (v, i) => group.categories[v][cateAes])
+        let $group = result.$group.map(v => cate_group[group.categories[v][cateAes]])
+        if (isXdiscrete) {
+            result.width = $group.map(arr => width / arr.length)
+            result.xnudge = $group.map((arr, i) => (result.xnudge?.[i] ?? 0) + ((arr.indexOf(result.$group[i]) + 0.5) / arr.length - 0.5) * width)
+        } else {
+            result.height = $group.map(arr => height / arr.length)
+            result.ynudge = $group.map((arr, i) => (result.ynudge?.[i] ?? 0) + ((arr.indexOf(result.$group[i]) + 0.5) / arr.length - 0.5) * height)
+        }
+    } else {
+        if (isXdiscrete) {
+            result.width = cates.map(_ => width)
+        } else {
+            result.height = cates.map(_ => height)
+        }
+    }
     for (let key of keys) {
         result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
     }
     return result
-}, { core_attrs: ['x', 'y', 'width', 'height', 'xnudge', 'ynudge'] })
+}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] })

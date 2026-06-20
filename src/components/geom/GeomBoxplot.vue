@@ -5,5 +5,6 @@ export default {
         stat: 'boxplot',
     },
     $_type: 'layer',
+    $_argnames: ["width", "height", "position"],
 }
 </script>
