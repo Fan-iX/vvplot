@@ -5,7 +5,7 @@ import { numutils, intraaction } from '#base/js/utils'
  *   { x } => { points }
  *   { y } => { points }
  */
-export default Object.assign(function (data, { n = 512, kernel = 'gaussian' } = {}) {
+export default Object.assign(function (data, { n = 512, kernel = 'gaussian', scale = "area" } = {}) {
     if (data.x != null && data.y != null)
         throw new Error(`"StatDensity" only supports "x" or "y", not both`)
     let values = data.x ?? data.y
@@ -36,7 +36,8 @@ export default Object.assign(function (data, { n = 512, kernel = 'gaussian' } = 
         max += 3 * bandwidth
         let step = (max - min) / (n - 1)
         let breaks = Array.from({ length: n }, (_, i) => min + i * step)
-        return breaks.map(t => [t, numutils.mean(v.map(d => kernel((t - d) / bandwidth))) / bandwidth])
+        let ratio = scale === "count" ? v.length : 1
+        return breaks.map(t => [t, numutils.mean(v.map(d => kernel((t - d) / bandwidth))) / bandwidth * ratio])
     })
     for (let key of keys) {
         result[key] = cates.map(x => group.categories[x.group][key])

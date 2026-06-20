@@ -5,6 +5,6 @@ export default {
         stat: 'density',
     },
     $_type: 'layer',
-    $_argnames: ["n", "kernel"]
+    $_argnames: ["n", "kernel", "scale"]
 }
 </script>
