@@ -4,6 +4,6 @@ export default {
         geom: 'tile',
         stat: 'tile',
     },
-    $_type: 'layer'
+    $_type: 'layer',
 }
 </script>

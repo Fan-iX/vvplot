@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-import { parseLinetype } from '#base/js/utils'
+import { parseLinetype } from '#base/js/utils.js'
 const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },

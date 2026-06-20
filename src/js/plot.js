@@ -1,9 +1,9 @@
-import * as vvgeom from './geom'
-import * as vvstat from './stat'
-import vvscale from './scale'
-import vvbreak from './break'
-import vvlabel from './label'
-import { numutils, EnumLevel, Asis, plus, is_categorical, expandFragment } from './utils'
+import * as vvgeom from './geom.js'
+import * as vvstat from './stat.js'
+import vvscale from './scale.js'
+import vvbreak from './break.js'
+import vvlabel from './label.js'
+import { numutils, EnumLevel, Asis, plus, is_categorical, expandFragment } from './utils.js'
 
 function object_map(obj, expr) {
     if (obj == null) return {}

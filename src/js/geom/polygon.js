@@ -4,14 +4,10 @@ export default {
     coord_scale(ds, levels) {
         let xnudge = ds.xnudge?.map(v => +v),
             ynudge = ds.ynudge?.map(v => +v),
-            points = ds.points.map((points, i) => points.map(p => {
-                let xn = xnudge?.[i] ?? 0,
-                    yn = ynudge?.[i] ?? 0
-                return {
-                    x: +(levels?.x?.[p.x] ?? p.x) + xn,
-                    y: +(levels?.y?.[p.y] ?? p.y) + yn
-                }
-            }))
+            points = ds.points.map((points, i) => points.map(p => ({
+                x: +(levels?.x?.[p.x] ?? p.x) + (xnudge?.[i] ?? 0),
+                y: +(levels?.y?.[p.y] ?? p.y) + (ynudge?.[i] ?? 0)
+            })))
         return { points }
     },
     get_range(ds, orientation) {

@@ -1,4 +1,4 @@
-import { EnumElement } from './utils'
+import { EnumElement } from './utils.js'
 
 let $datetime_fn = {
     y: d => d.getUTCFullYear(),

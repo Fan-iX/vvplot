@@ -5,6 +5,6 @@ export default {
         stat: 'ellipse',
     },
     $_type: 'layer',
-    $_argnames: ["CI"]
+    $_argnames: ["CI"],
 }
 </script>

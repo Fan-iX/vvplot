@@ -1,13 +1,12 @@
 <script setup>
 import { computed } from 'vue'
-import { parseLinetype } from '#base/js/utils'
+import { parseLinetype } from '#base/js/utils.js'
 const {
     points, fill, color, linewidth, linetype, alpha, title,
     translateX, translateY,
 } = defineProps({
     points: { type: Array, default: () => [] },
-    fill: String,
-    color: String, linewidth: Number, linetype: String,
+    fill: String, color: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })

@@ -1,10 +1,9 @@
 <script>
 export default {
     $_props: {
-        geom: 'curve',
-        stat: 'curve',
-        fill: 'none',
-        color: 'black',
+        geom: 'shape',
+        stat: 'shape',
+        interpolate: 'catmullRomClosed',
     },
     $_type: 'layer',
     $_attrnames: ["interpolate"],

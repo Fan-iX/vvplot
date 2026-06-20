@@ -1,5 +1,5 @@
 // Metadata and coordinate system helpers for boxplot geometry
-import { vecutils } from '#base/js/utils'
+import { vecutils } from '#base/js/utils.js'
 let psum = vecutils.sum
 
 export default {
@@ -9,8 +9,8 @@ export default {
             ynudge = ds.ynudge ?? 0
         if (ds.x) {
             let x = psum(levels.x?.apply?.(ds.x) ?? ds.x, xnudge),
-                xmin = psum(x, ds.width?.map?.(x => -x / 2) ?? -0.5, xnudge),
-                xmax = psum(x, ds.width?.map?.(x => +x / 2) ?? 0.5, xnudge),
+                xmin = psum(x, ds.width?.map?.(x => -x / 2) ?? -0.5),
+                xmax = psum(x, ds.width?.map?.(x => +x / 2) ?? 0.5),
                 lwisker = psum(ds.lwisker, ynudge),
                 Q1 = psum(ds.Q1, ynudge),
                 median = psum(ds.median, ynudge),
@@ -27,8 +27,8 @@ export default {
             }
         } else if (ds.y) {
             let y = psum(levels.y?.apply?.(ds.y) ?? ds.y, ynudge),
-                ymin = psum(y, ds.height?.map?.(y => -y / 2) ?? -0.5, ynudge),
-                ymax = psum(y, ds.height?.map?.(y => +y / 2) ?? 0.5, ynudge),
+                ymin = psum(y, ds.height?.map?.(y => -y / 2) ?? -0.5),
+                ymax = psum(y, ds.height?.map?.(y => +y / 2) ?? 0.5),
                 lwisker = psum(ds.lwisker, xnudge),
                 Q1 = psum(ds.Q1, xnudge),
                 median = psum(ds.median, xnudge),

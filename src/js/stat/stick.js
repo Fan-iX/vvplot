@@ -1,6 +1,6 @@
 /**
  * stick transformation
- *   { x, y, dx, dy } => { x, y, xend, yend }
+ *   { x, y, dx, dy } => { x, y, dx, dy }
  */
 export default Object.assign(function (data) {
     if (data.dx == null) data.dx = Array(data.x.length).fill(0)

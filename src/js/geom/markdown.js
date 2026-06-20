@@ -1,5 +1,5 @@
 // Metadata and coordinate system helpers for markdown geometry
-import { vecutils } from '#base/js/utils'
+import { vecutils } from '#base/js/utils.js'
 let psum = vecutils.sum
 
 export default {

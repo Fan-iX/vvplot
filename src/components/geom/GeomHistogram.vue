@@ -5,6 +5,6 @@ export default {
         stat: 'histogram',
     },
     $_type: 'layer',
-    $_argnames: ["bins", "binwidth", "breaks"]
+    $_argnames: ["bins", "binwidth", "breaks"],
 }
 </script>

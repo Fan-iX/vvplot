@@ -1,6 +1,6 @@
 <script setup>
 import { computed, h } from 'vue'
-import { oob_squish_any, dropNull, plus } from '#base/js/utils'
+import { oob_squish_any, dropNull, plus } from '#base/js/utils.js'
 const model = defineModel({ default: () => ({}) })
 const { coord2pos, pos2coord, layout, theme, flip, activeTransform, transition, ...config } = defineProps({
     coord2pos: Function,

@@ -1,4 +1,4 @@
-import { numutils, intraaction } from '#base/js/utils'
+import { numutils, intraaction } from '#base/js/utils.js'
 
 /**
  * histogram transformation

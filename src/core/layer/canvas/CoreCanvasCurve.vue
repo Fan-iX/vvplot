@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-import { parseLinetype } from '#base/js/utils'
+import { parseLinetype } from '#base/js/utils.js'
 import * as d3 from 'd3'
 const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
@@ -32,7 +32,7 @@ const layerCanvas = computed(() => {
     let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
-            points, fill = "none", color = 'black', linewidth, linetype, alpha,
+            points, fill, color, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
             interpolate
         } of group) {
@@ -86,8 +86,11 @@ defineExpose({
 })
 const interpolators = {
     cardinal: d3.curveCardinal,
+    cardinalClosed: d3.curveCardinalClosed,
     catmullRom: d3.curveCatmullRom,
+    catmullRomClosed: d3.curveCatmullRomClosed,
     linear: d3.curveLinear,
+    linearClosed: d3.curveLinearClosed,
     natural: d3.curveNatural,
 }
 </script>

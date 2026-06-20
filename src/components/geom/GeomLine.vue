@@ -5,6 +5,6 @@ export default {
         stat: 'line',
     },
     $_type: 'layer',
-    $_argnames: ["orientation"]
+    $_argnames: ["orientation"],
 }
 </script>

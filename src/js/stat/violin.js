@@ -1,23 +1,29 @@
-import { numutils, intraaction } from '#base/js/utils.js'
+import { numutils, intraaction, is_categorical } from '#base/js/utils.js'
 
 /**
- * density transformation
- *   { x } => { points }
- *   { y } => { points }
+ * violin transformation
+ *   { x, y } => { x, y, points }
  */
-export default Object.assign(function (data, { n = 512, kernel = 'gaussian', scale = "area" } = {}) {
-    if (data.x != null && data.y != null)
-        throw new Error(`"StatDensity" only supports "x" or "y", not both`)
-    let values = data.x ?? data.y
-    if (values == null)
-        throw new Error(`Missing aesthetics for "StatDensity": "x" or "y"`)
-    if (values.some(x => typeof x !== 'number'))
-        throw new Error(`"StatDensity" requires a continuous aesthetic`)
+export default Object.assign(function (data, {
+    n = 512, kernel = 'gaussian', scale = 'width',
+    position = "dodge", width = 0.9, height = 0.9
+} = {}) {
+    let missingAes = ['x', 'y'].filter(a => data[a] == null)
+    if (missingAes.length > 0)
+        throw new Error(`Missing aesthetics for "StatViolin": "${missingAes.join('", "')}"`)
+    let isXdiscrete = data.x.some(is_categorical)
+    let isYdiscrete = data.y.some(is_categorical)
+    if (isXdiscrete && isYdiscrete)
+        throw new Error(`Both "x" and "y" are discrete, "StatViolin" requires one continuous and one discrete aesthetic`)
+    if (!isXdiscrete && !isYdiscrete)
+        throw new Error(`Both "x" and "y" are continuous, "StatViolin" requires one continuous and one discrete aesthetic`)
     kernel = density_kernels[kernel]
     if (!kernel) {
         throw new Error(`kernel must be one of ${Object.keys(density_kernels).map(k => `"${k}"`).join(', ')}`)
     }
-    let keys = Object.keys(data).filter(k => !['x', 'y'].includes(k) && !k.startsWith('$'))
+    let [valueAes, cateAes, size] = isXdiscrete ? ['y', 'x', width] : ['x', 'y', height]
+    let values = data[valueAes]
+    let keys = Object.keys(data).filter(k => k != valueAes && !k.startsWith('$'))
     let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
     let cut = intraaction({
         group: group ?? new Array(values.length).fill(0),
@@ -28,6 +34,7 @@ export default Object.assign(function (data, { n = 512, kernel = 'gaussian', sca
     let result = {
         $raw: $raw,
         $group: cates.map(x => x.group),
+        [valueAes]: cates.map(v => 0)
     }
     let density = vs.map(v => {
         let bandwidth = bw.nrd0(v)
@@ -36,16 +43,29 @@ export default Object.assign(function (data, { n = 512, kernel = 'gaussian', sca
         max += 3 * bandwidth
         let step = (max - min) / (n - 1)
         let breaks = Array.from({ length: n }, (_, i) => min + i * step)
-        let ratio = scale === "count" ? v.length : 1
-        return breaks.map(t => [t, numutils.mean(v.map(d => kernel((t - d) / bandwidth))) / bandwidth * ratio])
+        let res = breaks.map(t => numutils.mean(v.map(d => kernel((t - d) / bandwidth))) / bandwidth)
+        let ratio = scale == "area" ? 1 : 1 / numutils.max(res)
+        return breaks.map((t, i) => [t, res[i] * ratio / 2])
     })
     for (let key of keys) {
         result[key] = cates.map(x => group.categories[x.group][key])
     }
-    if (data.x) {
-        result.points = density.map(v => v.map(([x, y]) => ({ x, y })))
+    if (position == "dodge") {
+        let cate_group = Object.groupBy(result.$group, (v, i) => group.categories[v][cateAes])
+        let $group = result.$group.map(v => cate_group[group.categories[v][cateAes]])
+        density = $group.map((arr, i) => density[i].map(([x, y]) => [x, y * size / arr.length]))
+        if (isXdiscrete) {
+            result.xnudge = $group.map((arr, i) => (result.xnudge?.[i] ?? 0) + ((arr.indexOf(result.$group[i]) + 0.5) / arr.length - 0.5) * width)
+        } else {
+            result.ynudge = $group.map((arr, i) => (result.ynudge?.[i] ?? 0) + ((arr.indexOf(result.$group[i]) + 0.5) / arr.length - 0.5) * height)
+        }
     } else {
-        result.points = density.map(v => v.map(([y, x]) => ({ x, y })))
+        density = density.map(v => v.map(([x, y]) => [x, y * size]))
+    }
+    if (isXdiscrete) {
+        result.points = density.map(v => v.map(([y, x]) => ({ x, y })).concat(v.map(([y, x]) => ({ x: -x, y })).reverse()))
+    } else {
+        result.points = density.map(v => v.map(([x, y]) => ({ x, y })).concat(v.map(([x, y]) => ({ x, y: -y })).reverse()))
     }
     return result
 }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge'] })

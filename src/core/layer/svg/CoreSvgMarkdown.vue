@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Parser as MarkdownParser, HtmlRenderer } from 'commonmark'
-import CoreMarkdown from '../../element/CoreMarkdown.vue';
+import CoreMarkdown from '../../element/CoreMarkdown.vue'
 const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
