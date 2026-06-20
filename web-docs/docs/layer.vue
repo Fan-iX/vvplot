@@ -8,6 +8,10 @@ const demo_point = [
     { x: 4, y: 4 },
     { x: 2, y: 3 },
 ]
+const demo_shape = [
+    { x: "A", y: "B", points: [{ x: 0, y: 0.2 }, { x: 0.17, y: -0.1 }, { x: -0.17, y: -0.1 }] },
+    { x: "B", y: "A", points: [{ x: 0.2, y: 0.2 }, { x: 0.2, y: -0.2 }, { x: -0.2, y: -0.2 }, { x: -0.2, y: 0.2 }] },
+]
 const demo_polygon = [
     { points: [{ x: 1.5, y: 1 }, { x: 2, y: 3 }, { x: 2.5, y: 2.5 }] },
     { points: [{ x: 3, y: 3.5 }, { x: 4, y: 4 }, { x: 2.5, y: 4 }, { x: 3, y: 2 }] },
@@ -272,6 +276,19 @@ const render = ref('svg')
                             </td>
                         </tr>
                         <tr>
+                            <td><code>&lt;VVGeomShape /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br> <code>points</code>
+                            </td>
+                            <td>shape</td>
+                            <td>identity (shape)</td>
+                            <td>
+                                <VVPlot :data="demo_shape">
+                                    <VVGeomShape :x="d => d.x" :y="d => d.y" :points="d => d.points" :render />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
                             <td><code>&lt;VVGeomStick /&gt;</code></td>
                             <td>
                                 <code>x</code> <br> <code>y</code> <br>
@@ -326,6 +343,20 @@ const render = ref('svg')
                             <td>
                                 <VVPlot :data="demo_point">
                                     <VVGeomTile :x="d => d.x" :y="d => d.y" :width="1" :height="1" :render />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;VVGeomViolin /&gt;</code></td>
+                            <td>
+                                <code>x</code> <br> <code>y</code> <br>
+                                <code>width</code> <br> <code>height</code>
+                            </td>
+                            <td>shape</td>
+                            <td>density</td>
+                            <td>
+                                <VVPlot :data="iris">
+                                    <VVGeomViolin :x="d => d.Petal_Width" :y="d => d.Species" :render />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -440,7 +471,7 @@ const render = ref('svg')
                             <td>line type of the outline (default: solid)</td>
                         </tr>
                         <tr>
-                            <td rowspan="4">curve<br>polygon<br>rectangle</td>
+                            <td rowspan="4">curve<br>polygon<br>rectangle<br>shape</td>
                             <td>
                                 <code>fill</code>
                             </td>
