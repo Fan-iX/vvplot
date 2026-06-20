@@ -131,7 +131,7 @@ const templates = ref({})
 </VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
-            <h3>Axis layout properties</h3>
+            <h3>Properties for axis layout</h3>
             <p>
                 The <code>title</code> property sets the axis title.
                 Axis theme property <code>title_position</code>, <code>title_size</code>, <code>title_color</code>
@@ -163,7 +163,7 @@ const templates = ref({})
                         <li>The axis position is fixed during plot move/zoom</li>
                     </ul>
                 </li>
-                <li>One of the edge preset strings below:
+                <li>One of the strings below:
                     <ul>
                         <li><code>"top"</code>: The axis will be drawn at the top of the plot area.</li>
                         <li><code>"bottom"</code>: The axis will be drawn at the bottom of the plot area.</li>
@@ -217,6 +217,48 @@ const templates = ref({})
     <VVAction move />
 </VVPlot>` }}</pre-highlight>
                 <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind" />
+            </div>
+            <h3>Custom ticks and grid lines</h3>
+            <p>
+                Axis ticks and grid lines can customized in the <code>#breaks</code> slot of an axis, within which:
+            </p>
+            <ul>
+                <li>
+                    A <code>&lt;VVAxisBreak&gt;</code> with property <code>type="major"</code> declears a tick mark and
+                    a major grid line.
+                    The <code>value</code> property declears the coordinate position of the tick/grid line.
+                    Other properties, including event listeners, will be passed to the tick label text element.
+                </li>
+                <li>
+                    A <code>&lt;VVAxisBreak&gt;</code> with property <code>type="minor"</code> declears a minor grid
+                    line.
+                    The <code>value</code> property declears the coordinate position of the grid line.
+                </li>
+            </ul>
+            <p>
+                The <code>majorBreaks</code>, <code>minorBreaks</code> and <code>breaks</code> slot scope properties can
+                be used to get the computed break positions.
+                The current axis limits <code>min</code> and <code>max</code> are also available in the slot scope.
+            </p>
+            <div class="grid grid-cols-[3fr_2fr] gap-4">
+                <pre-highlight lang="html">{{templates[9] = `<VVPlot :data="iris">
+    <VVGeomPoint :x="d => d.Petal_Width"
+        :y="d => d.Petal_Length"
+        :color="d => d.Species" />
+    <VVAxisX>
+        <template #breaks="{ breaks }">
+            <VVAxisBreak v-for="b in breaks" v-bind="b" />
+            <VVAxisBreak :value="0.8" label="0.8" :theme="{ grid_color: 'blue' }" />
+        </template>
+    </VVAxisX>
+    <VVAxisY>
+        <template #breaks="{ majorBreaks }">
+            <VVAxisBreak v-for="{ value, type } in majorBreaks" :value="value" :label="value + ' cm'" />
+        </template>
+    </VVAxisY>
+    <VVAction move />
+</VVPlot>` }}</pre-highlight>
+                <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <h3>List of axis properties</h3>
             <div class="w-full overflow-auto">

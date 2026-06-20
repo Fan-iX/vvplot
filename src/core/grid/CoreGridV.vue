@@ -1,12 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-const { majorBreaks, minorBreaks, coord2pos, layout, theme, activeTransform, transition } = defineProps({
-    majorBreaks: { type: Array, default: () => [] },
-    minorBreaks: { type: Array, default: () => [] },
+const { breaks, coord2pos, layout, activeTransform, transition } = defineProps({
+    breaks: { type: Array, default: () => [] },
     coord2pos: Function,
     pos2coord: Function,
     layout: Object,
-    theme: { type: Object, default: () => ({}) },
     action: { type: Object, default: () => ({}) },
     activeTransform: Object, transition: String,
 })
@@ -15,18 +13,19 @@ const height = computed(() => layout.height + layout.t + layout.b)
 
 const majorLines = computed(() => {
     let result = []
-    for (let line of majorBreaks) {
-        let pos = coord2pos({ h: line.position }).h
+    for (let b of breaks) {
+        if (b.type != "major") continue
+        let pos = coord2pos({ h: b.value }).h
         if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
-        let position = pos + layout.l
-        if (position + tsl < 0 || position + tsl > width.value) continue
+        pos += layout.l
+        if (pos + tsl < 0 || pos + tsl > width.value) continue
         result.push({
-            key: 'major-' + line.position,
+            key: 'major-' + b.value,
             y1: 0, y2: height.value,
-            x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_major,
-            'stroke-width': line.width ?? theme.line_width_major ?? 0,
+            x1: pos, x2: pos,
+            'stroke': b.theme.grid_color_major,
+            'stroke-width': b.theme.grid_width_major ?? 0,
             transform: tsl ? `translate(${tsl},0)` : null,
             style: { transition },
         })
@@ -35,19 +34,19 @@ const majorLines = computed(() => {
 })
 const minorLines = computed(() => {
     let result = []
-    for (let line of minorBreaks) {
-        if (majorBreaks.some(ml => ml.position == line.position)) continue
-        let pos = coord2pos({ h: line.position }).h
+    for (let b of breaks) {
+        if (b.type != "minor") continue
+        let pos = coord2pos({ h: b.value }).h
         if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
-        let position = pos + layout.l
-        if (position + tsl < 0 || position + tsl > width.value) continue
+        pos += layout.l
+        if (pos + tsl < 0 || pos + tsl > width.value) continue
         result.push({
-            key: 'minor-' + line.position,
+            key: 'minor-' + b.value,
             y1: 0, y2: height.value,
-            x1: position, x2: position,
-            'stroke': line.color ?? theme.line_color_minor,
-            'stroke-width': line.width ?? theme.line_width_minor ?? 0,
+            x1: pos, x2: pos,
+            'stroke': b.theme.grid_color_minor,
+            'stroke-width': b.theme.grid_width_minor ?? 0,
             transform: tsl ? `translate(${tsl},0)` : null,
             style: { transition },
         })

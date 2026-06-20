@@ -654,33 +654,37 @@ const gaxes = computed(() => {
             coord, axis: new GAxis(coordScales[coord], { breaks, labels, titles, minorBreaks }), etc
         }))
 })
+function grid_theme_normalize(theme) {
+    let {
+        grid_color, grid_color_major = grid_color, grid_color_minor = grid_color,
+        grid_width, grid_width_major = grid_width, grid_width_minor = grid_width,
+        ...result
+    } = theme
+    if (grid_color_major) result.grid_color_major = grid_color_major
+    if (grid_color_minor) result.grid_color_minor = grid_color_minor
+    if (grid_width_major) result.grid_width_major = grid_width_major
+    if (grid_width_minor) result.grid_width_minor = grid_width_minor
+    return result
+}
 const vaxes = computed(() => gaxes.value.map(({ coord, axis, etc }) => {
-    let { majorBreaks, minorBreaks, ticks } = axis.getBindings({
-        range: axisRange[coord], expandMult: expandMult[coord]
-    })
-    let { showGrid, orientation, ...bind } = etc
-    return {
-        majorBreaks, minorBreaks, ticks,
-        showGrid, coord, orientation,
-        bind
-    }
+    let { showGrid, breakSlot, orientation, ...bind } = etc
+    let gtheme = grid_theme_normalize(theme.axis[orientation] ?? {}),
+        atheme = grid_theme_normalize(bind.theme)
+    let breaks = axis.getBreaks({ range: axisRange[coord], expandMult: expandMult[coord], breakSlot })
+    for (let b of breaks)
+        b.theme = Object.assign({}, gtheme, atheme, grid_theme_normalize(b.theme ?? {}))
+    return { breaks, showGrid, coord, orientation, bind }
 }))
 const gridBreaks = computed(() => {
     let hAxes = vaxes.value.filter(a => a.showGrid && a.orientation == "v"),
         vAxes = vaxes.value.filter(a => a.showGrid && a.orientation == "h")
     return {
-        h: {
-            majorBreaks: unique(hAxes.flatMap(a => a.majorBreaks), x => x.position),
-            minorBreaks: unique(hAxes.flatMap(a => a.minorBreaks), x => x.position),
-        },
-        v: {
-            majorBreaks: unique(vAxes.flatMap(a => a.majorBreaks), x => x.position),
-            minorBreaks: unique(vAxes.flatMap(a => a.minorBreaks), x => x.position),
-        }
+        h: unique(hAxes.flatMap(a => a.breaks), x => x.value, (a, b) => [a, b].find(x => x.type == "major") ?? a),
+        v: unique(vAxes.flatMap(a => a.breaks), x => x.value, (a, b) => [a, b].find(x => x.type == "major") ?? a),
     }
 })
 const axes = computed(() => {
-    return vaxes.value.map(({ orientation, coord, bind, ticks }) => {
+    return vaxes.value.map(({ orientation, coord, bind, breaks }) => {
         let {
             onMove: move = (...args) => emit('move', ...args),
             onZoom: zoom = (...args) => emit('zoom', ...args),
@@ -691,7 +695,7 @@ const axes = computed(() => {
         return {
             orientation,
             bind: {
-                coord, orientation, ticks,
+                coord, orientation, ticks: breaks.filter(x => x.type == "major"),
                 layout: innerRect,
                 coord2pos, pos2coord,
                 ...etc
@@ -711,10 +715,10 @@ const axes = computed(() => {
         <rect :transform="`translate(${panel.left}, ${panel.top})`" :width="panel.width" :height="panel.height"
             :fill="theme.plot.background" v-if="theme.plot.background"></rect>
         <g :transform="`translate(${panel.left}, ${panel.top})`" style="pointer-events: none;">
-            <CoreGridH v-if="theme.grid.h" v-bind="gridBreaks.h" :layout="innerRect" :theme="theme.grid.h"
-                :activeTransform="activeTransform" :coord2pos="coord2pos" :transition="transition" />
-            <CoreGridV v-if="theme.grid.v" v-bind="gridBreaks.v" :layout="innerRect" :theme="theme.grid.v"
-                :activeTransform="activeTransform" :coord2pos="coord2pos" :transition="transition" />
+            <CoreGridH :breaks="gridBreaks.h" :layout="innerRect" :activeTransform="activeTransform"
+                :coord2pos="coord2pos" :transition="transition" />
+            <CoreGridV :breaks="gridBreaks.v" :layout="innerRect" :activeTransform="activeTransform"
+                :coord2pos="coord2pos" :transition="transition" />
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
@@ -738,6 +742,7 @@ const axes = computed(() => {
                     v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
             </g>
         </g>
+        <slot></slot>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
                 <CoreLegend :scales="vplot?.scales" :theme="theme.legend" />

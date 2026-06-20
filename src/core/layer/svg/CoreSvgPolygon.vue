@@ -18,6 +18,7 @@ const binds = computed(() => {
     return data.map(group => group.map(({
         points, fill, color, linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        'marker-start': markerStart, 'marker-mid': markerMid, 'marker-end': markerEnd,
         class: className, style, $raw
     }) => {
         points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
@@ -28,6 +29,7 @@ const binds = computed(() => {
         let vbind = {
             points, fill, color, linewidth, linetype, alpha, title,
             translateX, translateY,
+            'marker-start': markerStart, 'marker-mid': markerMid, 'marker-end': markerEnd,
             class: className, style,
         }
         let von = Object.fromEntries(

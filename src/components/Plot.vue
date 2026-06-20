@@ -1,9 +1,10 @@
 <script setup>
-import { computed, watch, Fragment, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
+import { computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
 import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
+import { isSVGTag } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme'
-import { str_c, serializeSVG } from '../js/utils'
+import { str_c, serializeSVG, expandFragment } from '../js/utils'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from '../core/CorePlot.vue'
@@ -46,20 +47,6 @@ const selectionPreview = defineModel('selectionPreview', { default: () => ({}) }
 const selectionPreviewTheme = defineModel('selectionPreviewTheme', { default: () => ({}) })
 const transition = defineModel('transition')
 
-function expandFragment(componentList) {
-    if (componentList == null) return []
-    return componentList.flatMap(layer => {
-        if (layer.type == Fragment) {
-            return expandFragment(layer.children)
-        } else if (layer.type == "template") {
-            return expandFragment(layer.children).map(c => {
-                c.props = { ...c.props, ...layer.props }
-                return c
-            })
-        }
-        return layer
-    })
-}
 function resolveComponent(ast) {
     let result = {
         props: Object.fromEntries(ast.props.map(p => {
@@ -108,6 +95,8 @@ const vaxis = computed(() => Object.values(vnodes.axis).flat())
 const vaction = computed(() => Object.values(vnodes.action).flat())
 const vselection = computed(() => Object.values(vnodes.selection).flat())
 const vdom = computed(() => Object.keys(vnodes.dom).flatMap(k => k == 'panel' ? [] : vnodes.dom[k]))
+const vdom_svg = computed(() => vdom.value.filter(v => isSVGTag(v.type)))
+const vdom_etc = computed(() => vdom.value.filter(v => !isSVGTag(v.type)))
 
 const vBind = computed(() => {
     let plot = {}
@@ -343,7 +332,7 @@ const reverse = reactiveComputed(() => ({
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
 const axes = computed(() => {
     let ori = flip ? { x: 'v', y: 'h' } : { x: 'h', y: 'v' }
-    let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children })).concat($axes ?? [])
+    let allAxes = vaxis.value.map(c => ({ ...c.type.$_props, ...c.props, $_children: c.children ?? {} })).concat($axes ?? [])
     if (allAxes.every(ax => ax?.coord != 'x')) allAxes.push({ coord: 'x' })
     if (allAxes.every(ax => ax?.coord != 'y')) allAxes.push({ coord: 'y' })
     return allAxes.map(({
@@ -353,7 +342,7 @@ const axes = computed(() => {
         // preserved properties
         primary, secondary, 'expand-mult': em, 'expand-add': ea,
         levels, limits, min, max, 'onUpdate:min': oum, 'onUpdate:max': ouM,
-        $_children, ...etc
+        $_children = {}, ...etc
     }) => {
         let orientation = ori[coord]
         position = position ?? "start"
@@ -364,9 +353,10 @@ const axes = computed(() => {
             position = { h: "top", v: "right" }[orientation]
             if (reverse[opponents[coord]]) position = opponents[position]
         }
-        let action = Object.values($_children ?? {})
-            .filter(s => typeof s == "function")
-            .flatMap(s => expandFragment(s()))
+        let breakSlot = $_children.breaks
+        let action = Object.keys($_children)
+            .filter(k => typeof $_children[k] == "function" && k != "breaks")
+            .flatMap(k => expandFragment($_children[k]()))
             .map(c => ({ ...c.type.$_props, ...c.props }))
             .concat($$action ?? [])
             .flatMap(props => {
@@ -391,7 +381,7 @@ const axes = computed(() => {
                 return res
             })
         return {
-            coord, orientation, position, title, breaks, labels, titles, minorBreaks,
+            coord, orientation, position, title, breaks, labels, titles, minorBreaks, breakSlot,
             showGrid: _isPropTruthy(showGrid) ?? position !== "none",
             extend: extend ?? primaryAxisConfig.extend[coord],
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),
@@ -536,12 +526,14 @@ defineExpose({
             :selections="selections" v-model:transition="transition" v-bind="vBind.plot"
             v-model:selection-preview="selectionPreview" v-model:selection-preview-theme="selectionPreviewTheme"
             :action="action" :clip="clip" :render="render" :dpi="dpi ?? 96 * pixelRatio"
-            :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)" />
+            :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)">
+            <component v-for="c in vdom_svg" :is="c" />
+        </CorePlot>
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" style="pointer-events:auto;display:contents;" v-if="vnodes.dom.panel?.length">
                 <component v-for="c in vnodes.dom.panel" :is="c" />
             </div>
         </div>
-        <component v-for="c in vdom" :is="c" />
+        <component v-for="c in vdom_etc" :is="c" />
     </div>
 </template>

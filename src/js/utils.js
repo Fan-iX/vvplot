@@ -1,3 +1,19 @@
+import { Fragment } from 'vue'
+export function expandFragment(componentList) {
+    if (componentList == null) return []
+    return componentList.flatMap(layer => {
+        if (layer.type == Fragment) {
+            return expandFragment(layer.children)
+        } else if (layer.type == "template") {
+            return expandFragment(layer.children).map(c => {
+                c.props = { ...c.props, ...layer.props }
+                return c
+            })
+        }
+        return layer
+    })
+}
+
 class AsisString extends String {
     static #cache = new Map();
     constructor(str) {
@@ -32,7 +48,7 @@ export class Asis {
         throw new Error("Unsupported type")
     }
     static [Symbol.hasInstance](obj) {
-        return obj instanceof AsisString || obj instanceof AsisNumber 
+        return obj instanceof AsisString || obj instanceof AsisNumber
     }
 }
 
@@ -193,7 +209,7 @@ export const vecutils = {
         let length = values[0].length
         if (values.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
-        return Array.from({ length }, (_, i) => values.reduce((s, a) => +a[i] + s, nums))
+        return Array.from({ length }, (_, i) => values.reduce((s, a) => +(a[i] ?? 0) + s, nums))
     },
     /* vectorized opposite of numbers */
     opposite(value) {
@@ -244,8 +260,7 @@ export function obj_merge(...arr) {
     if (arr.length == 0) return null
     return arr.reduce((a, c) => {
         for (let k in c) {
-            if (c[k] === null) delete a[k]
-            if (c[k] != undefined) a[k] = c[k]
+            if (c[k] !== undefined) a[k] = c[k]
         }
         return a
     }, {})
@@ -268,13 +283,16 @@ export function str_c(...args) {
 /**
  * return unique values in an array
  * @param {Array} arr 
+ * @param {function} [key] function to get the key of an item, default to identity function
+ * @param {function} [priority] function to get the priority of an item when there are duplicate keys, default to keep the first one
  * @returns {Array}
  */
-export function unique(arr, mapper = null) {
+export function unique(arr, key = null, priority = null) {
     let map = new Map()
     for (let i in arr) {
-        let key = mapper ? mapper(arr[i]) : arr[i]
-        if (!map.has(key)) map.set(key, arr[i])
+        let k = key ? key(arr[i]) : arr[i]
+        if (!map.has(k)) map.set(k, arr[i])
+        else if (priority) map.set(k, priority(map.get(k), arr[i]))
     }
     return Array.from(map.values())
 }
@@ -520,7 +538,7 @@ export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
         img.setAttribute('height', foreignElement.getAttribute('height'))
         foreignClone.parentNode.replaceChild(img, foreignClone)
     }
-    for (let node of svgClone.querySelectorAll('.vvplot-interactive')) node.remove()
+    for (let node of svgClone.querySelectorAll('.vvplot-interactive,foreignObject')) node.remove()
     removeComments(svgClone)
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')

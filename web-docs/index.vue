@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const page = ref(window.location.hash.slice(1) || 'home')
 
-import playground from './playground.vue'
+import playground from './playground/playground.vue'
 import home from './home.vue'
 import quick_start from './docs/quick-start.vue'
 import layer from './docs/layer.vue'
@@ -45,12 +45,6 @@ select {
     display: inline-block;
 }
 
-table th,
-table td {
-    border: 1px solid #ddd;
-}
-
-
 .plot-container {
     display: flex;
     flex-direction: column;
@@ -66,6 +60,7 @@ table td {
 
     th,
     td {
+        border: 1px solid #ddd;
         padding-inline: 8px;
     }
 

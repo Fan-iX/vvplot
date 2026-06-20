@@ -5,5 +5,6 @@ export default {
         stat: 'bar',
     },
     $_type: 'layer',
+    $_argnames: ["width", "height", "position"],
 }
 </script>

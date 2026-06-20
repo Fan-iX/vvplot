@@ -7,6 +7,8 @@ export const theme_base = {
         tick_length: 5,
         label_size: 12,
         title_size: 18,
+        grid_width: 1,
+        grid_width_major: 2,
     },
     axis_h: {
         title_offset: 20,
@@ -31,10 +33,6 @@ export const theme_base = {
         tick_position: 'bottom',
         title_position: 'bottom',
     },
-    grid: {
-        line_width: 1,
-        line_width_major: 2,
-    },
     plot: {
         margin: 20,
         padding_h: 50,
@@ -54,9 +52,7 @@ export const theme_default = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
-    },
-    grid: {
-        line_color: '#eeeeee',
+        grid_color: '#eeeeee',
     },
 }
 
@@ -66,9 +62,7 @@ const theme_light = {
         tick_color: 'gray',
         label_color: 'gray',
         title_color: 'gray',
-    },
-    grid: {
-        line_color: '#eeeeee',
+        grid_color: '#eeeeee',
     }
 }
 
@@ -77,9 +71,7 @@ const theme_gray = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
-    },
-    grid: {
-        line_color: 'white',
+        grid_color: 'white',
     },
     plot: {
         background: '#eeeeee'
@@ -91,9 +83,7 @@ const theme_dark = {
         tick_color: '#333333',
         label_color: '#555555',
         title_color: 'black',
-    },
-    grid: {
-        line_color: '#666666',
+        grid_color: '#666666',
     },
     plot: {
         background: '#888888'
@@ -106,12 +96,10 @@ const theme_linedraw = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
-    },
-    grid: {
-        line_color: 'black',
-        line_width_major: 1,
-        line_width_minor: 0.5,
-    },
+        grid_color: 'black',
+        grid_width: 0.5,
+        grid_width_major: 1,
+    }
 }
 
 const theme_classic = {
@@ -120,13 +108,11 @@ const theme_classic = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
-    },
-    grid: null,
+    }
 }
 
 const theme_void = {
     axis: null,
-    grid: null,
 }
 
 export function themeMerge(...themes) {
@@ -145,7 +131,6 @@ export function themeMerge(...themes) {
 export function themePreprocess(theme, flip = false) {
     let {
         axis_h, axis_v, axis_x, axis_y,
-        grid_h, grid_v, grid_x, grid_y,
         plot: {
             margin_x, margin_y, margin_h, margin_v,
             padding_x, padding_y, padding_h, padding_v,
@@ -156,8 +141,6 @@ export function themePreprocess(theme, flip = false) {
     if (flip) {
         axis_h = obj_merge(axis_h, axis_y)
         axis_v = obj_merge(axis_v, axis_x)
-        grid_h = obj_merge(grid_h, grid_x)
-        grid_v = obj_merge(grid_v, grid_y)
         plot.margin_h = margin_y === undefined ? margin_h : margin_y
         plot.margin_v = margin_x === undefined ? margin_v : margin_x
         plot.padding_h = padding_y === undefined ? padding_h : padding_y
@@ -165,27 +148,17 @@ export function themePreprocess(theme, flip = false) {
     } else {
         axis_h = obj_merge(axis_h, axis_x)
         axis_v = obj_merge(axis_v, axis_y)
-        grid_h = obj_merge(grid_h, grid_y)
-        grid_v = obj_merge(grid_v, grid_x)
         plot.margin_h = margin_x === undefined ? margin_h : margin_x
         plot.margin_v = margin_y === undefined ? margin_v : margin_y
         plot.padding_h = padding_x === undefined ? padding_h : padding_x
         plot.padding_v = padding_y === undefined ? padding_v : padding_y
     }
     return {
-        axis_h, axis_v, grid_h, grid_v, plot, ...rest
+        axis_h, axis_v, plot, ...rest
     }
 }
 
 export function themeBuild(theme) {
-    function _grid_build(grid_theme) {
-        return {
-            line_color_major: ["line_color", "line_color_major"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
-            line_color_minor: ["line_color", "line_color_minor"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
-            line_width_major: ["line_width", "line_width_major"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
-            line_width_minor: ["line_width", "line_width_minor"].map(k => grid_theme?.[k]).findLast(x => x !== undefined),
-        }
-    }
     return {
         axis: {
             h: obj_merge(...["axis", "axis_h"].map(k => theme?.[k])),
@@ -202,10 +175,6 @@ export function themeBuild(theme) {
             bottom: obj_merge(
                 ...["axis", "axis_h", "axis_bottom"].map(k => theme?.[k])
             ),
-        },
-        grid: {
-            h: _grid_build(obj_merge(...["grid", "grid_h"].map(k => theme?.[k]))),
-            v: _grid_build(obj_merge(...["grid", "grid_v"].map(k => theme?.[k])))
         },
         plot: {
             margin: {

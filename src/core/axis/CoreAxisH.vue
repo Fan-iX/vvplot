@@ -3,6 +3,7 @@ import { computed, inject, useTemplateRef } from 'vue'
 import { oob_squish_any, emitEvent, dropNull } from '#base/js/utils'
 import CoreText from '../element/CoreText.vue'
 import CoreMarkdown from '../element/CoreMarkdown.vue'
+import CoreAxisLabel from './CoreAxisLabel.vue'
 const { coord, ticks, title, coord2pos, pos2coord, layout, theme, action, position, activeTransform, transition } = defineProps({
     coord: String,
     ticks: { type: Array, default: () => [] }, title: String,
@@ -57,18 +58,18 @@ const axisLine = computed(() => {
 const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
-        if (typeof tick == 'number') tick = { position: tick }
-        let pos = coord2pos({ h: tick.position }).h
+        let { value, theme: $theme } = tick
+        let pos = coord2pos({ h: value }).h
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
-        let position = pos + layout.l
-        if (position + tsl < 0 || position + tsl > width.value) continue
-        let offset = (theme.tick_position == "top" ? -1 : 1) * (tick.length ?? theme.tick_length)
+        pos += layout.l
+        if (pos + tsl < 0 || pos + tsl > width.value) continue
+        let offset = ($theme.tick_position == "top" ? -1 : 1) * $theme.tick_length
         result.push({
-            key: "line-" + tick.position,
+            key: "line-" + value,
             y1: 0, y2: offset,
-            x1: position, x2: position,
-            'stroke': tick.color ?? theme.tick_color,
-            'stroke-width': tick.width ?? theme.tick_width,
+            x1: pos, x2: pos,
+            'stroke': $theme.tick_color,
+            'stroke-width': $theme.tick_width,
             transform: tsl ? `translate(${tsl},0)` : null,
             style: { transition },
         })
@@ -76,40 +77,40 @@ const tickLines = computed(() => {
     return result.filter(t => t.stroke != null).sort((a, b) => a.x1 - b.x1)
 })
 const tickTexts = computed(() => {
-    let isTop = (theme.label_position ?? theme.tick_position) == "top"
     let result = []
     for (let tick of ticks) {
-        if (typeof tick == 'number') tick = { position: tick, label: tick }
-        let pos = coord2pos({ h: tick.position }).h
+        let { type, value, label, title, theme: $theme, ...etc } = tick
+        let isTop = ($theme.label_position ?? $theme.tick_position) == "top"
+        let pos = coord2pos({ h: value }).h
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
-        let position = pos + layout.l
-        if (position + tsl < 0 || position + tsl > width.value) continue
-        let offset = (isTop ? -1 : 1) * ((theme.label_offset ?? tick.length ?? theme.tick_length))
+        pos += layout.l
+        if (pos + tsl < 0 || pos + tsl > width.value) continue
+        let offset = (isTop ? -1 : 1) * (($theme.label_offset ?? $theme.tick_length))
         let anchorX, anchorY, dockX, dockY
-        if (theme.label_anchor_x != null || theme.label_anchor_y != null) {
-            anchorX = theme.label_anchor_x ?? 0.5
-            anchorY = theme.label_anchor_y ?? (isTop ? 0 : 1)
+        if ($theme.label_anchor_x != null || $theme.label_anchor_y != null) {
+            anchorX = $theme.label_anchor_x ?? 0.5
+            anchorY = $theme.label_anchor_y ?? (isTop ? 0 : 1)
         } else {
-            dockX = theme.label_dock_x ?? 0.5
-            dockY = theme.label_dock_y ?? (isTop ? 0 : 1)
+            dockX = $theme.label_dock_x ?? 0.5
+            dockY = $theme.label_dock_y ?? (isTop ? 0 : 1)
         }
         result.push({
             wrapper: {
-                key: "text-" + tick.position,
+                key: "text-" + value,
                 transform: tsl ? `translate(${tsl},0)` : null,
                 style: { transition },
             },
             text: {
-                x: position,
-                y: offset,
-                angle: theme.label_angle,
+                x: pos, y: offset,
+                angle: $theme.label_angle,
                 anchorX, anchorY, dockX, dockY,
-                text: tick.label,
-                title: tick.title ?? tick.label,
-                fontSize: tick.size ?? theme.label_size,
-                fill: tick.color ?? theme.label_color,
+                type: $theme.label_type,
+                text: label, title: title ?? label,
+                fontSize: $theme.label_size,
+                fill: $theme.label_color,
                 'font-family': "sans-serif",
-                ...theme.label_style,
+                value,
+                ...etc,
             },
         })
     }
@@ -146,13 +147,6 @@ function axisMovePointerdown(e) {
         }
     }
     e.target.addEventListener('pointermove', detectMove, { passive: true })
-    e.target.addEventListener('pointerup', function (ev) {
-        e.target.removeEventListener('pointermove', detectMove)
-        if (!pointerMoved) {
-            let position = getPosition(ev)
-            emit('singleclick', new PointerEvent("singleclick", ev), position)
-        }
-    }, { once: true })
     let act = action.find(a => a.action == "move")
     if (!act) return
     e.preventDefault()
@@ -304,8 +298,9 @@ const axisVOn = {
     pointerout(e) { emit('pointerout', e, getPosition(e)) },
     pointerenter(e) { emit('pointerenter', e, getPosition(e)) },
     pointerleave(e) { emit('pointerleave', e, getPosition(e)) },
-    dblclick(e) { emit('dblclick', e, getPosition(e)) },
     click(e) { emit('click', e, getPosition(e)) },
+    singleclick(e) { emit('singleclick', e, getPosition(e)) },
+    dblclick(e) { emit('dblclick', e, getPosition(e)) },
     contextmenu(e) { emit('contextmenu', e, getPosition(e)) },
     pointermove(e) { emit('pointermove', e, getPosition(e)) },
     wheel: axisWheel
@@ -313,11 +308,10 @@ const axisVOn = {
 </script>
 <template>
     <g :transform="transform" :style="{ transition }">
-        <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" />
+        <line ref="i" :x1="0" :x2="width" :y1="0" :y2="0" v-bind="axisLine" v-if="axisLine.stroke != null" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <g v-for="tick in tickTexts" v-bind="tick.wrapper">
-            <CoreMarkdown v-bind="tick.text" v-if="theme.label_type == 'markdown'" />
-            <CoreText v-bind="tick.text" v-else />
+            <CoreAxisLabel v-bind="tick.text" :getPosition />
         </g>
         <g class="vvplot-interactive" fill="transparent">
             <rect :width="width" :height="10" :y="-5" v-on="axisVOn" @pointerdown="axisMovePointerdown"

@@ -17,6 +17,7 @@ const activeEvents = reactive({
 const eventHist = ref([])
 const plotEventData = ref({})
 const axisEventData = ref({})
+const axisLabelData = ref("")
 const layerEventData = ref({})
 const layerRawData = ref({})
 function plotEventHandler(e, c) {
@@ -30,6 +31,10 @@ function axisEventHandler(e, c) {
     if (e.type == "wheel") e.preventDefault()
     eventHist.value.push(" axis event: " + e.type)
     axisEventData.value = c
+}
+function axisLabelEventHandler(e, c, d) {
+    eventHist.value.push(" tick event: " + e.type)
+    axisLabelData.value = d
 }
 function layerEventHandler(e, c, d) {
     if (e.type == "wheel") e.preventDefault()
@@ -50,11 +55,18 @@ const plotVOn = computed(() => {
 const axisVOn = computed(() => {
     return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, axisEventHandler]))
 })
+const axisLabelVOn = computed(() => {
+    return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, axisLabelEventHandler]))
+})
 const layerVOn = computed(() => {
     return Object.fromEntries(Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => [e, layerEventHandler]))
 })
 const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :height="${height.value}" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c) => plotEventData = c"`).join(' ')} resize>
-    <VVAxisX position="center" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c) => axisEventData = c"`).join(' ')} />
+    <VVAxisX position="center" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c) => axisEventData = c"`).join(' ')}>
+        <template #breaks="{ breaks }">
+            <VVAxisBreak v-for="b in breaks" v-bind="b" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c, d) => axisLabelData = d"`).join(' ')} />
+        </template>
+    </VVAxisX>
     <VVAxisY position="center" ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c) => axisEventData = c"`).join(' ')} />
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
         ${Object.entries(activeEvents).filter(([e, v]) => v).map(([e, v]) => `@${e}="(e, c, d) => { layerEventData = c; layerRawData = d }"`).join(' ')} />
@@ -72,7 +84,9 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
                 <code>pointerenter</code>, <code>pointerleave</code>, <code>pointerover</code>, <code>pointerout</code>,
                 <code>pointermove</code> and <code>wheel</code>
                 ) can be captured through event handlers attached to the plot component (<code>&lt;VVPlot&gt;</code>),
-                axis declarations (<code>&lt;VVAxis&gt;</code>) or layer declarations (<code>&lt;VVGeom&gt;</code>).
+                axis declarations (<code>&lt;VVAxis&gt;</code>), axis tick/break declarations
+                (<code>&lt;VVAxisBreak&gt;</code>)
+                or layer declarations (<code>&lt;VVGeom&gt;</code>).
             </p>
             <p>
                 Several arguments are passed to pointer event handlers:
@@ -123,6 +137,7 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
             <p>
                 The <code>width</code> and <code>height</code> model value of the plot will be updated as well.
             </p>
+            <hr>
             <fieldset>
                 <legend>pointer and resize events</legend>
                 <div class="flex flex-wrap gap-x-4">
@@ -142,22 +157,29 @@ const pointerEventTemplate = computed(() => `<VVPlot :width="${width.value}" :he
                         @resize="resizeEventHandler" resize>
                         <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
                             v-on="layerVOn" />
-                        <VVAxisX v-on="axisVOn" position="center" />
+                        <VVAxisX v-on="axisVOn" position="center">
+                            <template #breaks="{ breaks }">
+                                <VVAxisBreak v-for="b in breaks" v-bind="b" v-on="axisLabelVOn" />
+                            </template>
+                        </VVAxisX>
                         <VVAxisY v-on="axisVOn" position="center" />
                     </VVPlot>
-                    <pre class="overflow-auto h-40" ref="hist-container">{{ eventHist.join('\n') }}</pre>
+                    <pre class="overflow-auto h-36" ref="hist-container">{{ eventHist.join('\n') }}</pre>
                     <div class="row-span-full">
                         <div>
                             <p>plot event data:</p>
-                            <pre class="overflow-auto h-36">{{ plotEventData }}</pre>
+                            <pre class="overflow-auto h-24">{{ plotEventData }}</pre>
                         </div>
                         <div>
                             <p>axis event data:</p>
                             <pre class="overflow-auto h-24">{{ axisEventData }}</pre>
                         </div>
                         <div>
+                            <p>tick event data: <code>{{ axisLabelData }}</code></p>
+                        </div>
+                        <div>
                             <p>layer event data:</p>
-                            <pre class="overflow-auto h-36">{{ layerEventData }}</pre>
+                            <pre class="overflow-auto h-24">{{ layerEventData }}</pre>
                         </div>
                         <div>
                             <p>layer raw data:</p>

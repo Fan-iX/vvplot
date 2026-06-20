@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import vvscale, { oob } from '#base/js/scale'
+import { vvscale, oob } from '#base/index.ts'
 
 import CO2 from '../data/CO2.json'
 import iris from '../data/iris.json'
@@ -85,28 +85,28 @@ const size_limits_max = ref(600)
                 It generates a set of distinct colors by varying the hue component in the HCL color space
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="iris"
+                <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="iris"
     :scales="{ color: vvscale.color.hue() }">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[6]]" />
+                <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[2]]" />
             </div>
             <p>
                 <code>vvscale.color.gradient()</code> is the default color scale for continuous mapping.
                 It generates a gradient of colors between two specified colors.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris"
+                <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="iris"
     :scales="{ color: vvscale.color.gradient() }">
     <VVGeomPoint :x="d => d.Petal_Width"
         :y="d => d.Petal_Length"
         :color="d => d.Sepal_Width" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[7]]" />
+                <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[3]]" />
             </div>
             <h4>List of built-in color scales (<code>vvscale.color</code> / <code>vvscale.fill</code>)</h4>
             <div class="w-full overflow-auto">
@@ -230,7 +230,7 @@ const size_limits_max = ref(600)
                 <code>"diamond"</code>, <code>"plus"</code>, <code>"cross"</code>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[8] = `<VVPlot :scales="{ shape: vvscale.color.identity() }"
+                <pre-highlight lang="html">{{templates[4] = `<VVPlot :scales="{ shape: vvscale.color.identity() }"
     :data="[
         'circle', 'square', 'triangle',
         'diamond', 'plus', 'cross'
@@ -238,8 +238,8 @@ const size_limits_max = ref(600)
     <VVGeomPoint :x="d => d" :shape="d => d"
         :y="0" :size="15" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[8]]" />
+                <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[4]]" />
             </div>
             <p>
                 The <code>linetype</code> aesthetic controls the line style for line elements.
@@ -254,7 +254,7 @@ const size_limits_max = ref(600)
                 </li>
             </ul>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[9] = `<VVPlot :scales="{ linetype: vvscale.linetype.identity() }"
+                <pre-highlight lang="html">{{templates[5] = `<VVPlot :scales="{ linetype: vvscale.linetype.identity() }"
     :data="[
         'solid', 'dashed', 'dotted',
         'dotdash', 'longdash', 'twodash',
@@ -263,8 +263,8 @@ const size_limits_max = ref(600)
     <VVGeomLinerange :xmin="0" :xmax="1"
         :y="d => d" :linetype="d => d" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[9]]" />
+                <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[5]]" />
             </div>
             <h3>The <code>identity</code> scale: keep values unchanged</h3>
             <p>
@@ -272,7 +272,7 @@ const size_limits_max = ref(600)
                 without any transformation.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="[
+                <pre-highlight lang="html">{{templates[6] = `<VVPlot :data="[
     { x: 1, y: 1, size:10, color: 'red' },
     { x: 2, y: 4, size:14, color: 'green' },
     { x: 3, y: 9, size:17, color: 'blue' }
@@ -281,8 +281,8 @@ const size_limits_max = ref(600)
     <VVGeomPoint :x="d => d.x" :y="d => d.y"
         :color="d => d.color" :size="d => d.size" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[2], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[2]]" />
+                <component :is="{ template: templates[6], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[6]]" />
             </div>
             <h3>The <code>manual</code> scale: map categorical values manually</h3>
             <p>
@@ -295,7 +295,7 @@ const size_limits_max = ref(600)
                 It can be either an array of aesthetic attribute values or an object that describes the mapping.
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[3] = `<VVPlot :data="iris" :scales="{
+                <pre-highlight lang="html">{{templates[7] = `<VVPlot :data="iris" :scales="{
     color: vvscale.color.manual({
         values: ['#1f77b4', '#ff7f0e', '#2ca02c']
      // values: { 'setosa': '#1f77b4',
@@ -306,8 +306,8 @@ const size_limits_max = ref(600)
         :y="d => d.Petal_Length"
         :color="d => d.Species" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[3], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[3]]" />
+                <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[7]]" />
             </div>
             <h3><code>continuous</code> scales: map numerical values to a continuous range</h3>
             <p>
@@ -325,16 +325,16 @@ const size_limits_max = ref(600)
                 </label>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="UCBAdmissions"
-    :scales="{ alpha: vvscale.size.continuous({
+                <pre-highlight lang="html">{{templates[8] = `<VVPlot :data="UCBAdmissions"
+    :scales="{ alpha: vvscale.alpha.continuous({
         limits: [0, ${alpha_limits_max}], range: [0.2, 1], na_value: 0
     }) }">
     <VVGeomPoint :x="d => d.Gender + '_' + d.Admit"
         :y="d => d.Dept" :alpha="d => d.Freq" :size="15" />
-    <VVAxisX :theme="{ text_angle: -10 }" />
+    <VVAxisX :theme="{ label_angle: -10 }" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[4]]" />
+                <component :is="{ template: templates[8], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[8]]" />
             </div>
             <p>
                 By default, values out of the specified <code>limits</code> range will be treated as <code>NaN</code>
@@ -373,17 +373,17 @@ const size_limits_max = ref(600)
                 </label>
             </p>
             <div class="grid grid-cols-[3fr_2fr] gap-4">
-                <pre-highlight lang="html">{{templates[5] = `<VVPlot :data="UCBAdmissions"
+                <pre-highlight lang="html">{{templates[9] = `<VVPlot :data="UCBAdmissions"
     :scales="{ size: vvscale.size.continuous({
         limits: [0, ${size_limits_max}], range: [5, 20],
         oob: oob.squish_any
     }) }">
     <VVGeomPoint :x="d => d.Gender + '_' + d.Admit"
         :y="d => d.Dept" :size="d => d.Freq" />
-    <VVAxisX :theme="{ text_angle: -10 }" />
+    <VVAxisX :theme="{ label_angle: -10 }" />
 </VVPlot>` }}</pre-highlight>
-                <component :is="{ template: templates[5], props: Object.keys(vBind) }" v-bind="vBind"
-                    v-memo="[templates[5]]" />
+                <component :is="{ template: templates[9], props: Object.keys(vBind) }" v-bind="vBind"
+                    v-memo="[templates[9]]" />
             </div>
             <h3>Custom scale functions</h3>
             <p>

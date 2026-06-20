@@ -23,6 +23,11 @@ const binds = computed(() => {
     }) => {
         const { h: cx, v: cy } = coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
+        if (typeof (angle) == "object") {
+            let { dx = 0, dy = 0 } = angle
+            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
+        }
         let vbind = {
             x: cx, y: cy, shape, size,
             color, stroke, linetype, linewidth, alpha, title,

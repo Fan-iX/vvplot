@@ -1,10 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { read_csv } from '../script/utils'
-import vvscale from '#base/js/scale'
-import vvtheme from '#base/js/theme'
-import vvbreak from '#base/js/break'
-import vvlabel from '#base/js/label'
+import { vvscale, vvtheme, vvbreak, vvlabel } from '#base/index.ts'
 
 import iris from '../data/iris.json'
 import UCBAdmissions from '../data/UCBAdmissions.json'

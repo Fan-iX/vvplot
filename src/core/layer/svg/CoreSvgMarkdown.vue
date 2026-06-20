@@ -34,6 +34,11 @@ const binds = computed(() => {
                 { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
             textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
         }
+        if (typeof (angle) == "object") {
+            let { dx = 0, dy = 0 } = angle
+            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
+        }
         let vbind = {
             x: tx, y: ty, text: String(label), title: String(title ?? label),
             size, color, stroke, linetype, linewidth, alpha,

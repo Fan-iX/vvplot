@@ -1,8 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-
-import vvscale from '#base/js/scale'
-import vvtheme from '#base/js/theme'
+import { vvscale, vvtheme } from '#base/index.ts'
 
 import iris from '../data/iris.json'
 const vBind = { iris, vvscale, vvtheme }

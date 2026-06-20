@@ -7,7 +7,7 @@ const {
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     shape: String, size: { type: Number, default: 6 }, color: String,
-    stroke: String, linewidth: Number, linetype: String,
+    stroke: String, linewidth: { type: Number, default: 1 }, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
@@ -20,6 +20,7 @@ const paths = {
     diamond: "M0-0.707L0.707,0L0,0.707L-0.707,0Z",
     plus: "M-0.1-0.5V-0.1H-0.5V0.1H-0.1V0.5H0.1V0.1H0.5V-0.1H0.1V-0.5H-0.1Z",
     cross: "M-0.283-0.424L-0.424-0.283L-0.141,0L-0.424,0.283L-0.283,0.424L0,0.141L0.283,0.424L0.424,0.283L0.141,0L0.424,-0.283L0.283,-0.424L0,-0.141Z",
+    arrowhead: "M0,0L1,0.38V-0.38Z",
 }
 const binds = computed(() => {
     let d = shape?.startsWith?.("path:") ? shape?.slice?.(5) : paths[shape]
@@ -28,7 +29,6 @@ const binds = computed(() => {
         fill: color || null,
         'fill-opacity': alpha == 1 ? null : alpha,
         stroke: stroke || null,
-        'stroke-width': linewidth,
         'stroke-opacity': alpha == 1 ? null : alpha,
         'stroke-dasharray': parseLinetype(linetype).join(" ") || null,
     }
@@ -37,10 +37,10 @@ const binds = computed(() => {
         if (tslX !== 0 || tslY !== 0) transform.push(`translate(${tslX},${tslY})`)
         if (size != 1) transform.push(`scale(${size})`)
         if (angle) transform.push(`rotate(${angle})`)
-        Object.assign(result, { d, transform: transform.join(' ') || null })
+        Object.assign(result, { d, transform: transform.join(' ') || null, 'stroke-width': linewidth / size })
     } else {
         let transform = (translateX || translateY) ? `translate(${translateX}, ${translateY})` : null
-        Object.assign(result, { cx: x, cy: y, r: size / 2, transform })
+        Object.assign(result, { cx: x, cy: y, r: size / 2, transform, 'stroke-width': linewidth })
     }
     return result
 })

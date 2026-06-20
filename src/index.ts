@@ -1,5 +1,7 @@
 export * from './components'
 export * as components from './components'
+export * as vvgeom from './js/geom.js'
+export * as vvstat from './js/stat.js'
 export { default as vvtheme } from './js/theme.js'
 export { default as vvbreak } from './js/break.js'
 export { default as vvlabel } from './js/label.js'

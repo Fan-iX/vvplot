@@ -15,7 +15,8 @@ const paths = {
     diamond: s => `M0-${s * 0.707}L${s * 0.707},0L0,${s * 0.707}L-${s * 0.707},0Z`,
     square: s => `M-${s / 2}-${s / 2}H${s / 2}V${s / 2}H-${s / 2}Z`,
     plus: s => `M-${s / 10}-${s / 2}V-${s / 10}H-${s / 2}V${s / 10}H-${s / 10}V${s / 2}H${s / 10}V${s / 10}H${s / 2}V-${s / 10}H${s / 10}V-${s / 2}H-${s / 10}Z`,
-    corss: s => `M-${s * 0.283}-${s * 0.424}L-${s * 0.424}-${s * 0.283}L-${s * 0.141},0L-${s * 0.424},${s * 0.283}L-${s * 0.283},${s * 0.424}L0,${s * 0.141}L${s * 0.283},${s * 0.424}L${s * 0.424},${s * 0.283}L${s * 0.141},0L${s * 0.424},-${s * 0.283}L${s * 0.283},-${s * 0.424}L0,-${s * 0.141}Z`,
+    cross: s => `M-${s * 0.283}-${s * 0.424}L-${s * 0.424}-${s * 0.283}L-${s * 0.141},0L-${s * 0.424},${s * 0.283}L-${s * 0.283},${s * 0.424}L0,${s * 0.141}L${s * 0.283},${s * 0.424}L${s * 0.424},${s * 0.283}L${s * 0.141},0L${s * 0.424},-${s * 0.283}L${s * 0.283},-${s * 0.424}L0,-${s * 0.141}Z`,
+    arrowhead: s => `M0,0L${s},${-s * 0.38}V${s * 0.38}Z`,
 }
 const vBind = computed(() => ({
     width: layout.fullWidth * (1 + extendX * 2),
@@ -40,19 +41,24 @@ const layerCanvas = computed(() => {
         for (let {
             x, y, size = 6,
             shape, color, stroke, linewidth, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+            'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
         } of group) {
             const { h: cx, v: cy } = coord2pos({ x, y })
+            if (typeof (angle) == "object") {
+                let { dx = 0, dy = 0 } = angle
+                let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+                angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
+            }
             const path2d = new Path2D()
             if (String(shape).startsWith("path:")) {
                 path2d.addPath(
                     new Path2D(shape.slice(5)),
-                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY)
+                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY).rotate(angle)
                 )
             } else if (shape in paths) {
                 path2d.addPath(
                     new Path2D(paths[shape](size)),
-                    new DOMMatrix().translate(cx + translateX, cy + translateY)
+                    new DOMMatrix().translate(cx + translateX, cy + translateY).rotate(angle)
                 )
             } else {
                 path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)

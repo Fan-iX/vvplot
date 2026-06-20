@@ -87,7 +87,7 @@ const rectBind = computed(() => {
     if (pos.hmax == null) hmax += linewidth / 2
     if (pos.vmin == null) vmin -= linewidth / 2
     if (pos.vmax == null) vmax += linewidth / 2
-    let width = hmax - hmin, height = vmax - vmin
+    let width = Math.max(0, hmax - hmin), height = Math.max(0, vmax - vmin)
     return {
         x: hmin, y: vmin, width, height,
         fill: theme?.background ?? "transparent",
@@ -104,7 +104,7 @@ const interactiveBind = computed(() => {
     if (!position.value || translating.value) return null
     let size = 10
     let { hmin, hmax, vmin, vmax, pos } = position.value
-    let width = hmax - hmin, height = vmax - vmin
+    let width = Math.max(0, hmax - hmin), height = Math.max(0, vmax - vmin)
     let binds = {}
     if (config.move) binds.tblr = {
         x: hmin, y: vmin, width, height,

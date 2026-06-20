@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import vvscale from '#base/js/scale'
+import { vvscale } from '#base/index.ts'
 import iris from '../data/iris.json'
 const demo_point = [
     { x: 1, y: 1 },
@@ -351,7 +351,7 @@ const render = ref('svg')
                     </thead>
                     <tbody>
                         <tr>
-                            <td rowspan="6">point</td>
+                            <td rowspan="7">point</td>
                             <td><code>shape</code></td>
                             <td>
                                 shape of the points. options are:
@@ -362,18 +362,46 @@ const render = ref('svg')
                                     <li><code>"diamond"</code></li>
                                     <li><code>"plus"</code></li>
                                     <li><code>"cross"</code></li>
+                                    <li><code>"arrowhead"</code></li>
                                 </ul>
                                 or a custom SVG path string prefixed with <code>path:</code>,
-                                e.g. <code>"path:M-0.5,0L0.5,0.5L0.5,-0.5Z"</code>
+                                e.g.
+                                <code class="whitespace-nowrap">"path:M-0.5,0L0.5,0.5L0.5,-0.5Z"</code>
                             </td>
                             <td>
                                 <VVPlot :render
-                                    :data="['circle', 'square', 'triangle', 'diamond', 'plus', 'cross', 'path:M-0.5,0L0.5,0.5L0.5,-0.5Z']"
+                                    :data="['circle', 'square', 'triangle', 'diamond', 'plus', 'cross', 'arrowhead', 'path:M-0.5,0L0.5,0.5L0.5,-0.5Z']"
                                     :scales="{ shape: vvscale.shape.identity() }">
                                     <VVAxisY
-                                        :levels="['circle', 'square', 'triangle', 'diamond', 'plus', 'cross', 'path:M-0.5,0L0.5,0.5L0.5,-0.5Z'].reverse()"
+                                        :levels="['circle', 'square', 'triangle', 'diamond', 'plus', 'cross', 'arrowhead', 'path:M-0.5,0L0.5,0.5L0.5,-0.5Z'].reverse()"
                                         :labels="d => String(d).replace(/:.*/, ': …')" />
                                     <VVGeomPoint :y="d => d" x="shape" :shape="d => d" :title="d => `shape='${d}'`" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>angle</code></td>
+                            <td>
+                                rotation angle of the
+                                <ul>
+                                    <li>
+                                        If a number is provided, the text will be rotated by the specified angle in
+                                        clockwise degrees.
+                                    </li>
+                                    <li>
+                                        If an object with an <code>dx</code> and <code>dy</code> property is provided,
+                                        the point will be rotated to point in the direction of the vector from its
+                                        position.
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>
+                                <VVPlot :render>
+                                    <VVAxisY :levels="['unset', 'fixed', 'dynamic'].reverse()" />
+                                    <VVGeomPoint x="angle" y="unset" shape="arrowhead" title="angle=0" />
+                                    <VVGeomPoint x="angle" y="fixed" shape="arrowhead" :angle="45" title="angle=45" />
+                                    <VVGeomPoint x="angle" y="dynamic" shape="arrowhead" :angle="{ dx: 1, dy: 1 }"
+                                        title="angle={ dx: 1, dy: 1 }" />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -392,7 +420,6 @@ const render = ref('svg')
                                         title="linewidth=2" />
                                     <VVGeomPoint x="point" y="linetype" stroke="red" linetype="1 1"
                                         title="linetype='1 1'" />
-                                    color="transparent" />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -470,7 +497,7 @@ const render = ref('svg')
                             <td>line type of the line (default: solid)</td>
                         </tr>
                         <tr>
-                            <td rowspan="8">text</td>
+                            <td rowspan="9">text</td>
                             <td><code>text-length</code></td>
                             <td>
                                 length of the text (default: none)
@@ -488,12 +515,38 @@ const render = ref('svg')
                             </td>
                             <td>
                                 <VVPlot :render resize>
-                                    <VVAxisY :levels="['normal', 'fixed', 'dynamic'].reverse()" />
-                                    <VVGeomText x="text" y="normal" label="text" />
-                                    <VVGeomText x="text" y="fixed" label="text" :text-length="48"
+                                    <VVAxisY :levels="['unset', 'fixed', 'dynamic'].reverse()" />
+                                    <VVGeomText x="text-length" y="unset" label="text" title="text-length=null" />
+                                    <VVGeomText x="text-length" y="fixed" label="text" :text-length="48"
                                         title="text-length=48" />
-                                    <VVGeomText x="text" y="dynamic" label="text" :text-length="{ x: 1 }"
+                                    <VVGeomText x="text-length" y="dynamic" label="text" :text-length="{ x: 1 }"
                                         title="text-length={ x: 1 }" />
+                                </VVPlot>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>angle</code></td>
+                            <td>
+                                rotation angle of the text (default: 0)
+                                <ul>
+                                    <li>
+                                        If a number is provided, the text will be rotated by the specified angle in
+                                        clockwise degrees.
+                                    </li>
+                                    <li>
+                                        If an object with an <code>dx</code> and <code>dy</code> property is provided,
+                                        the text will be rotated to point in the direction of the vector from its
+                                        position.
+                                    </li>
+                                </ul>
+                            </td>
+                            <td>
+                                <VVPlot :render resize>
+                                    <VVAxisY :levels="['unset', 'fixed', 'dynamic'].reverse()" />
+                                    <VVGeomText x="angle" y="unset" label="text" title="angle=0" />
+                                    <VVGeomText x="angle" y="fixed" label="text" :angle="45" title="angle=45" />
+                                    <VVGeomText x="angle" y="dynamic" label="text" :angle="{ dx: 1, dy: 1 }"
+                                        title="angle={ dx: 1, dy: 1 }" />
                                 </VVPlot>
                             </td>
                         </tr>
@@ -881,7 +934,7 @@ const render = ref('svg')
     <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
         item-style="fill: currentColor; fill-opacity: 0.2;" />
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-        :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
+        :shape="d => d.Species" :group="d => d.Species"
         class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
 </VVPlot>` }}</pre-highlight>
             <blockquote class="tip">
@@ -893,8 +946,8 @@ const render = ref('svg')
                 <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
                     item-style="fill: currentColor; fill-opacity: 0.2;" />
                 <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-                    :shape="d => d.Species" :group="d => d.Species" :linewidth="0.2"
-                    class="cursor-pointer stroke-current" group-class="hover:stroke-[black]" />
+                    :shape="d => d.Species" :group="d => d.Species" class="cursor-pointer stroke-current"
+                    group-class="hover:stroke-[black]" />
             </VVPlot>
         </section>
     </article>
