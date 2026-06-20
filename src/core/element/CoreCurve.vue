@@ -3,13 +3,11 @@ import { computed } from 'vue'
 import { parseLinetype } from '#base/js/utils'
 import * as d3 from 'd3'
 const {
-    points, interpolate, fill, color, stroke, linewidth, linetype, alpha, title,
+    points, interpolate, fill, color, linewidth, linetype, alpha, title,
     translateX, translateY,
 } = defineProps({
     points: { type: Array, default: () => [] }, interpolate: { default: 'natural' },
-    fill: { type: String, default: 'none' },
-    color: String,
-    stroke: String, linewidth: Number, linetype: String,
+    fill: String, color: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })

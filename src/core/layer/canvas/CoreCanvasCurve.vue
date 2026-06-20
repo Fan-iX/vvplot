@@ -32,7 +32,7 @@ const layerCanvas = computed(() => {
     let _path_data = new Map(), path_data = new Map()
     for (const group of data) {
         for (let {
-            points, fill = "none", color = 'black', linewidth, linetype, alpha,
+            points, fill, color, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
             interpolate
         } of group) {
