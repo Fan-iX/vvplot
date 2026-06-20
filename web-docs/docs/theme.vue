@@ -473,7 +473,7 @@ import iris from '../data/iris.json'
             </blockquote>
             <h3>List of built-in themes</h3>
             <table
-                class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼']">
+                class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼'] [&_td]:border [&_td]:border-[#ddd]">
                 <tbody>
                     <tr>
                         <td>
