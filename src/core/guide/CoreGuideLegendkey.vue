@@ -30,7 +30,7 @@ const guide_breaks = computed(() => {
 const geoms = computed(() => {
     let { text, line, point, tile } = appearances
     let result = {}
-    if (tile != null) result.tile = { width: 10, height: 10, fill: 'transparent', ...tile }
+    if (tile != null) result.tile = { width: 10, height: 10, fill: 'none', ...tile }
     if (line != null) result.line = { x1: -5, x2: 5, color: 'black', ...line }
     if (point != null) result.point = { size: 6, ...point }
     if (text != null) result.text = { size: 4, text: 'a', ...text }

@@ -7,8 +7,7 @@ const {
 } = defineProps({
     x: { type: Number, default: 0 }, y: { type: Number, default: 0 },
     width: { type: Number, default: 0 }, height: { type: Number, default: 0 },
-    fill: String,
-    color: String, linewidth: Number, linetype: String,
+    fill: String, color: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })

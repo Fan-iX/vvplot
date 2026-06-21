@@ -71,7 +71,7 @@ const layerCanvas = computed(() => {
                 ctx.fillStyle = color
                 ctx.fill(path2d)
             }
-            if (stroke != null) {
+            if (stroke != null && stroke !== 'none') {
                 ctx.strokeStyle = stroke
                 ctx.setLineDash(parseLinetype(linetype))
                 ctx.stroke(path2d)

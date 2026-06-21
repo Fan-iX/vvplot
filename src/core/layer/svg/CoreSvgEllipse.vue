@@ -17,7 +17,7 @@ const binds = computed(() => {
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
     return data.map(group => group.map(({
         cx, cy, A, B, C,
-        fill = "none", color = 'black', linewidth, linetype, alpha, title,
+        fill, color, linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         class: className, style, $raw
     }) => {

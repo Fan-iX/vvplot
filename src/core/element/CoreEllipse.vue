@@ -9,8 +9,7 @@ const {
     cx: { type: Number, default: 0 }, cy: { type: Number, default: 0 },
     rx: { type: Number, default: 0 }, ry: { type: Number, default: 0 },
     angle: { type: Number, default: 0 },
-    fill: String,
-    color: String, linewidth: Number, linetype: String,
+    fill: String, color: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })

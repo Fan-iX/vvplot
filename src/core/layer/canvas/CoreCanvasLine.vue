@@ -32,10 +32,9 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             x, y, xend, yend,
-            color, linewidth, alpha, linetype,
+            color = 'black', linewidth, alpha, linetype,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
-            if (color === 'transparent') continue
             const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
             const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
             const path2d = new Path2D()
@@ -45,7 +44,7 @@ const layerCanvas = computed(() => {
             ctx.lineWidth = linewidth
             ctx.globalAlpha = alpha
             ctx.setLineDash(parseLinetype(linetype))
-            if (color !== "none") {
+            if (color != null && color !== 'none') {
                 ctx.strokeStyle = color
                 ctx.stroke(path2d)
             }
