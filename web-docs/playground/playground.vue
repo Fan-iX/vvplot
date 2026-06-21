@@ -1,6 +1,7 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed, watch, nextTick } from 'vue'
 import { components, vvscale, oob, vvbreak, vvlabel, vvtheme } from '#base/index.ts'
+import { svg2svg, svg2png } from '../script/utils.js'
 import DataTable from './components/DataTable.vue'
 import DataConfig from './components/DataConfig.vue'
 import LayerConfig from './components/LayerConfig.vue'
@@ -217,35 +218,21 @@ onMounted(() => onpresetchange())
 watch([tab, () => dataConfig?.value?.output, templateText, layerText], async ([t]) => {
     if (t == 'plot') nextTick(buildPlot)
 }, { immediate: true })
-function exportSVG() {
-    let blob = new Blob([instance.plot.serialize()])
-    let url = URL.createObjectURL(blob)
+async function exportSVG(options) {
+    let url = URL.createObjectURL(await svg2svg(instance.plot.serialize(), options))
     let a = document.createElement('a')
     a.href = url
     a.download = 'plot.svg'
     a.click()
     URL.revokeObjectURL(url)
 }
-function exportPNG() {
-    const img = new Image()
-    img.onload = () => {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        canvas.toBlob((blob) => {
-            let url = URL.createObjectURL(blob)
-            let a = document.createElement('a')
-            a.href = url
-            a.download = 'plot.png'
-            a.click()
-            URL.revokeObjectURL(url)
-        }, 'image/png')
-    }
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(
-        '<?xml version="1.0" standalone="no"?>\r\n' + instance.plot.serialize()
-    )))
+async function exportPNG(options) {
+    let url = URL.createObjectURL(await svg2png(plot.value.serialize(), options))
+    let a = document.createElement('a')
+    a.href = url
+    a.download = 'plot.png'
+    a.click()
+    URL.revokeObjectURL(url)
 }
 </script>
 
