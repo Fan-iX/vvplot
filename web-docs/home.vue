@@ -1,7 +1,7 @@
 <script setup>
 import iris from './data/iris.json'
 import { useTemplateRef } from 'vue'
-import { svg2png, svg2svg } from './script/utils'
+import { svg2png, svg2svg } from './script/utils.js'
 const plot = useTemplateRef('plot')
 
 async function exportSVG(options) {

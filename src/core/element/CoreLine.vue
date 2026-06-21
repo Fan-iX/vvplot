@@ -7,8 +7,7 @@ const {
 } = defineProps({
     x1: { type: Number, default: 0 }, y1: { type: Number, default: 0 },
     x2: { type: Number, default: 0 }, y2: { type: Number, default: 0 },
-    color: String,
-    stroke: String, linewidth: Number, linetype: String,
+    color: String, stroke: String, linewidth: Number, linetype: String,
     alpha: { type: Number, default: 1 }, title: String,
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
 })

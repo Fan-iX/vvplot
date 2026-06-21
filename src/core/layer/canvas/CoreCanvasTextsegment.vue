@@ -81,7 +81,7 @@ const layerCanvas = computed(() => {
                     ctx.fillStyle = color
                     ctx.fillText(text, 0, 0)
                 }
-                if (stroke != null) {
+                if (stroke != null && stroke !== 'none') {
                     ctx.strokeStyle = stroke
                     ctx.strokeText(text, 0, 0)
                 }
@@ -100,7 +100,7 @@ const layerCanvas = computed(() => {
                         ctx.fillStyle = color
                         ctx.fillText(text, 0, 0)
                     }
-                    if (stroke != null) {
+                    if (stroke != null && stroke !== 'none') {
                         ctx.strokeStyle = stroke
                         ctx.strokeText(text, 0, 0)
                     }

@@ -32,7 +32,7 @@ const layerCanvas = computed(() => {
     for (const group of data) {
         for (let {
             cx, cy, A, B, C,
-            fill = "none", color = 'black', linewidth, linetype, alpha,
+            fill, color, linewidth, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
             let dx = Math.sqrt(C / (A * C - B * B)),
@@ -58,7 +58,7 @@ const layerCanvas = computed(() => {
                 ctx.fillStyle = fill
                 ctx.fill(path2d)
             }
-            if (color != null) {
+            if (color != null && color !== 'none') {
                 ctx.strokeStyle = color
                 ctx.stroke(path2d)
             }

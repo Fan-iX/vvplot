@@ -37,7 +37,6 @@ const layerCanvas = computed(() => {
             fill = 'white', color = "black", linewidth = 1, linetype, alpha,
             'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
         } of group) {
-            if (color === 'transparent') continue
             const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
             const { h: lx1, v: ly1 } = coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
             const { h: lx2, v: ly2 } = coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
@@ -57,36 +56,32 @@ const layerCanvas = computed(() => {
             wiskerpath2d.lineTo(uwx2 + translateX, uwy2 + translateY)
             wiskerpath2d.moveTo(lwx1 + translateX, lwy1 + translateY)
             wiskerpath2d.lineTo(lwx2 + translateX, lwy2 + translateY)
-            ctx.lineWidth = linewidth
-            if (color !== "none") {
-                ctx.strokeStyle = color
-                ctx.stroke(linepath2d)
-                ctx.stroke(wiskerpath2d)
-            }
             const rectpath2d = new Path2D()
             rectpath2d.rect(rx1 + translateX, ry1 + translateY, rx2 - rx1, ry2 - ry1)
-            if (fill !== 'none') {
-                ctx.fillStyle = fill
-                ctx.fill(rectpath2d)
-            }
-            if (color != null) {
-                ctx.strokeStyle = color
-                ctx.stroke(rectpath2d)
-            }
             _path_data.set(rectpath2d, $raw)
             const medianpath2d = new Path2D()
             medianpath2d.moveTo(mx1 + translateX, my1 + translateY)
             medianpath2d.lineTo(mx2 + translateX, my2 + translateY)
-            ctx.lineWidth = linewidth * 2
-            if (color !== "none") {
+            if (color != null && color !== 'none') {
                 ctx.strokeStyle = color
+                ctx.lineWidth = linewidth
+                ctx.stroke(linepath2d)
+                ctx.stroke(wiskerpath2d)
+            }
+            if (fill !== 'none') {
+                ctx.fillStyle = fill
+                ctx.fill(rectpath2d)
+            }
+            if (color != null && color !== 'none') {
+                ctx.stroke(rectpath2d)
+                ctx.lineWidth = linewidth * 2
                 ctx.stroke(medianpath2d)
             }
             for (let { x, y, $raw } of outliers) {
                 const { h: ox, v: oy } = coord2pos({ x, y })
                 const outlierpath2d = new Path2D()
                 outlierpath2d.arc(ox + translateX, oy + translateY, 2, 0, Math.PI * 2)
-                if (fill !== 'none') {
+                if (color != null && color !== 'none') {
                     ctx.fillStyle = color
                     ctx.fill(outlierpath2d)
                 }

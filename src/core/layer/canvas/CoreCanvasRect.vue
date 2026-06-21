@@ -46,7 +46,7 @@ const layerCanvas = computed(() => {
                 ctx.fillStyle = fill
                 ctx.fill(path2d)
             }
-            if (color != null) {
+            if (color !== 'none' && color != null) {
                 ctx.strokeStyle = color
                 ctx.stroke(path2d)
             }
