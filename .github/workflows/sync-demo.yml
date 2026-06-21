@@ -26,3 +26,12 @@ jobs:
           git checkout demo
           git merge origin/main --no-ff -m "Merge main to demo for release ${{ github.event.release.tag_name }}"
           git push origin demo
+
+  trigger-demo-deploy:
+    needs: merge-to-demo
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Trigger demo deployment workflow
+        run: gh workflow run deploy.yml --repo ${{ github.repository }} --ref demo
