@@ -484,6 +484,7 @@ onMounted(() => {
 let oldSize = { width: 0, height: 0 }
 useResizeObserver(plotRef, (e) => {
     let { width: w, height: h } = e[0].contentRect
+    if (width.value - w < 0.5 && height.value - h < 0.5) return
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
     if ((w > 0 || h > 0) && (oldSize.width > 0 || oldSize.height > 0))
