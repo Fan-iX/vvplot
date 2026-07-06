@@ -29,25 +29,23 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            x, y, xend, yend,
-            color = 'black', linewidth, alpha, linetype,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
-        } of group) {
-            const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
-            const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
-            const path2d = new Path2D()
-            path2d.moveTo(x1 + translateX, y1 + translateY)
-            path2d.lineTo(x2 + translateX, y2 + translateY)
-            _path_data.set(path2d, $raw)
-            ctx.lineWidth = linewidth
-            ctx.globalAlpha = alpha
-            ctx.setLineDash(parseLinetype(linetype))
-            if (color != null && color !== 'none') {
-                ctx.strokeStyle = color
-                ctx.stroke(path2d)
-            }
+    for (let {
+        x, y, xend, yend,
+        color = 'black', linewidth, alpha, linetype,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+    } of data) {
+        const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
+        const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
+        const path2d = new Path2D()
+        path2d.moveTo(x1 + translateX, y1 + translateY)
+        path2d.lineTo(x2 + translateX, y2 + translateY)
+        _path_data.set(path2d, $raw)
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.setLineDash(parseLinetype(linetype))
+        if (color != null && color !== 'none') {
+            ctx.strokeStyle = color
+            ctx.stroke(path2d)
         }
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {

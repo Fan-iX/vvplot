@@ -15,7 +15,7 @@ const binds = computed(() => {
         xlim_max = layout.fullWidth * (1 + extendX) - layout.l,
         ylim_min = -layout.fullHeight * extendY - layout.t,
         ylim_max = layout.fullHeight * (1 + extendY) - layout.t
-    return data.map(group => group.map(({
+    return Object.values(Object.groupBy(data, d => d.$group)).map(group => group.map(({
         points, fill, color, linewidth, linetype, alpha, title,
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         'marker-start': markerStart, 'marker-end': markerEnd,

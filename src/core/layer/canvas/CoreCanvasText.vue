@@ -29,68 +29,66 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            x, y,
-            color, size = 4, label = "", title, stroke, linewidth, linetype, alpha,
-            'anchor-x': anchorX, 'anchor-y': anchorY,
-            'dock-x': dockX, 'dock-y': dockY,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0,
-            angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
-        } of group) {
-            ctx.save()
-            const { h: tx, v: ty } = coord2pos({ x, y })
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            ctx.lineWidth = linewidth
-            ctx.globalAlpha = alpha
-            ctx.font = `${size * 4}px ${fontFamily}`
-            ctx.setLineDash(parseLinetype(linetype))
-            ctx.translate(tx + translateX, ty + translateY)
-            let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
-                width = w, height = a + d
-            if (typeof (textLength) == "object") {
-                let { x: lx = 0, y: ly = 0 } = textLength
-                let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
-                    { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
-                width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
-            } else if (textLength != null) {
-                width = textLength
-            }
-            if (typeof (angle) == "object") {
-                let { dx = 0, dy = 0 } = angle
-                let { h, v } = coord2pos({ x: x + dx, y: y + dy })
-                angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
-            }
-            if (dockX != null || dockY != null) {
-                let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
-                    alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
-                if (isNaN(alnX)) alnX = 0.5
-                if (isNaN(alnY)) alnY = 0.5
-                let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
-                    h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180))
-                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
-                ctx.rotate(angle * Math.PI / 180)
-            } else {
-                let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
-                    alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
-                if (isNaN(alnX)) alnX = 0.5
-                if (isNaN(alnY)) alnY = 0.5
-                let w = width, h = height
-                ctx.rotate(angle * Math.PI / 180)
-                ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
-            }
-            if (width != w) ctx.scale(width / w, 1)
-            if (color !== 'none') {
-                ctx.fillStyle = color
-                ctx.fillText(label, 0, 0)
-            }
-            if (stroke != null && stroke !== 'none') {
-                ctx.strokeStyle = stroke
-                ctx.strokeText(label, 0, 0)
-            }
-            ctx.restore()
+    for (let {
+        x, y,
+        color, size = 4, label = "", title, stroke, linewidth, linetype, alpha,
+        'anchor-x': anchorX, 'anchor-y': anchorY,
+        'dock-x': dockX, 'dock-y': dockY,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
+    } of data) {
+        ctx.save()
+        const { h: tx, v: ty } = coord2pos({ x, y })
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.font = `${size * 4}px ${fontFamily}`
+        ctx.setLineDash(parseLinetype(linetype))
+        ctx.translate(tx + translateX, ty + translateY)
+        let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
+            width = w, height = a + d
+        if (typeof (textLength) == "object") {
+            let { x: lx = 0, y: ly = 0 } = textLength
+            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+            width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
+        } else if (textLength != null) {
+            width = textLength
         }
+        if (typeof (angle) == "object") {
+            let { dx = 0, dy = 0 } = angle
+            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
+        }
+        if (dockX != null || dockY != null) {
+            let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
+                alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
+            if (isNaN(alnX)) alnX = 0.5
+            if (isNaN(alnY)) alnY = 0.5
+            let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
+                h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180))
+            ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+            ctx.rotate(angle * Math.PI / 180)
+        } else {
+            let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+                alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+            if (isNaN(alnX)) alnX = 0.5
+            if (isNaN(alnY)) alnY = 0.5
+            let w = width, h = height
+            ctx.rotate(angle * Math.PI / 180)
+            ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+        }
+        if (width != w) ctx.scale(width / w, 1)
+        if (color !== 'none') {
+            ctx.fillStyle = color
+            ctx.fillText(label, 0, 0)
+        }
+        if (stroke != null && stroke !== 'none') {
+            ctx.strokeStyle = stroke
+            ctx.strokeText(label, 0, 0)
+        }
+        ctx.restore()
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {
         path_data.set(path, _path_data.get(path))
