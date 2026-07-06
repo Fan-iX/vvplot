@@ -29,39 +29,37 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            cx, cy, A, B, C,
-            fill, color, linewidth, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
-        } of group) {
-            let dx = Math.sqrt(C / (A * C - B * B)),
-                dy = Math.sqrt(A / (A * C - B * B))
-            const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-            let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
-                { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
-            let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
-            A /= scaleX * scaleX
-            B /= scaleX * scaleY
-            C /= scaleY * scaleY
-            const tr = A + C, det = A * C - B * B
-            const disc = Math.sqrt(Math.max(0, tr * tr / 4 - det))
-            let rx = 1 / Math.sqrt(tr / 2 + disc), ry = 1 / Math.sqrt(tr / 2 - disc),
-                angle = Math.atan2(2 * B, A - C) / 2
-            const path2d = new Path2D()
-            path2d.ellipse(ch + translateX, cv + translateY, rx, ry, angle, 0, 2 * Math.PI)
-            _path_data.set(path2d, $raw)
-            ctx.lineWidth = linewidth
-            ctx.globalAlpha = alpha
-            ctx.setLineDash(parseLinetype(linetype))
-            if (fill !== 'none') {
-                ctx.fillStyle = fill
-                ctx.fill(path2d)
-            }
-            if (color != null && color !== 'none') {
-                ctx.strokeStyle = color
-                ctx.stroke(path2d)
-            }
+    for (let {
+        cx, cy, A, B, C,
+        fill, color, linewidth, linetype, alpha,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+    } of data) {
+        let dx = Math.sqrt(C / (A * C - B * B)),
+            dy = Math.sqrt(A / (A * C - B * B))
+        const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
+        let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
+            { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+        let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
+        A /= scaleX * scaleX
+        B /= scaleX * scaleY
+        C /= scaleY * scaleY
+        const tr = A + C, det = A * C - B * B
+        const disc = Math.sqrt(Math.max(0, tr * tr / 4 - det))
+        let rx = 1 / Math.sqrt(tr / 2 + disc), ry = 1 / Math.sqrt(tr / 2 - disc),
+            angle = Math.atan2(2 * B, A - C) / 2
+        const path2d = new Path2D()
+        path2d.ellipse(ch + translateX, cv + translateY, rx, ry, angle, 0, 2 * Math.PI)
+        _path_data.set(path2d, $raw)
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.setLineDash(parseLinetype(linetype))
+        if (fill !== 'none') {
+            ctx.fillStyle = fill
+            ctx.fill(path2d)
+        }
+        if (color != null && color !== 'none') {
+            ctx.strokeStyle = color
+            ctx.stroke(path2d)
         }
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {

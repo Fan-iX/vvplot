@@ -30,34 +30,32 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            points, fill, color, linewidth, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
-            interpolate
-        } of group) {
-            points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
-            if (points.length === 0) continue
-            const path2d = new Path2D()
-            let interpolatorFn = typeof interpolate == "function" ? interpolate : interpolators[interpolate] ?? d3.curveNatural
-            let interpolator = interpolatorFn(path2d)
-            interpolator.lineStart()
-            for (let i = 0; i < points.length; i++) {
-                interpolator.point(points[i].x + translateX, points[i].y + translateY)
-            }
-            interpolator.lineEnd()
-            _path_data.set(path2d, $raw)
-            ctx.lineWidth = linewidth
-            ctx.globalAlpha = alpha
-            ctx.setLineDash(parseLinetype(linetype))
-            if (fill !== 'none') {
-                ctx.fillStyle = fill
-                ctx.fill(path2d)
-            }
-            if (color != null && color !== 'none') {
-                ctx.strokeStyle = color
-                ctx.stroke(path2d)
-            }
+    for (let {
+        points, fill, color, linewidth, linetype, alpha,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw,
+        interpolate
+    } of data) {
+        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
+        if (points.length === 0) continue
+        const path2d = new Path2D()
+        let interpolatorFn = typeof interpolate == "function" ? interpolate : interpolators[interpolate] ?? d3.curveNatural
+        let interpolator = interpolatorFn(path2d)
+        interpolator.lineStart()
+        for (let i = 0; i < points.length; i++) {
+            interpolator.point(points[i].x + translateX, points[i].y + translateY)
+        }
+        interpolator.lineEnd()
+        _path_data.set(path2d, $raw)
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.setLineDash(parseLinetype(linetype))
+        if (fill !== 'none') {
+            ctx.fillStyle = fill
+            ctx.fill(path2d)
+        }
+        if (color != null && color !== 'none') {
+            ctx.strokeStyle = color
+            ctx.stroke(path2d)
         }
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {

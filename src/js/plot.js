@@ -264,9 +264,9 @@ export class GPlot {
 
     getComputedLayers() {
         return this.layers.map(layer => {
-            let data = Object.values(Object.groupBy(layer.data.$group.map(
+            let data = layer.data.$group.map(
                 (_, i) => vvgeom[layer.geom].validate(object_map(layer.data, (k, v) => v?.[i]))
-            ).filter(x => x != null), d => d.$group))
+            ).filter(x => x != null)
             return { data, geom: layer.geom, vBind: layer.vBind }
         })
     }

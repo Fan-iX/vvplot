@@ -29,64 +29,62 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            x, xmin, xmax, y, ymin, ymax,
-            lwisker, Q1, median, Q3, uwisker, outliers,
-            $xmin, $xmax, $ymin, $ymax,
-            fill = 'white', color = "black", linewidth = 1, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
-        } of group) {
-            const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
-            const { h: lx1, v: ly1 } = coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
-            const { h: lx2, v: ly2 } = coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
-            const { h: mx1, v: my1 } = coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
-            const { h: mx2, v: my2 } = coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
-            const { h: uwx1, v: uwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
-            const { h: uwx2, v: uwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
-            const { h: lwx1, v: lwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
-            const { h: lwx2, v: lwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
-            ctx.globalAlpha = alpha
-            ctx.setLineDash(parseLinetype(linetype))
-            const linepath2d = new Path2D()
-            linepath2d.moveTo(lx1 + translateX, ly1 + translateY)
-            linepath2d.lineTo(lx2 + translateX, ly2 + translateY)
-            const wiskerpath2d = new Path2D()
-            wiskerpath2d.moveTo(uwx1 + translateX, uwy1 + translateY)
-            wiskerpath2d.lineTo(uwx2 + translateX, uwy2 + translateY)
-            wiskerpath2d.moveTo(lwx1 + translateX, lwy1 + translateY)
-            wiskerpath2d.lineTo(lwx2 + translateX, lwy2 + translateY)
-            const rectpath2d = new Path2D()
-            rectpath2d.rect(rx1 + translateX, ry1 + translateY, rx2 - rx1, ry2 - ry1)
-            _path_data.set(rectpath2d, $raw)
-            const medianpath2d = new Path2D()
-            medianpath2d.moveTo(mx1 + translateX, my1 + translateY)
-            medianpath2d.lineTo(mx2 + translateX, my2 + translateY)
+    for (let {
+        x, xmin, xmax, y, ymin, ymax,
+        lwisker, Q1, median, Q3, uwisker, outliers,
+        $xmin, $xmax, $ymin, $ymax,
+        fill = 'white', color = "black", linewidth = 1, linetype, alpha,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+    } of data) {
+        const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
+        const { h: lx1, v: ly1 } = coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
+        const { h: lx2, v: ly2 } = coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
+        const { h: mx1, v: my1 } = coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
+        const { h: mx2, v: my2 } = coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
+        const { h: uwx1, v: uwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
+        const { h: uwx2, v: uwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
+        const { h: lwx1, v: lwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
+        const { h: lwx2, v: lwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
+        ctx.globalAlpha = alpha
+        ctx.setLineDash(parseLinetype(linetype))
+        const linepath2d = new Path2D()
+        linepath2d.moveTo(lx1 + translateX, ly1 + translateY)
+        linepath2d.lineTo(lx2 + translateX, ly2 + translateY)
+        const wiskerpath2d = new Path2D()
+        wiskerpath2d.moveTo(uwx1 + translateX, uwy1 + translateY)
+        wiskerpath2d.lineTo(uwx2 + translateX, uwy2 + translateY)
+        wiskerpath2d.moveTo(lwx1 + translateX, lwy1 + translateY)
+        wiskerpath2d.lineTo(lwx2 + translateX, lwy2 + translateY)
+        const rectpath2d = new Path2D()
+        rectpath2d.rect(rx1 + translateX, ry1 + translateY, rx2 - rx1, ry2 - ry1)
+        _path_data.set(rectpath2d, $raw)
+        const medianpath2d = new Path2D()
+        medianpath2d.moveTo(mx1 + translateX, my1 + translateY)
+        medianpath2d.lineTo(mx2 + translateX, my2 + translateY)
+        if (color != null && color !== 'none') {
+            ctx.strokeStyle = color
+            ctx.lineWidth = linewidth
+            ctx.stroke(linepath2d)
+            ctx.stroke(wiskerpath2d)
+        }
+        if (fill !== 'none') {
+            ctx.fillStyle = fill
+            ctx.fill(rectpath2d)
+        }
+        if (color != null && color !== 'none') {
+            ctx.stroke(rectpath2d)
+            ctx.lineWidth = linewidth * 2
+            ctx.stroke(medianpath2d)
+        }
+        for (let { x, y, $raw } of outliers) {
+            const { h: ox, v: oy } = coord2pos({ x, y })
+            const outlierpath2d = new Path2D()
+            outlierpath2d.arc(ox + translateX, oy + translateY, 2, 0, Math.PI * 2)
             if (color != null && color !== 'none') {
-                ctx.strokeStyle = color
-                ctx.lineWidth = linewidth
-                ctx.stroke(linepath2d)
-                ctx.stroke(wiskerpath2d)
+                ctx.fillStyle = color
+                ctx.fill(outlierpath2d)
             }
-            if (fill !== 'none') {
-                ctx.fillStyle = fill
-                ctx.fill(rectpath2d)
-            }
-            if (color != null && color !== 'none') {
-                ctx.stroke(rectpath2d)
-                ctx.lineWidth = linewidth * 2
-                ctx.stroke(medianpath2d)
-            }
-            for (let { x, y, $raw } of outliers) {
-                const { h: ox, v: oy } = coord2pos({ x, y })
-                const outlierpath2d = new Path2D()
-                outlierpath2d.arc(ox + translateX, oy + translateY, 2, 0, Math.PI * 2)
-                if (color != null && color !== 'none') {
-                    ctx.fillStyle = color
-                    ctx.fill(outlierpath2d)
-                }
-                _path_data.set(outlierpath2d, $raw)
-            }
+            _path_data.set(outlierpath2d, $raw)
         }
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {

@@ -37,45 +37,43 @@ const layerCanvas = computed(() => {
     ctx.scale(dpi / 96, dpi / 96)
     ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
     let _path_data = new Map(), path_data = new Map()
-    for (const group of data) {
-        for (let {
-            x, y, size = 6,
-            shape, color, stroke, linewidth, linetype, alpha,
-            'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
-        } of group) {
-            const { h: cx, v: cy } = coord2pos({ x, y })
-            if (typeof (angle) == "object") {
-                let { dx = 0, dy = 0 } = angle
-                let { h, v } = coord2pos({ x: x + dx, y: y + dy })
-                angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
-            }
-            const path2d = new Path2D()
-            if (String(shape).startsWith("path:")) {
-                path2d.addPath(
-                    new Path2D(shape.slice(5)),
-                    new DOMMatrix().translateSelf(cx + translateX, cy + translateY).rotate(angle)
-                )
-            } else if (shape in paths) {
-                path2d.addPath(
-                    new Path2D(paths[shape](size)),
-                    new DOMMatrix().translate(cx + translateX, cy + translateY).rotate(angle)
-                )
-            } else {
-                path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)
-            }
-            _path_data.set(path2d, $raw)
-            ctx.lineWidth = linewidth
-            ctx.globalAlpha = alpha
-            ctx.beginPath()
-            if (color !== 'none') {
-                ctx.fillStyle = color
-                ctx.fill(path2d)
-            }
-            if (stroke != null && stroke !== 'none') {
-                ctx.strokeStyle = stroke
-                ctx.setLineDash(parseLinetype(linetype))
-                ctx.stroke(path2d)
-            }
+    for (let {
+        x, y, size = 6,
+        shape, color, stroke, linewidth, linetype, alpha,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
+    } of data) {
+        const { h: cx, v: cy } = coord2pos({ x, y })
+        if (typeof (angle) == "object") {
+            let { dx = 0, dy = 0 } = angle
+            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
+        }
+        const path2d = new Path2D()
+        if (String(shape).startsWith("path:")) {
+            path2d.addPath(
+                new Path2D(shape.slice(5)),
+                new DOMMatrix().translateSelf(cx + translateX, cy + translateY).rotate(angle)
+            )
+        } else if (shape in paths) {
+            path2d.addPath(
+                new Path2D(paths[shape](size)),
+                new DOMMatrix().translate(cx + translateX, cy + translateY).rotate(angle)
+            )
+        } else {
+            path2d.arc(cx + translateX, cy + translateY, size / 2, 0, Math.PI * 2)
+        }
+        _path_data.set(path2d, $raw)
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.beginPath()
+        if (color !== 'none') {
+            ctx.fillStyle = color
+            ctx.fill(path2d)
+        }
+        if (stroke != null && stroke !== 'none') {
+            ctx.strokeStyle = stroke
+            ctx.setLineDash(parseLinetype(linetype))
+            ctx.stroke(path2d)
         }
     }
     for (let path of Array.from(_path_data.keys()).reverse()) {
