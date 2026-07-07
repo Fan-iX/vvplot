@@ -1,5 +1,5 @@
 <script setup>
-import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
+import { useTemplateRef, reactive, watch, nextTick, computed, inject } from 'vue'
 import { Parser as MarkdownParser } from 'commonmark'
 import { parseLinetype, str_c } from '#base/js/utils.js'
 const {
@@ -19,8 +19,9 @@ const {
 const parser = new MarkdownParser()
 const ele = useTemplateRef('ele')
 const textBox = reactive({ width: 0, height: 0 })
+const visible = inject('vvplot-visible', true)
 watch(
-    [ele, () => fontSize, () => size, () => text, () => textLength, () => fontFamily],
+    [ele, visible, () => fontSize, () => size, () => text, () => textLength, () => fontFamily],
     async ([e]) => {
         if (!e) return
         await nextTick()
