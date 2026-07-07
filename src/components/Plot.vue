@@ -482,8 +482,9 @@ onMounted(() => {
     }, { immediate: true })
 })
 let oldSize = { width: 0, height: 0 }
-useResizeObserver(plotRef, (e) => {
-    let { width: w, height: h } = e[0].contentRect
+useResizeObserver(plotRef, ([entry]) => {
+    if (entry.target.getClientRects().length == 0) return
+    let { width: w, height: h } = entry.contentRect
     if (width.value - w < 0.5 && height.value - h < 0.5) return
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
