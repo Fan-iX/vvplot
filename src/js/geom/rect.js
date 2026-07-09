@@ -1,12 +1,12 @@
 // Metadata and coordinate system helpers for rect geometry
 import { vecutils } from '#base/js/utils.js'
-let psum = vecutils.sum
+let { sum: psum, coalesce } = vecutils
 
 export default {
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
-        let xnudge = ds.xnudge ?? 0,
-            ynudge = ds.ynudge ?? 0,
+        let xnudge = coalesce(ds.xnudge, 0),
+            ynudge = coalesce(ds.ynudge, 0),
             xmin = psum(levels.x?.apply?.(ds.xmin) ?? ds.xmin, xnudge),
             xmax = psum(levels.x?.apply?.(ds.xmax) ?? ds.xmax, xnudge),
             ymin = psum(levels.y?.apply?.(ds.ymin) ?? ds.ymin, ynudge),

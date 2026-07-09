@@ -195,6 +195,14 @@ export const numutils = {
 }
 
 export const vecutils = {
+    coalesce(value, defaultValue) {
+        if (Array.isArray(defaultValue)) {
+            if (!Array.isArray(value) || value.length != defaultValue.length) throw new Error('Value and defaultValue must be arrays of the same length')
+            return value.map((v, i) => v == null ? defaultValue[i] : v)
+        }
+        if (Array.isArray(value)) return value.map(v => v ?? defaultValue)
+        return value ?? defaultValue
+    },
     /* vectorized summation of numbers */
     sum(...values) {
         if (values.some(x => x == null)) return null
@@ -204,12 +212,10 @@ export const vecutils = {
         values = values.filter(x => Array.isArray(x))
         if (values.length == 0)
             return [nums]
-        if (values.some(v => v.length == 0))
-            return []
         let length = values[0].length
         if (values.some(v => v.length != length))
             throw new Error('Arrays must have the same length')
-        return Array.from({ length }, (_, i) => values.reduce((s, a) => +(a[i] ?? 0) + s, nums))
+        return Array.from({ length }, (_, i) => values.reduce((s, a) => +(a[i] ?? undefined) + s, nums))
     },
     /* vectorized opposite of numbers */
     opposite(value) {
