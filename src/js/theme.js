@@ -15,7 +15,7 @@ export const theme_base = {
     },
     axis_v: {
         title_offset: 30,
-        title_angle: 90,
+        title_angle: -90,
     },
     axis_left: {
         tick_position: 'left',
