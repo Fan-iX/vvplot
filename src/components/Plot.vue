@@ -85,8 +85,12 @@ for (let key in $slots) {
             }
         }).filter(x => x != null)
         let res = Object.groupBy(comps, c => c.type.$_type ?? "dom")
-        for (let type in res) {
-            vnodes[type][key] = res[type]
+        for (let type in vnodes) {
+            if (res[type] == null) {
+                delete vnodes[type][key]
+            } else {
+                vnodes[type][key] = res[type]
+            }
         }
     }, { immediate: true })
 }
