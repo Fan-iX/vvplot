@@ -161,6 +161,16 @@ export const numutils = {
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
         return Array.from(arr).reduce((a, b) => a > b ? a : b, -Infinity)
     },
+    sum(arr, { na_rm = true, infinity_rm = true } = {}) {
+        if (na_rm) arr = arr.filter(is_continuous)
+        if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        return Array.from(arr).reduce((a, b) => a + b, 0)
+    },
+    diff(arr, { na_rm = true, infinity_rm = true } = {}) {
+        if (na_rm) arr = arr.filter(is_continuous)
+        if (infinity_rm) arr = arr.filter(x => isFinite(x))
+        return Array.from(arr).slice(1).map((v, i) => v - arr[i])
+    },
     mean(arr, { na_rm = true, infinity_rm = true } = {}) {
         if (na_rm) arr = arr.filter(is_continuous)
         if (infinity_rm) arr = arr.filter(x => isFinite(x))
