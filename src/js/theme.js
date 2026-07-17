@@ -108,6 +108,7 @@ const theme_classic = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
+        grid_color: null,
     }
 }
 
