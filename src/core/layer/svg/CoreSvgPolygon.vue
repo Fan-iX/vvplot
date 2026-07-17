@@ -40,8 +40,8 @@ const binds = computed(() => {
 })
 </script>
 <template>
-    <g>
-        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
+    <g class="vvplot-layer">
+        <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <CorePolygon v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
