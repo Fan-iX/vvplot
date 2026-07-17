@@ -32,7 +32,7 @@ const {
 })
 const emit = defineEmits([
     'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
-    'select', 'move', 'zoom', 'rescale', 'nudge',
+    'select', 'selecting', 'move', 'zoom', 'rescale', 'nudge',
 ])
 
 const range = inject("range")
@@ -392,6 +392,9 @@ function svgPointerdown(e) {
                         { min: plus(ystart, mry) } : { max: plus(ystart, -mry) }), yboundary)
                 res.ymin = ystart > yend ? yend : ystart
                 res.ymax = ystart > yend ? ystart : yend
+            }
+            if (!emitEvent(sel["onSelecting"], dropNull(res), sel.theme)) {
+                emit('selecting', dropNull(res), sel.theme)
             }
             selectionPreview.value = res
             selectionPreviewTheme.value = sel.theme
