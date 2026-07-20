@@ -74,10 +74,6 @@ const transform = computed(() => {
         transform.push(`scale(${sclH}, ${sclV})`)
     return transform.join(' ') || null
 })
-const translating = computed(() =>
-    activeTransform.translateH != 0 || activeTransform.translateV != 0 ||
-    activeTransform.scaleH != 1 || activeTransform.scaleV != 1
-)
 
 const rectBind = computed(() => {
     if (!position.value) return null
@@ -101,7 +97,7 @@ const rectBind = computed(() => {
 })
 
 const interactiveBind = computed(() => {
-    if (!position.value || translating.value) return null
+    if (!position.value) return null
     let size = 10
     let { hmin, hmax, vmin, vmax, pos } = position.value
     let width = Math.max(0, hmax - hmin), height = Math.max(0, vmax - vmin)
@@ -113,7 +109,7 @@ const interactiveBind = computed(() => {
     }
     if (config.resize) {
         if (pos.hmin != null)
-            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;", class: "vvplot-interactive" }
+            binds.l = { x: hmin - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
         if (pos.hmax != null)
             binds.r = { x: hmax - size / 2, y: vmin, width: size, height, style: "cursor:ew-resize;" }
         if (pos.vmin != null)
