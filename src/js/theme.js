@@ -15,7 +15,7 @@ export const theme_base = {
     },
     axis_v: {
         title_offset: 30,
-        title_angle: 90,
+        title_angle: -90,
     },
     axis_left: {
         tick_position: 'left',
@@ -108,6 +108,7 @@ const theme_classic = {
         tick_color: 'black',
         label_color: 'black',
         title_color: 'black',
+        grid_color: null,
     }
 }
 

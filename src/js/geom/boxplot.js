@@ -1,12 +1,12 @@
 // Metadata and coordinate system helpers for boxplot geometry
 import { vecutils } from '#base/js/utils.js'
-let psum = vecutils.sum
+let { sum: psum, coalesce } = vecutils
 
 export default {
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
-        let xnudge = ds.xnudge ?? 0,
-            ynudge = ds.ynudge ?? 0
+        let xnudge = coalesce(ds.xnudge, 0),
+            ynudge = coalesce(ds.ynudge, 0)
         if (ds.x) {
             let x = psum(levels.x?.apply?.(ds.x) ?? ds.x, xnudge),
                 xmin = psum(x, ds.width?.map?.(x => -x / 2) ?? -0.5),

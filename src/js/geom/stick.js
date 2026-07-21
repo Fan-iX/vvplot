@@ -1,12 +1,12 @@
 // Metadata and coordinate system helpers for stick geometry
 import { vecutils } from '#base/js/utils.js'
-let psum = vecutils.sum
+let { sum: psum, coalesce } = vecutils
 
 export default {
     scale_attrs: ['color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
-        let xnudge = ds.xnudge ?? 0,
-            ynudge = ds.ynudge ?? 0,
+        let xnudge = coalesce(ds.xnudge, 0),
+            ynudge = coalesce(ds.ynudge, 0),
             x = psum(levels.x?.apply?.(ds.x) ?? ds.x, xnudge),
             y = psum(levels.y?.apply?.(ds.y) ?? ds.y, ynudge),
             xend = psum(x, ds.dx),

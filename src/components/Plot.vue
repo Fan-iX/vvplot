@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide } from 'vue'
+import { ref, computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide, onUnmounted } from 'vue'
 import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
 import { isSVGTag } from '@vue/shared'
@@ -85,8 +85,12 @@ for (let key in $slots) {
             }
         }).filter(x => x != null)
         let res = Object.groupBy(comps, c => c.type.$_type ?? "dom")
-        for (let type in res) {
-            vnodes[type][key] = res[type]
+        for (let type in vnodes) {
+            if (res[type] == null) {
+                delete vnodes[type][key]
+            } else {
+                vnodes[type][key] = res[type]
+            }
         }
     }, { immediate: true })
 }
@@ -473,6 +477,8 @@ const wrapperRef = useTemplateRef('wrapper')
 const plotRef = useTemplateRef('plot')
 const width = defineModel('width')
 const height = defineModel('height')
+const visible = ref(null)
+provide('vvplot-visible', visible)
 onMounted(() => {
     watch(width, (v) => {
         wrapperRef.value.style.width = str_c(v, 'px') ?? null
@@ -482,8 +488,10 @@ onMounted(() => {
     }, { immediate: true })
 })
 let oldSize = { width: 0, height: 0 }
-useResizeObserver(plotRef, (e) => {
-    let { width: w, height: h } = e[0].contentRect
+useResizeObserver(plotRef, ([entry]) => {
+    visible.value = entry.target.getClientRects().length > 0
+    if (!visible.value) return
+    let { width: w, height: h } = entry.contentRect
     if (width.value - w < 0.5 && height.value - h < 0.5) return
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h

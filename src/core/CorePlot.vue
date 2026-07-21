@@ -32,7 +32,7 @@ const {
 })
 const emit = defineEmits([
     'click', 'singleclick', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'wheel',
-    'select', 'move', 'zoom', 'rescale', 'nudge',
+    'select', 'selecting', 'move', 'zoom', 'rescale', 'nudge',
 ])
 
 const range = inject("range")
@@ -393,6 +393,9 @@ function svgPointerdown(e) {
                 res.ymin = ystart > yend ? yend : ystart
                 res.ymax = ystart > yend ? ystart : yend
             }
+            if (!emitEvent(sel["onSelecting"], dropNull(res), sel.theme)) {
+                emit('selecting', dropNull(res), sel.theme)
+            }
             selectionPreview.value = res
             selectionPreviewTheme.value = sel.theme
         }
@@ -720,6 +723,14 @@ const axes = computed(() => {
             <CoreGridV :breaks="gridBreaks.v" :layout="innerRect" :activeTransform="activeTransform"
                 :coord2pos="coord2pos" :transition="transition" />
         </g>
+        <g :transform="`translate(${panel.left}, ${panel.top})`">
+            <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position !== 'number')" v-bind="axis.bind"
+                v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
+            <g :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
+                <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position === 'number')" v-bind="axis.bind"
+                    v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
+            </g>
+        </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
@@ -733,14 +744,6 @@ const axes = computed(() => {
             <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
                 :modelValue="selectionPreview" :transition="transition" :activeTransform="activeTransform"
                 :theme="_selectionPreviewTheme" :flip />
-        </g>
-        <g :transform="`translate(${panel.left}, ${panel.top})`">
-            <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position !== 'number')" v-bind="axis.bind"
-                v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
-            <g :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
-                <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position === 'number')" v-bind="axis.bind"
-                    v-on="axis.on" v-model:transition="transition" :activeTransform="activeTransform" />
-            </g>
         </g>
         <slot></slot>
         <foreignObject v-if="props.legendTeleport">

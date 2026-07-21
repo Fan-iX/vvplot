@@ -1,13 +1,13 @@
 // Metadata and coordinate system helpers for ellipse geometry
 import { vecutils } from '#base/js/utils.js'
-let psum = vecutils.sum
+let { sum: psum, coalesce } = vecutils
 
 export default {
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
         let { A, B, C } = ds
-        let xnudge = ds.xnudge ?? 0,
-            ynudge = ds.ynudge ?? 0,
+        let xnudge = coalesce(ds.xnudge, 0),
+            ynudge = coalesce(ds.ynudge, 0),
             cx = psum(levels.x?.apply?.(ds.cx) ?? ds.cx, xnudge),
             cy = psum(levels.y?.apply?.(ds.cy) ?? ds.cy, ynudge)
         return { cx, cy, A, B, C }

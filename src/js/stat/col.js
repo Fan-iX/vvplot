@@ -1,25 +1,27 @@
-import { intraaction } from '#base/js/utils.js'
+import { intraaction, is_categorical, numutils } from '#base/js/utils.js'
 
 /**
- * bar transformation
- *   { x } => { x, y, height }
- *   { y } => { x, y, width }
+ * col transformation
+ *   { x, y } => { x, y, height }
  */
-export default Object.assign(function (data, { position = "stack", width = 0.9, height = 0.9 }) {
-    if (data.x != null && data.y != null)
-        throw new Error(`"StatBar" only supports "x" or "y", not both`)
-    let cateAes = data.x ? 'x' : 'y'
-    let values = data[cateAes]
-    if (values == null)
-        throw new Error(`Missing aesthetics for "StatBar": "x" or "y"`)
-    if (values.some(x => typeof x === 'number'))
-        throw new Error(`"StatBar" requires a discrete aesthetic`)
-    let keys = Object.keys(data).filter(k => !k.startsWith('$'))
+export default Object.assign(function (data, { position = "stack", width, height, orientation = "x" }) {
+    let missingAes = ['x', 'y'].filter(a => data[a] == null)
+    if (missingAes.length > 0)
+        throw new Error(`Missing aesthetics for "StatCol": "${missingAes.join('", "')}"`)
+    let isXdiscrete = data.x.some(is_categorical)
+    let isYdiscrete = data.y.some(is_categorical)
+    if (isXdiscrete && isYdiscrete)
+        throw new Error(`Both "x" and "y" are discrete, "StatCol" requires at most one discrete aesthetic`)
+    let cateAes = isXdiscrete == isYdiscrete ? (orientation != "y" ? "x" : "y") : (isXdiscrete ? 'x' : 'y')
+    let valueAes = cateAes == 'x' ? 'y' : 'x'
+    let keys = Object.keys(data).filter(k => k != valueAes && !k.startsWith('$'))
     let group = intraaction(Object.fromEntries(keys.map(k => [k, data[k]])))
-    let inter = intraaction({ group: group ?? 0, value: values })
+    let inter = intraaction({ group: group ?? 0, cate: data[cateAes] })
+    let groupIdx = Map.groupBy(inter.map((_, i) => i), (_, i) => inter.categories[inter[i]])
     let groups = Map.groupBy(data.$raw, (_, i) => inter.categories[inter[i]])
-    let $raw = Array.from(groups.values()), cates = Array.from(groups.keys()),
-        val = $raw.map(v => v.length)
+    let cates = Array.from(groups.keys()),
+        $raw = Array.from(groupIdx.values()).map(arr => arr.map(idx => data.$raw[idx])),
+        val = Array.from(groupIdx.values()).map(arr => numutils.sum(arr.map(idx => data[valueAes][idx])))
     let result = {
         $raw: $raw,
         $group: cates.map(x => x.group),
@@ -29,10 +31,18 @@ export default Object.assign(function (data, { position = "stack", width = 0.9, 
         result[key] = cates.map(x => x.group).map(i => group.categories[i][key])
     }
     if (cateAes == 'x') {
-        width ??= 0.9
+        if (isXdiscrete) {
+            width ??= 0.9
+        } else {
+            width ??= numutils.min(numutils.diff(Array.from(new Set(data[cateAes])).sort((a, b) => a - b))) * 0.9
+        }
         result.height = val
     } else {
-        height ??= 0.9
+        if (isYdiscrete) {
+            height ??= 0.9
+        } else {
+            height ??= numutils.min(numutils.diff(Array.from(new Set(data[cateAes])).sort((a, b) => a - b))) * 0.9
+        }
         result.width = val
     }
     if (position == "stack") {

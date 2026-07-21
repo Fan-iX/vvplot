@@ -1,5 +1,5 @@
 <script setup>
-import { useTemplateRef, reactive, watch, nextTick, computed } from 'vue'
+import { useTemplateRef, reactive, watch, nextTick, computed, inject } from 'vue'
 import { parseLinetype } from '#base/js/utils.js'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
@@ -16,8 +16,9 @@ const {
 })
 const ele = useTemplateRef('ele')
 const textBox = reactive({ width: 0, height: 0 })
+const visible = inject('vvplot-visible', true)
 watch(
-    [ele, () => fontSize, () => size, () => text, () => textLength, () => fontFamily],
+    [ele, visible, () => fontSize, () => size, () => text, () => textLength, () => fontFamily],
     async ([e]) => {
         if (!e) return
         await nextTick()

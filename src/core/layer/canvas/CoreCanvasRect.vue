@@ -76,5 +76,5 @@ defineExpose({
 })
 </script>
 <template>
-    <foreignObject v-bind="vBind" ref="container"></foreignObject>
+    <foreignObject class="vvplot-layer" v-bind="vBind" ref="container"></foreignObject>
 </template>

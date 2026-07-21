@@ -4,6 +4,7 @@
  */
 export { default as bar } from './stat/bar.js'
 export { default as boxplot } from './stat/boxplot.js'
+export { default as col } from './stat/col.js'
 export { default as curve } from './stat/curve.js'
 export { default as density } from './stat/density.js'
 export { default as ellipse } from './stat/ellipse.js'

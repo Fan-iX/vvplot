@@ -140,8 +140,8 @@ function splitLabel(label) {
 }
 </script>
 <template>
-    <g>
-        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
+    <g class="vvplot-layer">
+        <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <template v-for="[vbind, von, content, title] in group">
                 <text v-bind="vbind" v-on="von">
                     <title>{{ title }}</title>

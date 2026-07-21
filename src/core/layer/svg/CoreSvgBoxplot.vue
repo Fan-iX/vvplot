@@ -92,8 +92,8 @@ const binds = computed(() => {
 })
 </script>
 <template>
-    <g>
-        <g v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
+    <g class="vvplot-layer">
+        <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <g v-for="[vbinds, von] in group">
                 <CoreLine v-bind="vbinds.line" />
                 <CoreTile v-bind="vbinds.rect" v-on="von" />

@@ -8,5 +8,5 @@ const { extendX, extendY, data, coord2pos, getCoord, layout } = defineProps({
 const emit = defineEmits(['click', 'contextmenu', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup'])
 </script>
 <template>
-    <g></g>
+    <g class="vvplot-layer"></g>
 </template>
