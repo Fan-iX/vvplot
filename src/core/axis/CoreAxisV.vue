@@ -165,16 +165,15 @@ function axisMovePointerdown(e) {
         let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
-    e.target.onpointerup = (ev) => {
+    e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
-        e.target.onpointerup = null
         e.target.style.cursor = null
         if (!pointerMoved) return
         moveTimer = setTimeout(() => {
             applyTransform(act, ev)
             movementY = 0
         }, 300)
-    }
+    }, { once: true })
 }
 function axisRescaleTopPointerdown(e) {
     let act = action.find(a => a.action == "rescale")
@@ -201,11 +200,10 @@ function axisRescaleTopPointerdown(e) {
         })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
-    e.target.onpointerup = (ev) => {
+    e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
-        e.target.onpointerup = null
         applyTransform(act, ev)
-    }
+    }, { once: true })
 }
 function axisRescaleBottomPointerdown(e) {
     let act = action.find(a => a.action == "rescale")
@@ -232,11 +230,10 @@ function axisRescaleBottomPointerdown(e) {
         })
         Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
     }
-    e.target.onpointerup = (ev) => {
+    e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
-        e.target.onpointerup = null
         applyTransform(act, ev)
-    }
+    }, { once: true })
 }
 let wheelDelta = 0, wheelTimer
 function axisWheel(e) {

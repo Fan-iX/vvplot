@@ -194,8 +194,7 @@ function selPointerdown(e, dir) {
         if (ymin > ymax) [ymin, ymax] = [ymax, ymin]
         emit('selecting', { xmin, xmax, ymin, ymax }, theme)
     }
-    e.target.onpointerup = (ev) => {
-        ev.currentTarget.onpointerup = null
+    e.target.addEventListener('pointerup', function (ev) {
         ev.currentTarget.onpointermove = null
         if (config.buttons & 1) {
             ev.currentTarget.onclick = (event) => {
@@ -218,7 +217,7 @@ function selPointerdown(e, dir) {
         model.value = dropNull(res)
         emit('selectend')
         emit('select', dropNull(res), event)
-    }
+    }, { once: true })
 }
 </script>
 <template>

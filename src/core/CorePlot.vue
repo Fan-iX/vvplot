@@ -399,8 +399,7 @@ function svgPointerdown(e) {
             selectionPreview.value = res
             selectionPreviewTheme.value = sel.theme
         }
-        e.target.onpointerup = (ev) => {
-            ev.currentTarget.onpointerup = null
+        e.target.addEventListener('pointerup', function (ev) {
             ev.currentTarget.onpointermove = null
             svg.style.userSelect = null
             selectionPreview.value = {}
@@ -452,7 +451,7 @@ function svgPointerdown(e) {
                     emit('select', dropNull(res), event)
                 }
             }
-        }
+        }, { once: true })
         return
     }
     let act = props.action.find(a => a.action == "move" && ["buttons", "ctrlKey", "shiftKey", "altKey", "metaKey"].every(k => a[k] == e[k]))
@@ -485,15 +484,14 @@ function svgPointerdown(e) {
             let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: h1, hmax: h2, vmin: v1, vmax: v2 })
             Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
         }
-        e.target.onpointerup = (ev) => {
-            ev.currentTarget.onpointerup = null
+        e.target.addEventListener('pointerup', function (ev) {
             ev.currentTarget.onpointermove = null
             svg.style.userSelect = null
             moveTimer = setTimeout(() => {
                 applyTransform(act, ev)
                 movementX = movementY = 0
             }, 300)
-        }
+        }, { once: true })
         return
     }
 }
