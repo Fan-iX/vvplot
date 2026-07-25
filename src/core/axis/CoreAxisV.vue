@@ -305,13 +305,13 @@ const axisVOn = {
 </script>
 <template>
     <g :transform="transform" :style="{ transition }">
-        <line ref="i" :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" v-if="axisLine.stroke != null" />
+        <line :x1="0" :x2="0" :y1="0" :y2="height" v-bind="axisLine" v-if="axisLine.stroke != null" />
         <line v-for="tick in tickLines" v-bind="tick" />
         <g v-for="tick in tickTexts" v-bind="tick.wrapper">
             <CoreAxisLabel v-bind="tick.text" :getPosition />
         </g>
         <g class="vvplot-interactive" fill="transparent">
-            <rect :width="10" :height="height" :x="-5" v-on="axisVOn" @pointerdown="axisMovePointerdown"
+            <rect ref="i" :width="10" :height="height" :x="-5" v-on="axisVOn" @pointerdown="axisMovePointerdown"
                 :cursor="action.some?.(a => a.action == 'move') ? 'grab' : null" />
         </g>
         <g v-if="action.some?.(a => a.action == 'rescale')" class="vvplot-interactive" fill="transparent">
