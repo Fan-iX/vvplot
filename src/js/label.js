@@ -17,7 +17,7 @@ function $datetime_format(date, fmt = 'yyyy-MM-dd hh:mm:ss') {
 }
 
 export const number_cut = {
-    default: {
+    metric: {
         '': 1, 'k': 1e3, 'M': 1e6, 'G': 1e9, 'T': 1e12, 'P': 1e15, 'E': 1e18, 'Z': 1e21, 'Y': 1e24,
     },
     si: {
@@ -124,7 +124,7 @@ export default {
     timestamp: format_datetime,
     asis: format_asis,
     auto: format_auto,
-    default: function (opts) {
-        return format_auto({ scale_cut: number_cut.default, ...opts })
+    metric: function (opts) {
+        return format_auto({ scale_cut: number_cut.metric, ...opts })
     },
 }
