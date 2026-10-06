@@ -29,18 +29,18 @@
     "access": "public"
   },
   "dependencies": {
-    "@vueuse/core": "^13.7.0",
-    "commonmark": "^0.31.2",
+    "@vueuse/core": "^15.0.0",
+    "commonmark": "^0.31.0",
     "d3": "^7.9.0",
-    "vue": "^3.5.18"
+    "vue": "^3.5.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.12",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "highlight.js": "^11.11.1",
-    "tailwind-merge": "^3.3.1",
-    "typescript": "^6.0.3",
-    "vite": "^8.3.3",
-    "vite-plugin-dts": "^4.5.4"
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "highlight.js": "^11.0.0",
+    "tailwind-merge": "^3.0.0",
+    "typescript": "^6.0.0",
+    "vite": "^8.0.0",
+    "vite-plugin-dts": "^4.0.0"
   }
 }
