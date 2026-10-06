@@ -1,4 +1,6 @@
-import * as d3 from 'd3'
+import { scaleLinear } from 'd3-scale'
+import { hcl } from 'd3-color'
+import { interpolateLab } from 'd3-interpolate'
 import { oob_censor, oob_squish_any, oob_squish_infinite } from './utils.js'
 
 export const oob = {
@@ -92,7 +94,7 @@ function palette_scale_hue({
             v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
             if (isNaN(v)) return na_value
-            return d3.hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l, alpha).toString()
+            return hcl(h_start + h_min + h_interval * (v - scale_min) / scale_interval * direction, c, l, alpha).toString()
         })
     }
     return Object.assign(fn, { title, limits, oob }, etc)
@@ -116,7 +118,7 @@ function palette_scale_gradient({
     let fn = function (arr) {
         let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
             scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
-            scale = d3.interpolateLab(low, high)
+            scale = interpolateLab(low, high)
         return arr.map(v => {
             v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
@@ -143,8 +145,8 @@ function palette_scale_gradient2({
         let scale_min = this?.limits?.min ?? this?.limits?.[0] ?? arr.extent?.[0],
             scale_max = this?.limits?.max ?? this?.limits?.[1] ?? arr.extent?.[1],
             scale_mid = midpoint ?? (scale_min + scale_max) / 2,
-            scale_low = d3.interpolateLab(low, mid),
-            scale_high = d3.interpolateLab(mid, high)
+            scale_low = interpolateLab(low, mid),
+            scale_high = interpolateLab(mid, high)
         return arr.map(v => {
             v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
@@ -173,7 +175,7 @@ function palette_scale_gradientn({
         domain ??= Array(colors.length).fill(0).map((_, i) => scale_min + (scale_max - scale_min) * i / (colors.length - 1))
         colors = colors.filter((c, i) => !isNaN(domain[i]))
         domain = domain.filter(v => !isNaN(v))
-        let scale = d3.scaleLinear(domain, colors)
+        let scale = scaleLinear(domain, colors)
         return arr.map(v => {
             v = this.oob(v, { min: scale_min, max: scale_max })
             if (v === null) return null_value
