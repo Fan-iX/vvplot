@@ -43,7 +43,7 @@
     "lint-staged": "^17.0.0",
     "simple-git-hooks": "latest",
     "tailwind-merge": "^3.0.0",
-    "typescript": "^6.0.0",
+    "typescript": "^5.0.0",
     "typescript-eslint": "^8.0.0",
     "vite": "^8.0.0",
     "vite-plugin-dts": "^4.0.0",
