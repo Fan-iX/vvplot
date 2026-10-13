@@ -47,6 +47,7 @@ export default defineConfig({
           minifyInternalExports: false,
           name: 'VVPlot',
           globals: { vue: 'Vue' },
+          exports: "named",
         },
         {
           format: 'iife',
@@ -54,6 +55,7 @@ export default defineConfig({
           minify: true,
           name: 'VVPlot',
           globals: { vue: 'Vue' },
+          exports: "named",
         },
       ],
     },
