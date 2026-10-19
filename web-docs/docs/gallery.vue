@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { read_csv } from '../script/utils'
+import { read_table } from '../script/utils'
 import { vvscale, vvtheme, vvbreak, vvlabel } from '#base/index.ts'
 
 import iris from '../data/iris.json'
@@ -10,10 +10,9 @@ const letters = letters_txt.toLowerCase().replace(/[^a-z]/g, "").split("")
 import mtcars_json from '../data/mtcars.json'
 const mtcars = Object.entries(mtcars_json).map(([k, v]) => ({ model: k, ...v }))
 import economics_txt from '../data/economics.csv?raw'
-const economics = read_csv(economics_txt).map((x, _, a) => Object.fromEntries(a.columns.map((c, i) => [c, x[i]])))
-import pigments_txt from '../data/pigments.csv?raw'
-const pigments = read_csv(pigments_txt)
-    .map((x, _, a) => Object.fromEntries(a.columns.map((c, i) => [c, x[i]])))
+const economics = read_table(economics_txt)
+import pigments_txt from '../data/pigments.tsv?raw'
+const pigments = read_table(pigments_txt, { sep: "\t" })
     .flatMap(({ wave_length, ...etc }) =>
         Object.entries(etc).map(([pigment, molar_extinction]) => ({ wave_length, pigment, molar_extinction }))
     )

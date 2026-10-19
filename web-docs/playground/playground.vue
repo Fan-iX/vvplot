@@ -1,40 +1,19 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed, watch, nextTick } from 'vue'
 import { components, vvscale, oob, vvbreak, vvlabel, vvtheme } from '#base/index.ts'
-import { svg2svg, svg2png } from '../script/utils.js'
+import { svg2svg, svg2png, read_table } from '../script/utils.js'
 import DataTable from './components/DataTable.vue'
 import DataConfig from './components/DataConfig.vue'
 import LayerConfig from './components/LayerConfig.vue'
 import { computedAsync } from '@vueuse/core'
 const AsyncFunction = (async function () { }).constructor
 
-function read_table(text, { header = true, sep = ',' } = {}) {
-    function parse_value(v) {
-        if (!isNaN(v)) return +v
-        if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(v)) {
-            let [y, m, d] = v.split('-').map(x => +x)
-            return Date.UTC(y, m - 1, d)
-        }
-        return v
-    }
-    let lines = text.replace(/\r/g, '').split('\n').filter(l => l), columns
-    if (header) {
-        columns = lines.shift()?.split?.(sep) ?? []
-    }
-    let data = lines.map(l => l.split(sep).map(v => parse_value(v)))
-    if (!header) {
-        let ncol = data.map(r => r.length).reduce((a, b) => a > b ? a : b, 0)
-        columns = Array.from({ length: ncol }, (_, i) => `V${i + 1}`)
-    }
-    return data.map(x => Object.fromEntries(columns.map((c, i) => [c, x[i]])))
-}
-
 import iris_text from '../data/iris.json?raw'
 import UCBAdmissions_text from '../data/UCBAdmissions.json?raw'
 import letters_text from '../data/sentences.txt?raw'
 import mtcars_text from '../data/mtcars.json?raw'
 import economics_text from '../data/economics.csv?raw'
-import pigments_text from '../data/pigments.csv?raw'
+import pigments_text from '../data/pigments.tsv?raw'
 const presets = {
     'iris.json': {
         text: iris_text,
@@ -77,7 +56,7 @@ const presets = {
     'economics.csv': {
         text: economics_text,
         preprocessFunc: `return read_table(text)`,
-        templateText: `<VVAxisY :labels="vvlabel.default({scale:100,suffix:'%'})" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
+        templateText: `<VVAxisY :labels="vvlabel.metric({scale:100,suffix:'%'})" :expand-mult="{ min: 0.2, max: 0.1 }" title="unemployment rate">
     <VVAction move rescale zoom />
 </VVAxisY>
 <VVAxisX position="10%" :theme="{ tick_length: 3, text_angle: 45, tick_anchor_x: 0 }"
@@ -87,12 +66,13 @@ const presets = {
 <VVGeomLine :x="d => new Date(d.date)" :y="d => d.unemploy / d.pop" />
 <VVAction zoom move />`,
     },
-    'pigments.csv': {
+    'pigments.tsv': {
         text: pigments_text,
         preprocessFunc: `return read_table(text)`,
         templateText: `<VVGeomLine :x="d => d.wave_length" :y="d => d.molar_extinction" :color="d => d.pigment" :group="d => d.pigment"
     :scales="{ color: vvscale.color.manual({ values: { beta_carotene: 'orangered', chlorophyll_a: 'limegreen', chlorophyll_b: 'royalblue' } }) }" />
 <VVAction zoom move />`,
+        separator: "\\t",
         recipe: [{ "operation": "gather", "name_to": "pigment", "value_to": "molar_extinction", "gather_name": ["chlorophyll_a", "chlorophyll_b", "beta_carotene"] }]
     }
 }
@@ -103,6 +83,7 @@ function onpresetchange() {
     text.value = set.text
     preprocessFunc.value = set.preprocessFunc
     templateText.value = set.templateText
+    separator.value = set.separator ?? ','
     recipe.value = set.recipe ?? []
     fileInput.value.files = new DataTransfer().files
 }
@@ -154,7 +135,7 @@ const text = ref()
 const preprocessFunc = ref("")
 const templateText = ref("")
 const header = ref(true)
-const sep = ref(",")
+const separator = ref(",")
 const json_data = computed(() => {
     try {
         let json = JSON.parse(text.value)
@@ -165,7 +146,8 @@ const json_data = computed(() => {
 })
 const csv_data = computed(() => {
     try {
-        return read_table(text.value, { header: header.value, sep: sep.value })
+        let sep = JSON.parse(`"${separator.value}"`)
+        return read_table(text.value, { header: header.value, sep })
     } catch (e) { return e }
 })
 const custom_data = computedAsync(async () => {
@@ -278,11 +260,11 @@ async function exportPNG(options) {
                 <template v-if="format == 'csv'">
                     <label><input type="checkbox" v-model="header">header</label>
                     <br>
-                    <label>separator: <input type="text" v-model="sep"
+                    <label>separator: <input type="text" v-model="separator"
                             class="font-mono min-w-[1em] border-b outline-none"></label>
                 </template>
-                <pre class="w-full h-full font-mono leading-none flex-1 flex flex-col" v-if="format == 'custom'">async function(text) {
-    <textarea v-model="preprocessFunc" class="ml-[4ch] resize-none overflow-auto field-sizing-content"></textarea>}
+                <pre class="w-full h-full font-mono leading-none flex-1 flex flex-col" v-if="format == 'custom'">async function(text)
+    {<textarea v-model="preprocessFunc" class="ml-[4ch] resize-none overflow-auto field-sizing-content"></textarea>}
 </pre>
                 <div class="flex flex-row justify-between whitespace-nowrap">
                     <span class="text-red-500 truncate">{{ dataErrorMessage }}</span>

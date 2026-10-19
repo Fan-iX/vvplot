@@ -1,4 +1,4 @@
-export function read_csv(text, { header = true, sep = ',' } = {}) {
+export function read_table(text, { header = true, sep = ',' } = {}) {
     function parse_value(v) {
         if (!isNaN(v)) return +v
         if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(v)) {
@@ -16,7 +16,7 @@ export function read_csv(text, { header = true, sep = ',' } = {}) {
         let ncol = data.map(r => r.length).reduce((a, b) => a > b ? a : b, 0)
         columns = Array.from({ length: ncol }, (_, i) => `V${i + 1}`)
     }
-    return Object.assign(data, { columns })
+    return data.map(x => Object.fromEntries(columns.map((c, i) => [c, x[i]])))
 }
 
 /**
