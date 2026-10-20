@@ -1,8 +1,9 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * stick transformation
  *   { x, y, dx, dy } => { x, y, dx, dy }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     if (data.dx == null) data.dx = Array(data.x.length).fill(0)
     if (data.dy == null) data.dy = Array(data.y.length).fill(0)
     let missingAes = ['x', 'y', 'dx', 'dy'].filter(a => data[a] == null)

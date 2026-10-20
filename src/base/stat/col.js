@@ -1,10 +1,11 @@
 import { intraaction, is_categorical, numutils } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * col transformation
  *   { x, y } => { x, y, height }
  */
-export default Object.assign(function (data, { position = "stack", width, height, orientation = "x" }) {
+export default defineStat(function (data, { position = "stack", width, height, orientation = "x" }) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatCol": "${missingAes.join('", "')}"`)

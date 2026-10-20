@@ -1,11 +1,12 @@
 import { intraaction } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * bar transformation
  *   { x } => { x, y, height }
  *   { y } => { x, y, width }
  */
-export default Object.assign(function (data, { position = "stack", width = 0.9, height = 0.9 }) {
+export default defineStat(function (data, { position = "stack", width = 0.9, height = 0.9 }) {
     if (data.x != null && data.y != null)
         throw new Error(`"StatBar" only supports "x" or "y", not both`)
     let cateAes = data.x ? 'x' : 'y'

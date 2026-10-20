@@ -1,8 +1,9 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * text transformation
  *   { x, y, label } => { x, y, label }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     let missingAes = ['x', 'y', 'label'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatText": "${missingAes.join('", "')}"`)

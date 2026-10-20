@@ -1,10 +1,11 @@
 import { numutils, intraaction, is_categorical } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * violin transformation
  *   { x, y } => { x, y, points }
  */
-export default Object.assign(function (data, {
+export default defineStat(function (data, {
     n = 512, kernel = 'gaussian', scale = 'width',
     position = "dodge", width = 0.9, height = 0.9
 } = {}) {

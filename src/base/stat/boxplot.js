@@ -1,11 +1,12 @@
 import { numutils, intraaction, is_categorical } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * boxplot transformation
  *   { x, y } => { x, min, lwisker, Q1, median, Q3, uwisker, max, outliers }
  *   { x, y } => { y, min, lwisker, Q1, median, Q3, uwisker, max, outliers }
  */
-export default Object.assign(function (data, { position = "dodge", width = 0.9, height = 0.9 }) {
+export default defineStat(function (data, { position = "dodge", width = 0.9, height = 0.9 }) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatBoxplot": "${missingAes.join('", "')}"`)

@@ -1,10 +1,11 @@
 import { intraaction, intrazip } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * ellipse transformation
  *   { x, y } => { cx, cy, A, B, C }
  */
-export default Object.assign(function (data, { CI = 0.95 } = {}) {
+export default defineStat(function (data, { CI = 0.95 } = {}) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatEllipse": "${missingAes.join('", "')}" or "points"`)

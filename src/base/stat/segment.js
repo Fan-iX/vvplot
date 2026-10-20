@@ -1,8 +1,9 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * segment transformation
  *  { x, y, xend?, yend? } => { x, y, xend, yend }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     if (data.xend == null) data.xend = data.x
     if (data.yend == null) data.yend = data.y
     let missingAes = ['x', 'y', 'xend', 'yend'].filter(a => data[a] == null)

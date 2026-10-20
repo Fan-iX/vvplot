@@ -1,9 +1,10 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * linerange transformation
  *   { x, ymin, ymax } => { x, y, xend, yend }
  *   { y, xmin, xmax } => { y, x, yend, xend }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     if (data.x != null) {
         let missingAes = ['x', 'ymin', 'ymax'].filter(a => data[a] == null)
         if (missingAes.length > 0)

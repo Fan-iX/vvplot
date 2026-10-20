@@ -1,9 +1,10 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * line transformation
  *   connect data points in the order of one variable
  *   { x, y } => { x, y, xend, yend }
  */
-export default Object.assign(function (data, { orientation = 'x' } = {}) {
+export default defineStat(function (data, { orientation = 'x' } = {}) {
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatLine": "${missingAes.join('", "')}"`)

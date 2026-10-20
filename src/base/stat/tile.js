@@ -1,8 +1,9 @@
+import { defineStat } from '#src/core/register.js'
 /**
  * tile transformation
  *   { x, y, width?, height? } => { x, y, width, height }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     if (data.width == null && data.x.some(x => typeof x === 'string')) {
         data.width = Array(data.x.length).fill(1)
     }

@@ -1,11 +1,12 @@
 import { numutils, intraaction } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * density transformation
  *   { x } => { points }
  *   { y } => { points }
  */
-export default Object.assign(function (data, { n = 512, kernel = 'gaussian', scale = "area" } = {}) {
+export default defineStat(function (data, { n = 512, kernel = 'gaussian', scale = "area" } = {}) {
     if (data.x != null && data.y != null)
         throw new Error(`"StatDensity" only supports "x" or "y", not both`)
     let values = data.x ?? data.y

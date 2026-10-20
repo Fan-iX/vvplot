@@ -1,11 +1,12 @@
 import { intraaction, intrazip } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * polygon transformation
  *   { x, y } => { points }
  *   { points } => { points }
  */
-export default Object.assign(function (data) {
+export default defineStat(function (data) {
     if (data.points != null) return data
     let missingAes = ['x', 'y'].filter(a => data[a] == null)
     if (missingAes.length > 0)

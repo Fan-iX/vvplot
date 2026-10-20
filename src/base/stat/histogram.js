@@ -1,11 +1,12 @@
 import { numutils, intraaction } from '#src/js/utils.js'
+import { defineStat } from '#src/core/register.js'
 
 /**
  * histogram transformation
  *   { x } => { xmin, xmax, ymin, ymax }
  *   { y } => { ymin, ymax, xmin, xmax }
  */
-export default Object.assign(function (data, { bins = 30, binwidth, breaks } = {}) {
+export default defineStat(function (data, { bins = 30, binwidth, breaks } = {}) {
     if (data.x != null && data.y != null)
         throw new Error(`"StatHistogram" only supports "x" or "y", not both`)
     let values = data.x ?? data.y
