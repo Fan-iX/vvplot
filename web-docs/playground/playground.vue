@@ -1,6 +1,7 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed, watch, nextTick } from 'vue'
-import { components, vvscale, oob, vvbreak, vvlabel, vvtheme } from '#base/index.ts'
+import VVPlot from '#src/index.ts'
+import { vvscale, oob, vvbreak, vvlabel, vvtheme } from '#src/index.ts'
 import { svg2svg, svg2png, read_table } from '../script/utils.js'
 import DataTable from './components/DataTable.vue'
 import DataConfig from './components/DataConfig.vue'
@@ -120,9 +121,7 @@ ${templateText.value}
         },
         template
     })
-    for (let c in components) {
-        app.component(c, components[c])
-    }
+    app.use(VVPlot)
     try {
         instance = app.mount('#plot')
     } catch (e) {

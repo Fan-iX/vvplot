@@ -8,15 +8,15 @@ import { str_c, serializeSVG, expandFragment } from '../js/utils.js'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from '../core/CorePlot.vue'
+import VVAxis from './Axis.vue'
+import VVAxisX from './AxisX.vue'
+import VVAxisY from './AxisY.vue'
+import VVAxisBreak from './AxisBreak.vue'
 import VVAction from './Action.vue'
-import VVSelection from './Action.vue'
-import * as geom_components from './geom'
-import * as axis_components from './axis'
-const components = {
-    ...geom_components,
-    ...axis_components,
-    VVAction, VVSelection,
-}
+import VVSelection from './Selection.vue'
+import VVGeom from './Geom.vue'
+
+const components = { VVAxis, VVAxisX, VVAxisY, VVAxisBreak, VVAction, VVSelection, VVGeom }
 
 const opponents = {
     x: 'y', y: 'x', h: 'v', v: 'h',

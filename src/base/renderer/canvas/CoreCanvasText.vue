@@ -1,0 +1,120 @@
+<script setup>
+import { computed, watch, useTemplateRef } from 'vue'
+import { parseLinetype } from '#src/js/utils.js'
+const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+    extendX: { type: Number, default: 0 },
+    extendY: { type: Number, default: 0 },
+    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    dpi: { type: Number, default: 96 },
+})
+let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
+const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+
+const vBind = computed(() => ({
+    width: layout.fullWidth * (1 + extendX * 2),
+    height: layout.fullHeight * (1 + extendY * 2),
+    x: -layout.l - layout.fullWidth * extendX,
+    y: -layout.t - layout.fullHeight * extendY,
+}))
+const containerRef = useTemplateRef('container')
+const layerCanvas = computed(() => {
+    if (containerRef.value == null) return
+    const canvas = document.createElement('canvas')
+    canvas.style.width = vBind.value.width + 'px'
+    canvas.style.height = vBind.value.height + 'px'
+    canvas.width = vBind.value.width * dpi / 96
+    canvas.height = vBind.value.height * dpi / 96
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.scale(dpi / 96, dpi / 96)
+    ctx.translate(layout.l + layout.fullWidth * extendX, layout.t + layout.fullHeight * extendY)
+    let _path_data = new Map(), path_data = new Map()
+    for (let {
+        x, y,
+        color, size = 4, label = "", title, stroke, linewidth, linetype, alpha,
+        'anchor-x': anchorX, 'anchor-y': anchorY,
+        'dock-x': dockX, 'dock-y': dockY,
+        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
+    } of data) {
+        ctx.save()
+        const { h: tx, v: ty } = coord2pos({ x, y })
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.lineWidth = linewidth
+        ctx.globalAlpha = alpha
+        ctx.font = `${size * 4}px ${fontFamily}`
+        ctx.setLineDash(parseLinetype(linetype))
+        ctx.translate(tx + translateX, ty + translateY)
+        let { width: w, fontBoundingBoxAscent: a, fontBoundingBoxDescent: d } = ctx.measureText(label),
+            width = w, height = a + d
+        if (typeof (textLength) == "object") {
+            let { x: lx = 0, y: ly = 0 } = textLength
+            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+            width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
+        } else if (textLength != null) {
+            width = textLength
+        }
+        if (typeof (angle) == "object") {
+            let { dx = 0, dy = 0 } = angle
+            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
+        }
+        if (dockX != null || dockY != null) {
+            let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
+                alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
+            if (isNaN(alnX)) alnX = 0.5
+            if (isNaN(alnY)) alnY = 0.5
+            let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
+                h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180))
+            ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+            ctx.rotate(angle * Math.PI / 180)
+        } else {
+            let alnX = { left: 0, center: 0.5, right: 1 }[anchorX] ?? +(anchorX ?? 0.5),
+                alnY = { bottom: 0, center: 0.5, top: 1 }[anchorY] ?? +(anchorY ?? 0.5)
+            if (isNaN(alnX)) alnX = 0.5
+            if (isNaN(alnY)) alnY = 0.5
+            let w = width, h = height
+            ctx.rotate(angle * Math.PI / 180)
+            ctx.translate(w * (0.5 - alnX), h * (alnY - 0.5))
+        }
+        if (width != w) ctx.scale(width / w, 1)
+        if (color !== 'none') {
+            ctx.fillStyle = color
+            ctx.fillText(label, 0, 0)
+        }
+        if (stroke != null && stroke !== 'none') {
+            ctx.strokeStyle = stroke
+            ctx.strokeText(label, 0, 0)
+        }
+        ctx.restore()
+    }
+    for (let path of Array.from(_path_data.keys()).reverse()) {
+        path_data.set(path, _path_data.get(path))
+    }
+    for (let evt of events) {
+        canvas.addEventListener(evt, function (e) {
+            if (e._vhandled) return
+            const rect = canvas.getBoundingClientRect()
+            const x = (e.clientX - rect.left) * canvas.width / rect.width
+            const y = (e.clientY - rect.top) * canvas.height / rect.height
+            for (const [path, data] of path_data) {
+                if (ctx.isPointInPath(path, x, y)) {
+                    emit(evt, e, getCoord(e), data)
+                    e._vhandled = true
+                    break
+                }
+            }
+        })
+    }
+    return canvas
+})
+watch(layerCanvas, (node) => containerRef.value.replaceChildren(node))
+defineExpose({
+    dispatchEvent: (event) => layerCanvas.value?.dispatchEvent?.(event)
+})
+</script>
+<template>
+    <foreignObject class="vvplot-layer" v-bind="vBind" ref="container"></foreignObject>
+</template>

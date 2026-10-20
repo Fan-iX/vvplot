@@ -1,8 +1,8 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
 import { computed } from 'vue'
-import vvbreak from '#base/js/break.js'
-import { obj_merge } from '#base/js/utils.js'
+import vvbreak from '#src/js/break.js'
+import { obj_merge } from '#src/js/utils.js'
 const { scales, type } = defineProps({
     scales: Array,
     type: { type: String, default: 'legendkey' },

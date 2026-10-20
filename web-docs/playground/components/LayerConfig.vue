@@ -2,7 +2,7 @@
 import { computed, reactive } from 'vue'
 import DragList from './DragList.vue'
 defineOptions({ inheritAttrs: false })
-import { vvgeom, vvstat, components as vvcomponents } from '#base/index.ts'
+import { vvgeom, vvstat, components as vvcomponents } from '#src/index.ts'
 const vvlayers = {}
 for (let c in vvcomponents) {
     if (vvcomponents[c].$_type == "layer" && vvcomponents[c].$_props?.stat) {

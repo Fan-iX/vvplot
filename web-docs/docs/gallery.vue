@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { read_table } from '../script/utils'
-import { vvscale, vvtheme, vvbreak, vvlabel } from '#base/index.ts'
+import { vvscale, vvtheme, vvbreak, vvlabel } from '#src/index.ts'
 
 import iris from '../data/iris.json'
 import UCBAdmissions from '../data/UCBAdmissions.json'

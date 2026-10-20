@@ -14,7 +14,7 @@
   "module": "./dist/vvplot.esm.js",
   "types": "./dist/vvplot.d.ts",
   "imports": {
-    "#base/*": "./src/*"
+    "#src/*": "./src/*"
   },
   "exports": {
     ".": {

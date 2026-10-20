@@ -1,13 +1,13 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, inject, useTemplateRef, useId } from 'vue'
-import { GPlot, GAxis } from '#base/js/plot.js'
-import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#base/js/utils.js'
+import { GPlot, GAxis } from './plot.js'
+import { unique, oob_squish_any, oob_squish_infinite, dropNull, emitEvent, plus } from '#src/js/utils.js'
 import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
 import CoreGridV from './grid/CoreGridV.vue'
-import CoreLayer from './layer/CoreLayer.vue'
+import CoreLayer from './CoreLayer.vue'
 import CoreSelection from './CoreSelection.vue'
 import CoreLegend from './CoreLegend.vue'
 const vid = useId()

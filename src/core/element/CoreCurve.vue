@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { parseLinetype } from '#base/js/utils.js'
+import { parseLinetype } from '#src/js/utils.js'
 import { line, curveCardinal, curveCardinalClosed, curveCatmullRom, curveCatmullRomClosed, curveLinear, curveLinearClosed, curveNatural } from 'd3-shape'
 const {
     points, interpolate, fill, color, linewidth, linetype, alpha, title,

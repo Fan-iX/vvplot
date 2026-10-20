@@ -17,11 +17,9 @@
 
         import { createApp } from 'vue'
         import App from './index.vue'
-        import { components } from '#base/index.ts'
+        import VVPlot from '#src/index.ts'
         let app = createApp(App)
-        for (let c in components) {
-            app.component(c, components[c])
-        }
+        app.use(VVPlot)
         app.mount('#app')
     </script>
 </body>
