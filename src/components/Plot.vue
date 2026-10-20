@@ -1,10 +1,11 @@
 <script setup>
-import { ref, computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide, onUnmounted } from 'vue'
+import { ref, computed, watch, useAttrs, useSlots, useTemplateRef, onMounted, reactive, provide, getCurrentInstance } from 'vue'
 import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueuse/core'
 import { baseParse } from '@vue/compiler-core'
-import { isSVGTag } from '@vue/shared'
+import { isSVGTag, camelize, capitalize } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme.js'
 import { str_c, serializeSVG, expandFragment } from '../js/utils.js'
+import { getComponent } from '../core/registry/component.js'
 defineOptions({ inheritAttrs: false })
 
 import CorePlot from '../core/CorePlot.vue'
@@ -47,7 +48,25 @@ const selectionPreview = defineModel('selectionPreview', { default: () => ({}) }
 const selectionPreviewTheme = defineModel('selectionPreviewTheme', { default: () => ({}) })
 const transition = defineModel('transition')
 
+const instance = getCurrentInstance()
+const globalComponents = instance?.appContext.components ?? {}
+
+function resolveType(tag) {
+    let names = [tag, camelize(tag), capitalize(camelize(tag))]
+    for (let name of names) {
+        let type = components[name]
+            ?? getComponent(name)
+            ?? globalComponents[name]
+        if (type != null) return type
+    }
+}
+
 function resolveComponent(ast) {
+    let type = resolveType(ast.tag)
+    if (type == null) {
+        console.warn(`[vvplot] Unknown component <${ast.tag}>`)
+        return null
+    }
     let result = {
         props: Object.fromEntries(ast.props.map(p => {
             try {
@@ -59,8 +78,8 @@ function resolveComponent(ast) {
                 }
             } catch (e) { }
         }).filter(x => x != null)),
-        children: ast.children.map(c => () => [resolveComponent(c)]),
-        type: components[ast.tag],
+        children: ast.children.map(c => () => [resolveComponent(c)]).filter(x => x != null),
+        type,
     }
     return result
 }
@@ -77,14 +96,14 @@ const vnodes = reactive({
 for (let key in $slots) {
     watch(() => $slots[key]?.(), s => {
         let comps = expandFragment(s).flatMap(c => {
-            if (c.type?.template) {
+            if (c.type?.template && c.type.$_type == null) {
                 let comp = baseParse(c.type.template, { decodeEntities: true })
                 return comp.children.map(x => resolveComponent(x))
             } else {
                 return c
             }
         }).filter(x => x != null)
-        let res = Object.groupBy(comps, c => c.type.$_type ?? "dom")
+        let res = Object.groupBy(comps, c => c.type?.$_type ?? "dom")
         for (let type in vnodes) {
             if (res[type] == null) {
                 delete vnodes[type][key]

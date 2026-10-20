@@ -1,9 +1,14 @@
-import * as vvgeom from '../base/geom.js'
-import * as vvstat from '../base/stat.js'
+import { resolveGeom } from './registry/geom.js'
+import { resolveStat } from './registry/stat.js'
 import vvscale from '../js/scale.js'
 import vvbreak from '../js/break.js'
 import vvlabel from '../js/label.js'
 import { numutils, EnumLevel, Asis, plus, is_categorical, expandFragment } from '../js/utils.js'
+
+const identity_scale = Object.assign(
+    arr => Array.from(arr),
+    { asis: true, legend: false }
+)
 
 function object_map(obj, expr) {
     if (obj == null) return {}
@@ -13,6 +18,7 @@ function object_map(obj, expr) {
 /**
  * Graphic Layer object
  * @property {string} geom geometry type
+ * @property {string} geomDef geometry definition
  * @property {Object} data scaled data
  * @property {Object} $data unscaled data
  * @property {Object} aes aesthetics
@@ -48,16 +54,18 @@ class GLayer {
             vBind: $$vBind,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
-        if (!vvgeom[$$geom]) {
+        let geomDef = resolveGeom($$geom)
+        if (!geomDef) {
             console.error(`Invalid geom "${$$geom}"`, "in layer", layerSchema, ", plot", plotSchema)
             return
         }
-        let stat = typeof $$stat == 'function' ? $$stat : vvstat[$$stat]
+        let stat = resolveStat($$stat)
         if (stat == null) {
             console.error(`Invalid stat "${$$stat}"`, "in layer", layerSchema, ", plot", plotSchema)
             return
         }
         this.geom = $$geom
+        this.geomDef = geomDef
         this.vBind = Object.assign($$vBind, {
             extendX: $$extendX ?? $extendX ?? 0,
             extendY: $$extendY ?? $extendY ?? 0
@@ -115,7 +123,7 @@ class GLayer {
         ])
         this.aes = new Set([
             ...this.localScales,
-            ...vvgeom[$$geom]?.scale_attrs ?? []
+            ...this.geomDef.scale_attrs ?? []
         ])
 
         this.$data = data
@@ -171,7 +179,7 @@ class GLayer {
 
     applyCoordScale(coord_levels) {
         try {
-            Object.assign(this.data, vvgeom[this.geom]?.coord_scale?.(this.$data, coord_levels))
+            Object.assign(this.data, this.geomDef?.coord_scale?.(this.$data, coord_levels))
         } catch (e) {
             console.error(e)
         }
@@ -201,7 +209,11 @@ export class GPlot {
             let values = this.layers.filter(layer => !layer.localScales.has(aes))
                 .flatMap(layer => layer.$data[aes] ?? [])
             if (values.length != 0) {
-                let scale = new Scale(scales?.[aes] ?? vvscale[aes].default())
+                let scale = new Scale(
+                    scales?.[aes]
+                    ?? vvscale[aes]?.default?.()
+                    ?? identity_scale
+                )
                 scale.aesthetics = aes
                 if (!scale.asis) {
                     if (levels?.[aes] != null) {
@@ -228,7 +240,7 @@ export class GPlot {
                     }
                     let geoms = this.scales.get(scale)
                     if (geoms[layer.geom] == null) geoms[layer.geom] = {}
-                    for (let attr of vvgeom[layer.geom]?.scale_attrs) {
+                    for (let attr of layer.geomDef?.scale_attrs ?? []) {
                         if (layer.attrs[attr] != null) {
                             geoms[layer.geom][attr] = layer.attrs[attr]
                         }
@@ -245,13 +257,13 @@ export class GPlot {
                 this.levels[aes] = new EnumLevel(...levels[aes])
             } else {
                 let values = this.layers.flatMap(layer => {
-                    let fn = vvgeom[layer.geom].get_values ?? vvgeom[layer.geom].get_range
+                    let fn = layer.geomDef?.get_values ?? layer.geomDef?.get_range
                     return fn?.(layer.$data, aes)
                 })
                 if (values.some(is_categorical)) {
                     this.levels[aes] = EnumLevel.from(values)
                 } else {
-                    values = this.layers.flatMap(layer => vvgeom[layer.geom].get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
+                    values = this.layers.flatMap(layer => layer.geomDef?.get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
                     this.extents[aes] = numutils.extent(values.filter(v => !(v instanceof Asis)))
                 }
             }
@@ -264,8 +276,9 @@ export class GPlot {
 
     getComputedLayers() {
         return this.layers.map(layer => {
+            let validate = layer.geomDef?.validate ?? (d => d)
             let data = layer.data.$group.map(
-                (_, i) => vvgeom[layer.geom].validate(object_map(layer.data, (k, v) => v?.[i]))
+                (_, i) => validate(object_map(layer.data, (k, v) => v?.[i]))
             ).filter(x => x != null)
             return { data, geom: layer.geom, vBind: layer.vBind }
         })

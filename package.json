@@ -8,7 +8,8 @@
   "scripts": {
     "build": "vite build",
     "build:docs": "vite build web-docs",
-    "dev": "vite dev web-docs"
+    "dev": "vite dev web-docs",
+    "test": "node --test test/*.test.mjs"
   },
   "type": "module",
   "module": "./dist/vvplot.esm.js",
