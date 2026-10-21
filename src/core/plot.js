@@ -360,7 +360,7 @@ export class Scale extends Function {
         function scale() {
             return _func.apply(scale, arguments)
         }
-        Object.setPrototypeOf(scale, Scale.prototype)
+        Object.setPrototypeOf(scale, new.target.prototype)
         Object.assign(scale, func)
         scale._fn = _func
         return scale
@@ -393,7 +393,7 @@ class DiscreteCoordScale extends Function {
         const scale = min == max ? x => 0 : x => (+x - min) / (max - min)
         scale.range = { min, max }
         scale.level = level
-        Object.setPrototypeOf(scale, DiscreteCoordScale.prototype)
+        Object.setPrototypeOf(scale, new.target.prototype)
         return scale
     }
     invert(w) {
@@ -408,7 +408,7 @@ class ContinuousCoordScale extends Function {
         let { min, max } = domain
         const scale = min == max ? x => isFinite(x) ? 0.5 : x : x => (+x - min) / (max - min)
         scale.range = { min, max }
-        Object.setPrototypeOf(scale, ContinuousCoordScale.prototype)
+        Object.setPrototypeOf(scale, new.target.prototype)
         return scale
     }
     invert(w) {
@@ -418,11 +418,6 @@ class ContinuousCoordScale extends Function {
     get breaks() { return vvbreak.number() }
 }
 class DatetimeCoordScale extends ContinuousCoordScale {
-    constructor(domain) {
-        let scale = super(domain)
-        Object.setPrototypeOf(scale, DatetimeCoordScale.prototype)
-        return scale
-    }
     get breaks() { return vvbreak.datetime() }
     get minorBreaks() { return [] }
 }

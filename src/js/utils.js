@@ -1,23 +1,23 @@
 class AsisString extends String {
     static #cache = new Map()
     constructor(str) {
-        const s = String(str)
-        if (AsisString.#cache.has(s)) {
-            return AsisString.#cache.get(s)
+        const x = String(str)
+        if (new.target.#cache.has(x)) {
+            return new.target.#cache.get(x)
         }
-        super(s)
-        AsisString.#cache.set(s, this)
+        super(x)
+        new.target.#cache.set(x, this)
     }
 }
 class AsisNumber extends Number {
     static #cache = new Map()
     constructor(num) {
         const n = Number(num)
-        if (AsisNumber.#cache.has(n)) {
-            return AsisNumber.#cache.get(n)
+        if (new.target.#cache.has(x)) {
+            return new.target.#cache.get(x)
         }
-        super(n)
-        AsisNumber.#cache.set(n, this)
+        super(x)
+        new.target.#cache.set(x, this)
     }
 }
 export class Asis {
@@ -91,7 +91,7 @@ export class EnumLevel extends Array {
         level = level.map((x, i) => new EnumElement(String(x), i))
         level.forEach(l => l.level = level)
         level.mapping = Object.fromEntries(level.map(fct => [fct, fct]))
-        Object.setPrototypeOf(level, EnumLevel.prototype)
+        Object.setPrototypeOf(level, new.target.prototype)
         return level
     }
     /**
