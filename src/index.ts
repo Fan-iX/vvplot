@@ -10,6 +10,7 @@ export { default as vvlabel } from './js/label.js'
 export { default as vvscale } from './js/scale.js'
 export * from './js/scale.js'
 export * from './js/label.js'
+export * as vvutils from './js/utils.js'
 export * from './core/register.js'
 export type * from './core/types.ts'
 

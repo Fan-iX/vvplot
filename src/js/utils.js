@@ -1,19 +1,3 @@
-import { Fragment } from 'vue'
-export function expandFragment(componentList) {
-    if (componentList == null) return []
-    return componentList.flatMap(layer => {
-        if (layer.type == Fragment) {
-            return expandFragment(layer.children)
-        } else if (layer.type == "template") {
-            return expandFragment(layer.children).map(c => {
-                c.props = { ...c.props, ...layer.props }
-                return c
-            })
-        }
-        return layer
-    })
-}
-
 class AsisString extends String {
     static #cache = new Map()
     constructor(str) {
@@ -144,6 +128,15 @@ export function is_categorical(v) {
         typeof v === 'object' && v !== null && typeof v.valueOf() !== 'number' && typeof v.valueOf() !== 'bigint'
 }
 
+/**
+ * Add two numeric values, with special handling of semantic values.
+ *  - If `a` is `null` or `undefined`, return `a`.
+ *  - If `a` is a `Date`, return a new `Date` with the time value of `a` plus `b`.
+ *  - Otherwise, return the sum of `a` and `b`.
+ * @param {number|Date|null|undefined} a The first value to add.
+ * @param {number} b The second value to add.
+ * @returns The sum of the two values.
+ */
 export function plus(a, b = 0) {
     if (b == 0 || a == null) return a
     if (a instanceof Date) return new a.constructor(+a + b)
@@ -325,17 +318,6 @@ function compare(a, b, { numeric = false } = {}) {
     return a - b
 }
 
-export function emitEvent(handlers, ...args) {
-    if (Array.isArray(handlers)) {
-        handlers = handlers.filter(h => typeof h === "function")
-        if (handlers.length === 0) return false
-        handlers.forEach(h => h(...args))
-        return true
-    }
-    if (typeof handlers !== "function") return false
-    handlers(...args)
-    return true
-}
 /**
  * turn out-of-bounds values to NaN
  * @param {number} value 
@@ -373,16 +355,6 @@ export function oob_squish_infinite(value, { min, max }) {
     if (value == -Infinity) return min
     if (value == Infinity) return max
     return value
-}
-
-/**
- * drop null/undefined values from an object
- * @param {Object} obj 
- * @returns {Object}
- */
-export function dropNull(obj) {
-    if (typeof obj !== 'object' || obj == null) return obj
-    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => v != null))
 }
 
 /**
@@ -427,6 +399,7 @@ export function categorize(array) {
 
 /**
  * Create a categorical representation for lists of data.
+ * i.e. `categorize` for multiple arrays
  * @param  {...any} arrays
  * @returns {number[]} result
  * @returns {Array[]} result.categories
@@ -456,6 +429,7 @@ export function interaction(...arrays) {
 
 /**
  * Create a categorical representation for lists of data.
+ * i.e. `interaction` with key names
  * @param {Object} arrays
  * @returns {number[]} result
  * @returns {object[]} result.categories
@@ -499,70 +473,4 @@ export function intrazip(arrays) {
         return l
     }, null) ?? 0
     return Array.from({ length }, (_, i) => Object.fromEntries(Object.keys(arrays).map(k => [k, Array.isArray(arrays[k]) ? arrays[k][i] : arrays[k]])))
-}
-
-export function parseLinetype(linetype) {
-    if (linetype == null) return []
-    if (Array.isArray(linetype)) return linetype
-    if (linetype === 'solid') return []
-    if (linetype === 'dashed') return [4, 4]
-    if (linetype === 'dotted') return [1, 3]
-    if (linetype === 'dotdash') return [1, 3, 4, 3]
-    if (linetype === 'longdash') return [8, 4]
-    if (linetype === 'twodash') return [2, 2, 6, 2]
-    if (linetype.includes(' ')) return linetype.split(' ').map(v => +v)
-    return linetype.split('').map(v => +('0x' + v))
-}
-
-const unitInPx = {
-    '': 1,
-    'px': 1,
-    'in': 96,
-    'cm': 96 / 2.54,
-    'mm': 96 / 25.4,
-    'pt': 96 / 72,
-    'pc': 16
-}
-
-export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
-    if (!(svgElement instanceof SVGElement)) return null
-    function removeComments(node) {
-        let i = node.childNodes.length
-        while (i--) {
-            const child = node.childNodes[i]
-            if (child.nodeType === Node.COMMENT_NODE) {
-                node.removeChild(child)
-            } else if (child.nodeType === Node.ELEMENT_NODE) {
-                removeComments(child)
-                if (child.getAttribute("style") == "") child.removeAttribute('style')
-                if (child.getAttribute("class") == "") child.removeAttribute('class')
-            }
-        }
-    }
-    let svgClone = svgElement.cloneNode(true)
-    let foreignElements = Array.from(svgElement.querySelectorAll('foreignObject')),
-        foreignClones = Array.from(svgClone.querySelectorAll('foreignObject'))
-    for (let i = 0; i < foreignElements.length; i++) {
-        let foreignElement = foreignElements[i], foreignClone = foreignClones[i]
-        let canvas = foreignElements[i].querySelector('canvas')
-        if (!canvas) continue
-        let img = svgClone.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'image')
-        img.setAttribute('href', canvas.toDataURL())
-        img.setAttribute('x', foreignElement.getAttribute('x'))
-        img.setAttribute('y', foreignElement.getAttribute('y'))
-        img.setAttribute('width', foreignElement.getAttribute('width'))
-        img.setAttribute('height', foreignElement.getAttribute('height'))
-        foreignClone.parentNode.replaceChild(img, foreignClone)
-    }
-    for (let node of svgClone.querySelectorAll('.vvplot-interactive,foreignObject')) node.remove()
-    removeComments(svgClone)
-    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
-    svgClone.setAttribute('version', '1.1')
-    if (!unitInPx[unit]) unit = ''
-    svgClone.setAttribute('width', svgElement.scrollWidth / unitInPx[unit] + unit)
-    svgClone.setAttribute('height', svgElement.scrollHeight / unitInPx[unit] + unit)
-    svgClone.setAttribute('viewBox', `0 0 ${svgElement.scrollWidth} ${svgElement.scrollHeight}`)
-    const serializer = new XMLSerializer()
-    return serializer.serializeToString(svgClone)
 }

@@ -4,11 +4,11 @@ import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueus
 import { baseParse } from '@vue/compiler-core'
 import { isSVGTag, camelize, capitalize } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme.js'
-import { str_c, serializeSVG, expandFragment } from '../js/utils.js'
-import { getComponent } from '../core/registry/component.js'
+import { str_c } from '#src/js/utils.js'
+import { serializeSVG, expandFragment } from '#src/core/utils.js'
+import { getComponent } from '#src/core/registry/component.js'
 defineOptions({ inheritAttrs: false })
 
-import CorePlot from '../core/CorePlot.vue'
 import VVAxis from './Axis.vue'
 import VVAxisX from './AxisX.vue'
 import VVAxisY from './AxisY.vue'
@@ -16,8 +16,9 @@ import VVAxisBreak from './AxisBreak.vue'
 import VVAction from './Action.vue'
 import VVSelection from './Selection.vue'
 import VVGeom from './Geom.vue'
-
 const components = { VVAxis, VVAxisX, VVAxisY, VVAxisBreak, VVAction, VVSelection, VVGeom }
+
+import CorePlot from '#src/core/CorePlot.vue'
 
 const opponents = {
     x: 'y', y: 'x', h: 'v', v: 'h',

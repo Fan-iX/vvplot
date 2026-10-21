@@ -1,7 +1,8 @@
 <script setup>
 import { useTemplateRef, reactive, watch, nextTick, computed, inject } from 'vue'
 import { Parser as MarkdownParser } from 'commonmark'
-import { parseLinetype, str_c } from '#src/js/utils.js'
+import { str_c } from '#src/js/utils.js'
+import { parseLinetype } from '#src/core/utils.js'
 const {
     x, y, text, title, size, color, stroke, linewidth, linetype, alpha,
     angle, translateX, translateY, anchorX, anchorY, dockX, dockY,

@@ -3,7 +3,8 @@ import { resolveStat } from './registry/stat.js'
 import vvscale from '../js/scale.js'
 import vvbreak from '../js/break.js'
 import vvlabel from '../js/label.js'
-import { numutils, EnumLevel, Asis, plus, is_categorical, expandFragment } from '../js/utils.js'
+import { numutils, EnumLevel, Asis, plus, is_categorical } from '../js/utils.js'
+import { expandFragment } from './utils.js'
 
 const identity_scale = Object.assign(
     arr => Array.from(arr),

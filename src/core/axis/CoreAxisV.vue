@@ -1,6 +1,7 @@
 <script setup>
 import { computed, inject, useTemplateRef } from 'vue'
-import { oob_squish_any, emitEvent, dropNull } from '#src/js/utils.js'
+import { oob_squish_any } from '#src/js/utils.js'
+import { dropNull, emitEvent } from '#src/core/utils.js'
 import CoreText from '../element/CoreText.vue'
 import CoreMarkdown from '../element/CoreMarkdown.vue'
 import CoreAxisLabel from './CoreAxisLabel.vue'
