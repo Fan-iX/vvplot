@@ -14,8 +14,9 @@ import scale from './docs/scale.vue'
 import action from './docs/action.vue'
 import event from './docs/event.vue'
 import legend from './docs/legend.vue'
+import custom_layer from './docs/custom-layer.vue'
 
-const pages = { home, quick_start, layer, theme, axis, scale, legend, action, event, gallery, playground }
+const pages = { home, quick_start, layer, theme, axis, scale, legend, action, event, custom_layer, gallery, playground }
 
 window.addEventListener('hashchange', () => {
     page.value = window.location.hash.slice(1) || 'home'

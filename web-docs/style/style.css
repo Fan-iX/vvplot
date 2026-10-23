@@ -59,6 +59,21 @@ article {
         white-space: nowrap;
     }
 
+    .file-name {
+        display: inline-block;
+        background: #f8f8f8;
+        padding: 0.5em 1em;
+        border-start-start-radius: 1em;
+        border-start-end-radius: 1em;
+        color: #333;
+    }
+
+    .file-name+pre-highlight {
+        padding-block-start: 0;
+        border-start-start-radius: 0;
+        border-start-end-radius: 0;
+    }
+
     pre-highlight {
         display: block;
         background: #f8f8f8;
