@@ -36,9 +36,9 @@ const emit = defineEmits([
     'select', 'selecting', 'move', 'zoom', 'rescale', 'nudge',
 ])
 
-const range = inject("range")
-
-const rangePreview = inject('rangePreview')
+const rangeStore = inject('rangeStore')
+const range = rangeStore.range
+const rangePreview = rangeStore.preview
 const selectionPreview = defineModel('selectionPreview')
 const selectionPreviewTheme = defineModel('selectionPreviewTheme')
 function onselecting(modelValue, theme) {
@@ -483,7 +483,7 @@ function svgPointerdown(e) {
                 v2 = vmax0 + dv
             }
             let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: h1, hmax: h2, vmin: v1, vmax: v2 })
-            Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+            rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
         }
         e.target.addEventListener('pointerup', function (ev) {
             ev.currentTarget.onpointermove = null
@@ -540,7 +540,7 @@ function wheel(act, pos, delta) {
             ymin = c - mry / 2
             ymax = c + mry / 2
         }
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
     if (act.action == "nudge") {
         let { x = false, y = false, sensitivity = 0.1 } = act
@@ -562,7 +562,7 @@ function wheel(act, pos, delta) {
             v2 = vmax0 + dv
         }
         let { xmin, xmax, ymin, ymax } = pos2coord({ hmin: h1, hmax: h2, vmin: v1, vmax: v2 })
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
 }
 const activeTransform = computed(() => {
@@ -588,8 +588,6 @@ function applyTransform(act, event) {
         emit(act.action, coord, e)
     }
     changerange(coord)
-    let xmin, xmax, ymin, ymax
-    Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
 }
 const svgVOn = {
     pointerdown: svgPointerdown,
@@ -629,8 +627,8 @@ function changerange(coord) {
     xmax = xmax != null ? plus(xmax, -expandAdd.x.max) : $xmax
     ymin = ymin != null ? plus(ymin, +expandAdd.y.min) : $ymin
     ymax = ymax != null ? plus(ymax, -expandAdd.y.max) : $ymax
-    if (xmin == $xmin && xmax == $xmax && ymin == $ymin && ymax == $ymax) return
-    Object.assign(range, { xmin, xmax, ymin, ymax })
+    rangeStore.updateRange({ xmin, xmax, ymin, ymax })
+    rangeStore.clearPreview()
 }
 
 const axisRange = reactiveComputed(() => {

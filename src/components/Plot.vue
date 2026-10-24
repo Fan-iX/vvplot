@@ -4,9 +4,10 @@ import { reactiveComputed, useResizeObserver, useDevicePixelRatio } from '@vueus
 import { baseParse } from '@vue/compiler-core'
 import { isSVGTag, camelize, capitalize } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme.js'
-import { str_c } from '#src/js/utils.js'
+import { str_c, deepEqual } from '#src/js/utils.js'
 import { serializeSVG, expandFragment } from '#src/core/utils.js'
 import { getComponent } from '#src/core/registry/component.js'
+import { createRangeStore } from '#src/core/range.js'
 defineOptions({ inheritAttrs: false })
 
 import VVAxis from './Axis.vue'
@@ -154,32 +155,10 @@ const primaryAxis = reactiveComputed(() => {
     }
 })
 
-const primaryAxisConfig = {
-    levels: reactive({}),
-    extend: reactive({}),
-    ['min-range']: reactive({}),
-    ['expand-add']: reactive({}),
-    ['expand-mult']: reactive({}),
-    boundary: reactive({}),
-    reverse: reactive({}),
-    min: reactive({}),
-    max: reactive({}),
-    ['min-preview']: reactive({}),
-    ['max-preview']: reactive({}),
-}
-
-watch(primaryAxis, v => {
-    for (let ori of ['x', 'y']) {
-        for (let key in primaryAxisConfig) {
-            primaryAxisConfig[key][ori] = v?.[ori]?.[key]
-        }
-    }
-}, { immediate: true })
-
 const actionBoundary = reactiveComputed(() => {
     let boundary = {}
     for (let ori of ['x', 'y']) {
-        let bound = primaryAxisConfig.boundary[ori]
+        let bound = primaryAxis?.[ori]?.boundary
         boundary[ori] = {
             min: bound?.min ?? bound?.[0],
             max: bound?.max ?? bound?.[1]
@@ -196,8 +175,8 @@ const schema = computed(() => {
     return {
         data: $data,
         aes: $aes,
-        extendX: primaryAxisConfig.extend.x ?? $extend?.x ?? 0,
-        extendY: primaryAxisConfig.extend.y ?? $extend?.y ?? 0
+        extendX: primaryAxis?.x?.extend ?? $extend?.x ?? 0,
+        extendY: primaryAxis?.y?.extend ?? $extend?.y ?? 0
     }
 })
 /* layers
@@ -245,7 +224,7 @@ const levels = computed(() => (({ x, y, ...etc }) => etc)($levels ?? {}))
 const coordLevels = computed(() => {
     let levels = {}
     for (let ori of ['x', 'y']) {
-        levels[ori] = primaryAxisConfig.levels[ori] ?? $levels?.[ori]
+        levels[ori] = primaryAxis?.[ori]?.levels ?? $levels?.[ori]
     }
     return levels
 })
@@ -253,8 +232,8 @@ const coordLevels = computed(() => {
 const coordRange = computed(() => {
     let result = {}
     for (let ori of ['x', 'y']) {
-        let min = primaryAxisConfig.min[ori] ?? $range?.[ori + "min"]
-        let max = primaryAxisConfig.max[ori] ?? $range?.[ori + "max"]
+        let min = primaryAxis?.[ori]?.min ?? $range?.[ori + "min"]
+        let max = primaryAxis?.[ori]?.max ?? $range?.[ori + "max"]
         result[ori + "min"] = isFinite(min) && !Number.isNaN(min) ? min : null
         result[ori + "max"] = isFinite(max) && !Number.isNaN(max) ? max : null
     }
@@ -264,13 +243,22 @@ const coordRange = computed(() => {
 const coordRangePreview = computed(() => {
     let result = {}
     for (let ori of ['x', 'y']) {
-        let min = primaryAxisConfig['min-preview'][ori] ?? $rangePreview?.[ori + "min"]
-        let max = primaryAxisConfig['max-preview'][ori] ?? $rangePreview?.[ori + "max"]
-        result[ori + "min"] = isFinite(min) && !Number.isNaN(min) ? min : null
-        result[ori + "max"] = isFinite(max) && !Number.isNaN(max) ? max : null
+        let axis = primaryAxis?.[ori]
+        for (let bound of ['min', 'max']) {
+            let key = ori + bound
+            let value = axis?.[bound + '-preview']
+            if (value === undefined) {
+                if ($rangePreview?.[key] === undefined) continue
+                value = $rangePreview[key]
+            }
+            if (value == null) continue
+            if (!isFinite(value) || Number.isNaN(value)) continue
+            result[key] = value
+        }
     }
     return result
 })
+
 const rangeUpdate = reactiveComputed(() => {
     return {
         xmin: primaryAxis?.x?.["onUpdate:min"],
@@ -288,51 +276,44 @@ const rangePreviewUpdate = reactiveComputed(() => {
     }
 })
 
-const range = reactive({}), rangePreview = reactive({})
-watch(coordRange, (newRange, oldRange) => {
-    if (newRange?.xmin !== oldRange?.xmin)
-        range.xmin = newRange.xmin
-    if (newRange?.xmax !== oldRange?.xmax)
-        range.xmax = newRange.xmax
-    if (newRange?.ymin !== oldRange?.ymin)
-        range.ymin = newRange.ymin
-    if (newRange?.ymax !== oldRange?.ymax)
-        range.ymax = newRange.ymax
-}, { immediate: true })
-watch(coordRangePreview, (newRange, oldRange) => {
-    if (newRange?.xmin !== oldRange?.xmin)
-        rangePreview.xmin = newRange.xmin
-    if (newRange?.xmax !== oldRange?.xmax)
-        rangePreview.xmax = newRange.xmax
-    if (newRange?.ymin !== oldRange?.ymin)
-        rangePreview.ymin = newRange.ymin
-    if (newRange?.ymax !== oldRange?.ymax)
-        rangePreview.ymax = newRange.ymax
-}, { immediate: true })
+const rangeStore = createRangeStore({
+    initialRange: coordRange.value,
+    initialPreview: coordRangePreview.value,
+    onRangeChange(newRange, oldRange) {
+        for (let key in rangeUpdate) {
+            rangeUpdate[key]?.(newRange[key])
+        }
+        emit('rangechange', newRange, oldRange)
+        emit('update:range', newRange)
+    },
+    onPreviewChange(newRange) {
+        for (let key in rangePreviewUpdate) {
+            rangePreviewUpdate[key]?.(newRange[key])
+        }
+        emit('update:rangePreview', newRange)
+    },
+})
 
-watch(() => ({ ...range }), (newRange, oldRange) => {
-    for (let key in rangeUpdate) {
-        rangeUpdate[key]?.(newRange[key])
-    }
-    emit('rangechange', { ...newRange }, { ...oldRange })
-    emit('update:range', { ...newRange })
-}, { deep: true })
-watch(() => rangePreview, (newRange) => {
-    for (let key in rangePreviewUpdate) {
-        rangePreviewUpdate[key]?.(newRange[key])
-    }
-    emit('update:rangePreview', { ...newRange })
-}, { deep: true })
-provide('range', range)
-provide('rangePreview', rangePreview)
+watch(coordRange, (newRange, oldRange) => {
+    if (deepEqual(newRange, oldRange)) return
+    rangeStore.setRange(newRange)
+})
+watch(coordRangePreview, (newRange, oldRange) => {
+    if (deepEqual(newRange, oldRange)) return
+    rangeStore.setPreview(newRange)
+})
+
+provide('rangeStore', rangeStore)
+provide('range', rangeStore.range)
+provide('rangePreview', rangeStore.preview)
 
 const minRange = computed(() => ({
-    x: primaryAxisConfig["min-range"].x ?? $minRange?.x ?? 0,
-    y: primaryAxisConfig["min-range"].y ?? $minRange?.y ?? 0,
+    x: primaryAxis?.x?.["min-range"] ?? $minRange?.x ?? 0,
+    y: primaryAxis?.y?.["min-range"] ?? $minRange?.y ?? 0,
 }))
 const expandAdd = computed(() => {
-    let x = primaryAxisConfig['expand-add'].x ?? $expandAdd?.x ?? 0,
-        y = primaryAxisConfig['expand-add'].y ?? $expandAdd?.y ?? 0
+    let x = primaryAxis?.x?.['expand-add'] ?? $expandAdd?.x ?? 0,
+        y = primaryAxis?.y?.['expand-add'] ?? $expandAdd?.y ?? 0
     if (Array.isArray(x)) x = { min: x[0], max: x[1] }
     else if (typeof x == 'number') x = { min: x, max: x }
     if (Array.isArray(y)) y = { min: y[0], max: y[1] }
@@ -340,8 +321,8 @@ const expandAdd = computed(() => {
     return { x, y }
 })
 const expandMult = computed(() => {
-    let x = primaryAxisConfig['expand-mult'].x ?? $expandMult?.x ?? 0.05,
-        y = primaryAxisConfig['expand-mult'].y ?? $expandMult?.y ?? 0.05
+    let x = primaryAxis?.x?.['expand-mult'] ?? $expandMult?.x ?? 0.05,
+        y = primaryAxis?.y?.['expand-mult'] ?? $expandMult?.y ?? 0.05
     if (Array.isArray(x)) x = { min: x[0], max: x[1] }
     else if (typeof x == 'number') x = { min: x, max: x }
     if (Array.isArray(y)) y = { min: y[0], max: y[1] }
@@ -349,8 +330,8 @@ const expandMult = computed(() => {
     return { x, y }
 })
 const reverse = reactiveComputed(() => ({
-    x: _isPropTruthy(primaryAxisConfig.reverse.x) ?? $reverse?.x ?? false,
-    y: _isPropTruthy(primaryAxisConfig.reverse.y) ?? $reverse?.y ?? false,
+    x: _isPropTruthy(primaryAxis?.x?.reverse) ?? $reverse?.x ?? false,
+    y: _isPropTruthy(primaryAxis?.y?.reverse) ?? $reverse?.y ?? false,
 }))
 
 const buttonsMap = { left: 1, right: 2, middle: 4, X1: 8, X2: 16 }
@@ -407,7 +388,7 @@ const axes = computed(() => {
         return {
             coord, orientation, position, title, breaks, labels, titles, minorBreaks, breakSlot,
             showGrid: _isPropTruthy(showGrid) ?? position !== "none",
-            extend: extend ?? primaryAxisConfig.extend[coord],
+            extend: extend ?? primaryAxis?.[coord]?.extend,
             theme: Object.assign({}, ...[theme.value?.axis?.[position] ?? theme.value?.axis?.[orientation]].concat($$theme)),
             action, ...etc,
         }

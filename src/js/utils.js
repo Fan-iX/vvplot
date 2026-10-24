@@ -361,9 +361,9 @@ export function oob_squish_infinite(value, { min, max }) {
  * test deep equality between two values
  * @param {*} a 
  * @param {*} b 
- * @returns 
+ * @returns {boolean}
  */
-function deepEqual(a, b) {
+export function deepEqual(a, b) {
     if (a === b) return true
     if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false
     let aKeys = Object.keys(a), bKeys = Object.keys(b)

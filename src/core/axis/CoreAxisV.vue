@@ -17,7 +17,8 @@ const { coord, ticks, title, coord2pos, pos2coord, layout, theme, action, positi
 const width = computed(() => layout.width + layout.l + layout.r)
 const height = computed(() => layout.height + layout.t + layout.b)
 
-const rangePreview = inject('rangePreview')
+const rangeStore = inject('rangeStore')
+const rangePreview = rangeStore.preview
 const transform = computed(() => {
     let translate = 0
     let aln = { left: "0%", center: "50%", right: "100%" }[position] ?? position
@@ -164,7 +165,7 @@ function axisMovePointerdown(e) {
         if (!pointerMoved) return
         let dv = oob_squish_any(-movementY / scaleY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
         let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
     e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
@@ -199,7 +200,7 @@ function axisRescaleTopPointerdown(e) {
             vmin: oob_squish_any(vmax - (vmax - vmin) * position.b / Math.max(position.b - movementY / scaleY, 1), boundary),
             vmax,
         })
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
     e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
@@ -229,7 +230,7 @@ function axisRescaleBottomPointerdown(e) {
             vmin,
             vmax: oob_squish_any(vmin + (vmax - vmin) * position.t / Math.max(position.t + movementY / scaleY, 1), boundary),
         })
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
     e.target.addEventListener('pointerup', function (ev) {
         e.target.onpointermove = null
@@ -266,8 +267,10 @@ function wheel(act, pos, delta) {
             min = c - mrv / 2
             max = c + mrv / 2
         }
-        rangePreview[coord + 'min'] = min
-        rangePreview[coord + 'max'] = max
+        rangeStore.updatePreview({
+            [coord + 'min']: min,
+            [coord + 'max']: max,
+        })
     }
     if (act.action == "nudge") {
         let { sensitivity = 0.1 } = act
@@ -276,7 +279,7 @@ function wheel(act, pos, delta) {
         let movement = sensitivity * layout.height * (-delta / 120)
         let dv = oob_squish_any(-movement, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
         let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
-        Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+        rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
 }
 function applyTransform(act, event) {
@@ -287,8 +290,7 @@ function applyTransform(act, event) {
         emit(act.action, coord, e)
     }
     emit('rangechange', coord)
-    let xmin, xmax, ymin, ymax
-    Object.assign(rangePreview, { xmin, xmax, ymin, ymax })
+    rangeStore.clearPreview()
 }
 const axisVOn = {
     pointerup(e) { emit('pointerup', e, getPosition(e)) },
