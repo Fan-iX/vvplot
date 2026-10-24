@@ -61,13 +61,13 @@ useResizeObserver(svgRef, entries => {
     height.value = h
 })
 
-const gplot = computed(() => new GPlot(schema, props.layers))
-const vplot = computed(() => {
-    return gplot.value
-        .useScales(scales, levels)
-        .useCoordLevels(coordLevels)
-        .render(range, expandAdd, props.minRange)
-})
+const gplot = computed(() => new GPlot(schema, props.layers)
+    .useScales(scales, levels)
+    .useCoordLevels(coordLevels)
+)
+
+const computedLayers = computed(() => gplot.value.getComputedLayers())
+const coordScales = computed(() => gplot.value.getCoordScales(range, expandAdd, props.minRange))
 
 /**
   variable definition:
@@ -129,7 +129,7 @@ const panel = reactiveComputed(() => {
    '-----------------------' ┘
  */
 const innerRect = reactiveComputed(() => {
-    let scales = vplot.value.coordScales
+    let scales = coordScales.value
     let mult = expandMult
     let { min: xmin, max: xmax } = getPadding(scales.x.range, mult.x)
     let { min: ymin, max: ymax } = getPadding(scales.y.range, mult.y)
@@ -150,7 +150,7 @@ const innerRect = reactiveComputed(() => {
     }
 })
 
-defineExpose({ vplot, panel, svg: svgRef })
+defineExpose({ panel, svg: svgRef })
 
 const transformBind = computed(() => {
     let tslH = activeTransform.value.translateH + innerRect.left,
@@ -184,7 +184,7 @@ function _pos2coord(
 function pos2coord({
     h, hmin, hmax, v, vmin, vmax,
 } = {}) {
-    let scales = vplot.value.coordScales
+    let scales = coordScales.value
     let { width, height } = innerRect
     let result = {}
     let [x, xmin, xmax] = flip ? [v, vmin, vmax] : [h, hmin, hmax]
@@ -242,7 +242,7 @@ function coord2pos({
 ) {
     let { width, height, l, r, t, b } = innerRect
     let result = {}
-    let scales = vplot.value.coordScales
+    let scales = coordScales.value
     let boundaryH = { min: -l, max: width + r },
         boundaryV = { min: -t, max: height + b }
     if (x != null || xmin != null || xmax != null) {
@@ -644,16 +644,13 @@ const axisRange = reactiveComputed(() => {
     }
 })
 const gaxes = computed(() => {
-    let coordScales = {
-        x: vplot.value.coordScales.x,
-        y: vplot.value.coordScales.y
-    }
-    return props.axes.filter(a => a.coord in coordScales)
+    let scales = coordScales.value
+    return props.axes.filter(a => a.coord in scales)
         .filter(a => ["h", "v"].includes(a.orientation))
         .map(({
             coord, breaks, labels, titles, minorBreaks, ...etc
         }) => ({
-            coord, axis: new GAxis(coordScales[coord], { breaks, labels, titles, minorBreaks }), etc
+            coord, axis: new GAxis(scales[coord], { breaks, labels, titles, minorBreaks }), etc
         }))
 })
 function grid_theme_normalize(theme) {
@@ -733,7 +730,7 @@ const axes = computed(() => {
         <g :transform="`translate(${panel.left}, ${panel.top})`"
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
-                <CoreLayer ref="layers" v-for="layer in vplot.layers" :data="layer.data" v-bind="layer.vBind"
+                <CoreLayer ref="layers" v-for="layer in computedLayers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :getCoord="getCoord"
                     :default-render="props.render" :default-dpi="props.dpi" />
             </g>
@@ -747,7 +744,7 @@ const axes = computed(() => {
         <slot></slot>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
-                <CoreLegend :scales="vplot?.scales" :theme="theme.legend" />
+                <CoreLegend :scales="gplot?.scales" :theme="theme.legend" />
             </Teleport>
         </foreignObject>
     </svg>

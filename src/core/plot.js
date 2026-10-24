@@ -195,7 +195,6 @@ export class GPlot {
         this.levels = {}
         this.extents = {}
         this.layers = []
-        this.coordScales = {}
         for (let i in layers) {
             this.layers.push(new GLayer(layers[i], schema))
         }
@@ -287,7 +286,6 @@ export class GPlot {
 
     getCoordScales(range, add, minRange) {
         let result = {}
-        this._range = range
         if (this.levels.x) {
             let min = +(range?.xmin ?? - 0.5) - (+add.x?.min || 0),
                 max = +(range?.xmax ?? this.levels.x.length - 0.5) + (+add.x?.max || 0)
@@ -342,15 +340,6 @@ export class GPlot {
             }
         }
         return result
-    }
-
-    render(range, expandAdd, minRange) {
-        let coordScales = this.getCoordScales(range, expandAdd, minRange)
-        return {
-            layers: this.getComputedLayers(),
-            coordScales,
-            scales: this.scales,
-        }
     }
 }
 

@@ -71,11 +71,11 @@ test('custom geometry and stat can be registered under names', () => {
         attrs: { width: 2, height: 2 },
     })
     plot.useScales({}, {}).useCoordLevels({})
-    let out = plot.render({}, { x: { min: 0, max: 0 }, y: { min: 0, max: 0 } }, { x: 0, y: 0 })
-    assert.equal(out.layers.length, 1)
-    assert.equal(out.layers[0].data.length, 1)
-    assert.equal(out.layers[0].data[0].xmin, 1)
-    assert.equal(out.layers[0].data[0].xmax, 3)
+    let layers = plot.getComputedLayers()
+    assert.equal(layers.length, 1)
+    assert.equal(layers[0].data.length, 1)
+    assert.equal(layers[0].data[0].xmin, 1)
+    assert.equal(layers[0].data[0].xmax, 3)
 })
 
 test('unknown custom aesthetics fall back to identity scaling', () => {
