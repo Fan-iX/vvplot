@@ -1,14 +1,13 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-import { parseLinetype } from '#src/core/utils.js'
+import { pointerEvents, parseLinetype } from '#src/core/utils.js'
 const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
     data: Object, coord2pos: Function, getCoord: Function, layout: Object,
     dpi: { type: Number, default: 96 },
 })
-let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
-const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+const emit = defineEmits(pointerEvents)
 
 const paths = {
     triangle: s => `M0-${s * 2 / 3}L${s * 0.577},${s / 3}L-${s * 0.577},${s / 3}Z`,
@@ -79,7 +78,7 @@ const layerCanvas = computed(() => {
     for (let path of Array.from(_path_data.keys()).reverse()) {
         path_data.set(path, _path_data.get(path))
     }
-    for (let evt of events) {
+    for (let evt of pointerEvents) {
         canvas.addEventListener(evt, function (e) {
             if (e._vhandled) return
             const rect = canvas.getBoundingClientRect()

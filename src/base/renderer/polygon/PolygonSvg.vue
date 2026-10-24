@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { pointerEvents } from '#src/core/utils.js'
 import CorePolygon from '#src/core/element/CorePolygon.vue'
 const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
@@ -7,8 +8,7 @@ const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupSt
     data: Object, coord2pos: Function, getCoord: Function, layout: Object,
     groupClass: null, groupStyle: null,
 })
-let events = ['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
-const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+const emit = defineEmits(pointerEvents)
 
 const binds = computed(() => {
     let xlim_min = -layout.fullWidth * extendX - layout.l,
@@ -32,9 +32,9 @@ const binds = computed(() => {
             'marker-start': markerStart, 'marker-mid': markerMid, 'marker-end': markerEnd,
             class: className, style,
         }
-        let von = Object.fromEntries(
-            events.map(evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)])
-        )
+        let von = Object.fromEntries(pointerEvents.map(
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+        ))
         return [vbind, von]
     }).filter(x => x != null))
 })

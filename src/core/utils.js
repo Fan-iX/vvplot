@@ -14,6 +14,12 @@ export function expandFragment(componentList) {
     })
 }
 
+export const pointerEvents = [
+    'click', 'contextmenu', 'singleclick',
+    'pointerover', 'pointerout', 'pointerenter', 'pointerleave',
+    'pointermove', 'pointerdown', 'pointerup', 'wheel'
+]
+
 export function emitEvent(handlers, ...args) {
     if (Array.isArray(handlers)) {
         handlers = handlers.filter(h => typeof h === "function")

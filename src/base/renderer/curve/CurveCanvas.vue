@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-import { parseLinetype } from '#src/core/utils.js'
+import { pointerEvents, parseLinetype } from '#src/core/utils.js'
 import { line, curveCardinal, curveCardinalClosed, curveCatmullRom, curveCatmullRomClosed, curveLinear, curveLinearClosed, curveNatural } from 'd3-shape'
 const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
@@ -8,8 +8,7 @@ const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps
     data: Object, coord2pos: Function, getCoord: Function, layout: Object,
     dpi: { type: Number, default: 96 },
 })
-let events = ['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel']
-const emit = defineEmits(['click', 'contextmenu', 'singleclick', 'dblclick', 'pointermove', 'pointerdown', 'pointerup', 'wheel'])
+const emit = defineEmits(pointerEvents)
 
 const vBind = computed(() => ({
     width: layout.fullWidth * (1 + extendX * 2),
@@ -61,7 +60,7 @@ const layerCanvas = computed(() => {
     for (let path of Array.from(_path_data.keys()).reverse()) {
         path_data.set(path, _path_data.get(path))
     }
-    for (let evt of events) {
+    for (let evt of pointerEvents) {
         canvas.addEventListener(evt, function (e) {
             if (e._vhandled) return
             const rect = canvas.getBoundingClientRect()
