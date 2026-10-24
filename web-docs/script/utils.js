@@ -20,18 +20,34 @@ export function read_table(text, { header = true, sep = ',' } = {}) {
 }
 
 /**
+ * Converts a blob to a data URL string.
+ * @param {Blob} blob The blob to convert.
+ * @returns {Promise<string>} A promise that resolves to the data URL string.
+ */
+async function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result)
+        reader.onerror = reject
+        reader.readAsDataURL(blob)
+    })
+}
+
+/**
  * reformat SVG XML to be more compatible with various renderers, especially for printing
  * @param {*} svgXml svg XML string
- * @param {*} fixOptions options for fixing various issues in SVG
- * @param {boolean} fixOptions.pageSize whether to add `@page` CSS rule to set page size to match SVG dimensions when printing
- * @param {boolean} fixOptions.dominantBaseline whether to convert text elements with dominant-baseline="central" or "middle" to use dy="0.35em" for better vertical alignment in some renderers
- * @param {boolean} fixOptions.transformOrigin whether to convert elements with transform-origin attribute to use equivalent translate() in transform attribute for better compatibility
+ * @param {*} options options for fixing various issues in SVG
+ * @param {boolean} options.pageSize whether to add `@page` CSS rule to set page size to match SVG dimensions when printing
+ * @param {boolean} options.dominantBaseline whether to convert text elements with dominant-baseline="central" or "middle" to use dy="0.35em" for better vertical alignment in some renderers
+ * @param {boolean} options.transformOrigin whether to convert elements with transform-origin attribute to use equivalent translate() in transform attribute for better compatibility
+ * @param {boolean} options.inlineImages whether to inline images (e.g., <image> elements) as data URLs for better portability
  * @returns svg XML Blob
  */
 export async function svg2svg(svgXml, {
     pageSize = true,
     dominantBaseline = true,
     transformOrigin = true,
+    inlineImages = true
 } = {}) {
     let svg = new DOMParser().parseFromString(
         '<?xml version="1.0" standalone="no"?>\r\n' + svgXml,
@@ -43,13 +59,13 @@ export async function svg2svg(svgXml, {
         svg.prepend(style)
     }
     if (dominantBaseline) {
-        svg.querySelectorAll('text[dominant-baseline="central"], text[dominant-baseline="middle"]').forEach(el => {
+        for (let el of svg.querySelectorAll('text[dominant-baseline="central"], text[dominant-baseline="middle"]')) {
             el.removeAttribute('dominant-baseline')
             el.setAttribute('dy', "0.35em")
-        })
+        }
     }
     if (transformOrigin) {
-        svg.querySelectorAll('[transform-origin]').forEach(el => {
+        for (let el of svg.querySelectorAll('[transform-origin]')) {
             const originAttr = el.getAttribute('transform-origin').trim()
             const transformAttr = el.getAttribute('transform') || ''
             const coords = originAttr.split(/[\s,]+/).map(parseFloat)
@@ -59,7 +75,24 @@ export async function svg2svg(svgXml, {
                 el.setAttribute('transform', newTransform)
                 el.removeAttribute('transform-origin')
             }
-        })
+        }
+    }
+    if (inlineImages) {
+        const cache = new Map()
+        for (let el of svg.querySelectorAll('image')) {
+            let href = el.getAttribute('href') ?? el.getAttribute('xlink:href')
+            if (href.startsWith('data:')) continue
+            try {
+                let response = await fetch(href)
+                if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`)
+                cache.set(href, await blobToDataURL(await response.blob()))
+            } catch (e) {
+                console.warn(`Failed to inline image ${href}: ${e.message}`)
+            }
+            if (cache.has(href)) {
+                el.setAttribute('href', cache.get(href))
+            }
+        }
     }
     let xml = new XMLSerializer().serializeToString(svg)
     return new Blob([xml], { type: 'image/svg+xml' })
