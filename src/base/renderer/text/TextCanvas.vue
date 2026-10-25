@@ -4,7 +4,7 @@ import { pointerEvents, parseLinetype } from '#src/core/utils.js'
 const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, mapping: Object, layout: Object,
+    data: Object, mapping: Object, layout: Object, options: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
