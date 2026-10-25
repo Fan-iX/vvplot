@@ -5,11 +5,10 @@ import { dropNull, emitEvent } from '#src/core/utils.js'
 import CoreText from '../element/CoreText.vue'
 import CoreMarkdown from '../element/CoreMarkdown.vue'
 import CoreAxisLabel from './CoreAxisLabel.vue'
-const { coord, ticks, title, coord2pos, pos2coord, layout, theme, action, position, activeTransform, transition } = defineProps({
+const { coord, ticks, title, mapping, layout, theme, action, position, activeTransform, transition } = defineProps({
     coord: String,
     ticks: { type: Array, default: () => [] }, title: String,
-    coord2pos: Function, pos2coord: Function,
-    layout: Object,
+    mapping: Object, layout: Object,
     theme: { type: Object, default: () => ({}) },
     action: { type: Array, default: () => [] },
     position: null, activeTransform: Object, transition: String,
@@ -25,7 +24,7 @@ const transform = computed(() => {
     if (typeof aln == "string" && aln.endsWith("%")) {
         translate = width.value * aln.slice(0, -1) / 100
     } else {
-        translate = activeTransform.translateH + coord2pos({ h: +aln }).h * activeTransform.scaleH + layout.left
+        translate = activeTransform.translateH + mapping.coord2pos({ h: +aln }).h * activeTransform.scaleH + layout.left
     }
     return `translate(${translate}, 0)`
 })
@@ -61,7 +60,7 @@ const tickLines = computed(() => {
     let result = []
     for (let tick of ticks) {
         let { value, theme: $theme } = tick
-        let pos = coord2pos({ v: value }).v
+        let pos = mapping.coord2pos({ v: value }).v
         let tsl = pos * (activeTransform.scaleV - 1) + activeTransform.translateV
         pos += layout.t
         if (pos + tsl < 0 || pos + tsl > height.value) continue
@@ -83,7 +82,7 @@ const tickTexts = computed(() => {
     for (let tick of ticks) {
         let { type, value, label, title, theme: $theme, ...etc } = tick
         let isRight = ($theme.label_position ?? $theme.tick_position) == "right"
-        let pos = coord2pos({ v: value }).v
+        let pos = mapping.coord2pos({ v: value }).v
         let tsl = pos * (activeTransform.scaleV - 1) + activeTransform.translateV
         pos += layout.t
         if (pos + tsl < 0 || pos + tsl > height.value) continue
@@ -127,7 +126,7 @@ function getPosition(event) {
     let t = offsetY / scaleY - layout.top,
         b = layout.top + layout.height - offsetY / scaleY
     let result = { t, b }
-    let { x, y } = pos2coord({ v: t })
+    let { x, y } = mapping.pos2coord({ v: t })
     if (x) result.x = x
     if (y) result.y = y
     return result
@@ -156,7 +155,7 @@ function axisMovePointerdown(e) {
     e.target.style.cursor = 'grabbing'
     moveTimer = clearTimeout(moveTimer)
     let vmin0 = 0, vmax0 = layout.height
-    let boundary = coord2pos(act)
+    let boundary = mapping.coord2pos(act)
     let rect = iRef.value.getBoundingClientRect()
     let scaleY = rect.height / iRef.value.getBBox().height
     e.target.setPointerCapture(e.pointerId)
@@ -164,7 +163,7 @@ function axisMovePointerdown(e) {
         movementY += ev.movementY
         if (!pointerMoved) return
         let dv = oob_squish_any(-movementY / scaleY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
-        let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
+        let { xmin, xmax, ymin, ymax } = mapping.pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
         rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
     e.target.addEventListener('pointerup', function (ev) {
@@ -183,12 +182,12 @@ function axisRescaleTopPointerdown(e) {
     e.preventDefault()
     e.stopPropagation()
     let { "min-range-v": mrv = 0 } = act
-    let position = getPosition(e), v = coord2pos(position).v,
+    let position = getPosition(e), v = mapping.coord2pos(position).v,
         vmin = v - position.t, vmax = v + position.b
-    let coord0 = pos2coord({ vmin, vmax })
+    let coord0 = mapping.pos2coord({ vmin, vmax })
     let boundary = {
-        min: coord2pos(act).vmin,
-        max: coord2pos({ vmin: coord0.vmax - mrv, vmax: coord0.vmin + mrv }).vmin,
+        min: mapping.coord2pos(act).vmin,
+        max: mapping.coord2pos({ vmin: coord0.vmax - mrv, vmax: coord0.vmin + mrv }).vmin,
     }
     let rect = iRef.value.getBoundingClientRect()
     let scaleY = rect.height / iRef.value.getBBox().height
@@ -196,7 +195,7 @@ function axisRescaleTopPointerdown(e) {
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         movementY += ev.movementY
-        let { xmin, xmax, ymin, ymax } = pos2coord({
+        let { xmin, xmax, ymin, ymax } = mapping.pos2coord({
             vmin: oob_squish_any(vmax - (vmax - vmin) * position.b / Math.max(position.b - movementY / scaleY, 1), boundary),
             vmax,
         })
@@ -213,12 +212,12 @@ function axisRescaleBottomPointerdown(e) {
     e.preventDefault()
     e.stopPropagation()
     let { "min-range-v": mrv = 0 } = act
-    let position = getPosition(e), v = coord2pos(position).v,
+    let position = getPosition(e), v = mapping.coord2pos(position).v,
         vmin = v - position.t, vmax = v + position.b
-    let coord0 = pos2coord({ vmin, vmax })
+    let coord0 = mapping.pos2coord({ vmin, vmax })
     let boundary = {
-        min: coord2pos({ vmin: coord0.vmax - mrv, vmax: coord0.vmin + mrv }).vmax,
-        max: coord2pos(act).vmax,
+        min: mapping.coord2pos({ vmin: coord0.vmax - mrv, vmax: coord0.vmin + mrv }).vmax,
+        max: mapping.coord2pos(act).vmax,
     }
     let rect = iRef.value.getBoundingClientRect()
     let scaleY = rect.height / iRef.value.getBBox().height
@@ -226,7 +225,7 @@ function axisRescaleBottomPointerdown(e) {
     e.target.setPointerCapture(e.pointerId)
     e.target.onpointermove = (ev) => {
         movementY += ev.movementY
-        let { xmin, xmax, ymin, ymax } = pos2coord({
+        let { xmin, xmax, ymin, ymax } = mapping.pos2coord({
             vmin,
             vmax: oob_squish_any(vmin + (vmax - vmin) * position.t / Math.max(position.t + movementY / scaleY, 1), boundary),
         })
@@ -258,10 +257,10 @@ function wheel(act, pos, delta) {
     if (act.action == "zoom") {
         let { "min-range-v": mrv = 0, sensitivity = 1.25 } = act
         let lvl = sensitivity ** (delta / 100)
-        let boundary = coord2pos(act)
+        let boundary = mapping.coord2pos(act)
         let vmin = Math.max(pos.t - Math.max(pos.t, 0) * lvl, boundary.vmin ?? -Infinity),
             vmax = Math.min(pos.t + Math.max(pos.b, 0) * lvl, boundary.vmax ?? Infinity)
-        let { [coord + 'min']: min, [coord + 'max']: max } = pos2coord({ vmin, vmax })
+        let { [coord + 'min']: min, [coord + 'max']: max } = mapping.pos2coord({ vmin, vmax })
         if (lvl < 1 && max - min < mrv) {
             let c = (max + min) / 2
             min = c - mrv / 2
@@ -274,11 +273,11 @@ function wheel(act, pos, delta) {
     }
     if (act.action == "nudge") {
         let { sensitivity = 0.1 } = act
-        let boundary = coord2pos(act)
+        let boundary = mapping.coord2pos(act)
         let vmin0 = 0, vmax0 = layout.height
         let movement = sensitivity * layout.height * (-delta / 120)
         let dv = oob_squish_any(-movement, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
-        let { xmin, xmax, ymin, ymax } = pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
+        let { xmin, xmax, ymin, ymax } = mapping.pos2coord({ vmin: vmin0 + dv, vmax: vmax0 + dv })
         rangeStore.updatePreview({ xmin, xmax, ymin, ymax })
     }
 }

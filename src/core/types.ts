@@ -30,11 +30,19 @@ export interface LayerDefinitionOptions {
     defaults?: Record<string, any>
 }
 
+export interface CoordinateMapping {
+    /** Map data coordinates / ranges to panel pixel coordinates. */
+    coord2pos: (coord: Record<string, any>, options?: Record<string, any>) => Record<string, number | undefined>
+    /** Map panel pixel coordinates back to data coordinates. */
+    pos2coord: (coord: Record<string, any>) => Record<string, any>
+    /** Read plot-relative and data coordinates from a DOM event. */
+    getCoord: (event: Event) => Record<string, any>
+}
+
 export interface RendererProps {
     data: Array<Record<string, any>>
     layout: Record<string, number>
-    coord2pos: (coord: Record<string, any>, options?: Record<string, any>) => Record<string, number | undefined>
-    getCoord: (event: Event) => Record<string, any>
+    mapping: CoordinateMapping
     extendX?: number
     extendY?: number
     dpi?: number

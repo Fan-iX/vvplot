@@ -3,10 +3,10 @@ import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import { Parser as MarkdownParser, HtmlRenderer } from 'commonmark'
 import CoreMarkdown from '#src/core/element/CoreMarkdown.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -26,17 +26,17 @@ const binds = computed(() => {
         class: className, style, $raw
     }) => {
         if (label == null) return null
-        const { h: tx, v: ty } = coord2pos({ x, y })
+        const { h: tx, v: ty } = mapping.coord2pos({ x, y })
         if (tx < xlim_min || tx > xlim_max || ty < ylim_min || ty > ylim_max) return null
         if (typeof (textLength) == "object") {
             let { x: lx = 0, y: ly = 0 } = textLength
-            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
-                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+            let { h: h1, v: v1 } = mapping.coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                { h: h2, v: v2 } = mapping.coord2pos({ x: x - lx / 2, y: y - ly / 2 })
             textLength = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
         }
         if (typeof (angle) == "object") {
             let { dx = 0, dy = 0 } = angle
-            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            let { h, v } = mapping.coord2pos({ x: x + dx, y: y + dy })
             angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
         }
         let vbind = {
@@ -48,7 +48,7 @@ const binds = computed(() => {
             textLength, fontFamily, textAnchor,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von]
     }).filter(x => x != null))

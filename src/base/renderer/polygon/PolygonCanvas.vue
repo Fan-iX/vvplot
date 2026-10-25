@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { pointerEvents, parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
@@ -32,7 +32,7 @@ const layerCanvas = computed(() => {
         points, fill, color, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     } of data) {
-        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p))).filter(p => p.x != null && p.y != null)
+        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(mapping.coord2pos(p))).filter(p => p.x != null && p.y != null)
         if (points.length === 0) continue
         const path2d = new Path2D()
         path2d.moveTo(points[0].x + translateX, points[0].y + translateY)
@@ -64,7 +64,7 @@ const layerCanvas = computed(() => {
             const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, getCoord(e), data)
+                    emit(evt, e, mapping.getCoord(e), data)
                     e._vhandled = true
                     break
                 }

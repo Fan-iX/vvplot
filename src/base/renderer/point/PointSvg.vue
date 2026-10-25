@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import CorePoint from '#src/core/element/CorePoint.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -21,11 +21,11 @@ const binds = computed(() => {
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle,
         class: className, style, $raw
     }) => {
-        const { h: cx, v: cy } = coord2pos({ x, y })
+        const { h: cx, v: cy } = mapping.coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
         if (typeof (angle) == "object") {
             let { dx = 0, dy = 0 } = angle
-            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            let { h, v } = mapping.coord2pos({ x: x + dx, y: y + dy })
             angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
         }
         let vbind = {
@@ -35,7 +35,7 @@ const binds = computed(() => {
             class: className, style,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von]
     }).filter(x => x != null))

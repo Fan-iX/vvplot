@@ -133,8 +133,9 @@ registerGeom('star', {
 })` }}</pre-highlight>
             <p>
                 The <b>renderer</b> implements how to draw the geometry in SVG or Canvas.
-                It is a Vue component that receives the scaled data and the plot layout as props, and renders the
-                geometry accordingly.
+                It is a Vue component that receives the scaled data, the plot layout and a coordinate
+                <code>mapping</code> object as props. The mapping exposes <code>coord2pos</code>,
+                <code>pos2coord</code> and <code>getCoord</code> helpers.
             </p>
             <p>
                 Here is a custom <code>StarSvg</code> component, which will render the star geometric element in SVG.

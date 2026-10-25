@@ -2,8 +2,8 @@
 import { computed, useTemplateRef } from 'vue'
 import { resolveGeom, getRenderer } from './register.js'
 
-const { data, geom, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
-    data: Object, geom: String,
+const { data, geom, mapping, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
+    data: Object, geom: String, mapping: Object,
     render: String, defaultRender: { type: String, default: "auto" },
     dpi: Number, defaultDpi: Number
 })
@@ -30,5 +30,5 @@ defineExpose({
 const dpi = computed(() => rend.value === "canvas" ? $dpi ?? $$dpi : undefined)
 </script>
 <template>
-    <component v-if="candidates[rend]" ref="layer" :is="candidates[rend]" :style="style" :data="data" :dpi="dpi" />
+    <component v-if="candidates[rend]" ref="layer" :is="candidates[rend]" :style="style" :data="data" :mapping="mapping" :dpi="dpi" />
 </template>

@@ -3,9 +3,8 @@ import { computed, h } from 'vue'
 import { oob_squish_any, plus } from '#src/js/utils.js'
 import { dropNull } from '#src/core/utils.js'
 const model = defineModel({ default: () => ({}) })
-const { coord2pos, pos2coord, layout, theme, flip, activeTransform, transition, ...config } = defineProps({
-    coord2pos: Function,
-    pos2coord: Function,
+const { mapping, layout, theme, flip, activeTransform, transition, ...config } = defineProps({
+    mapping: Object,
     layout: Object,
     theme: Object,
     flip: Boolean,
@@ -33,8 +32,8 @@ const position = computed(() => {
     if (model.value == null || model.value.hidden) return null
     let coord = normalize(model.value)
     if (coord == null) return null
-    let { hmin, hmax, vmin, vmax } = coord2pos(coord, { limited: true }),
-        pos = coord2pos(coord)
+    let { hmin, hmax, vmin, vmax } = mapping.coord2pos(coord, { limited: true }),
+        pos = mapping.coord2pos(coord)
     return { hmin, hmax, vmin, vmax, pos }
 })
 
@@ -143,16 +142,16 @@ function selPointerdown(e, dir) {
     e.preventDefault()
     e.target.setPointerCapture(e.pointerId)
     let { xreverse: $xreverse, yreverse: $yreverse, ...coord0 } = normalize(model.value)
-    let pos0 = coord2pos(coord0)
-    let { h: coordL, v: coordT } = pos2coord({ h: pos0.hmin, v: pos0.vmin }),
-        { h: coordR, v: coordB } = pos2coord({ h: pos0.hmax, v: pos0.vmax })
+    let pos0 = mapping.coord2pos(coord0)
+    let { h: coordL, v: coordT } = mapping.pos2coord({ h: pos0.hmin, v: pos0.vmin }),
+        { h: coordR, v: coordB } = mapping.pos2coord({ h: pos0.hmax, v: pos0.vmax })
 
     let { hmin: hmin0, hmax: hmax0, vmin: vmin0, vmax: vmax0 } = pos0
     let pointerMoved = false
     let xboundary = { min: config.xmin, max: config.xmax },
         yboundary = { min: config.ymin, max: config.ymax },
         [mrh = 0, mry = 0] = flip ? [config.minRangeY, config.minRangeX] : [config.minRangeX, config.minRangeY]
-    let boundary = coord2pos(config)
+    let boundary = mapping.coord2pos(config)
     let movementX = 0, movementY = 0
     let xmin, xmax, ymin, ymax, xreverse = false, yreverse = false
     e.target.onpointermove = (ev) => {
@@ -161,29 +160,29 @@ function selPointerdown(e, dir) {
         movementY += ev.movementY
         if (dir.includes('l') && dir.includes('r')) {
             let dh = oob_squish_any(movementX, { min: boundary.hmin - hmin0, max: boundary.hmax - hmax0 })
-            let coord = pos2coord({ hmin: plus(hmin0, dh), hmax: plus(hmax0, dh) })
+            let coord = mapping.pos2coord({ hmin: plus(hmin0, dh), hmax: plus(hmax0, dh) })
             coordL = coord.hmin
             coordR = coord.hmax
         } else if (dir.includes('l')) {
-            coordL = pos2coord({ h: hmin0 + movementX }).h
+            coordL = mapping.pos2coord({ h: hmin0 + movementX }).h
             coordL = oob_squish_any(coordL, coordL > coordR ? { min: plus(coordR, mrh) } : { max: plus(coordR, -mrh) })
             xreverse = hmin0 + movementX > hmax0
         } else if (dir.includes('r')) {
-            coordR = pos2coord({ h: hmax0 + movementX }).h
+            coordR = mapping.pos2coord({ h: hmax0 + movementX }).h
             coordR = oob_squish_any(coordR, coordR > coordL ? { min: plus(coordL, mrh) } : { max: plus(coordL, -mrh) })
             xreverse = hmax0 + movementX < hmin0
         }
         if (dir.includes('t') && dir.includes('b')) {
             let dv = oob_squish_any(movementY, { min: boundary.vmin - vmin0, max: boundary.vmax - vmax0 })
-            let coord = pos2coord({ vmin: plus(vmin0, dv), vmax: plus(vmax0, dv) })
+            let coord = mapping.pos2coord({ vmin: plus(vmin0, dv), vmax: plus(vmax0, dv) })
             coordT = coord.vmin
             coordB = coord.vmax
         } else if (dir.includes('t')) {
-            coordT = pos2coord({ v: vmin0 + movementY }).v
+            coordT = mapping.pos2coord({ v: vmin0 + movementY }).v
             coordT = oob_squish_any(coordT, coordT > coordB ? { min: plus(coordB, mry) } : { max: plus(coordB, -mry) })
             yreverse = vmin0 + movementY > vmax0
         } else if (dir.includes('b')) {
-            coordB = pos2coord({ v: vmax0 + movementY }).v
+            coordB = mapping.pos2coord({ v: vmax0 + movementY }).v
             coordB = oob_squish_any(coordB, coordB > coordT ? { min: plus(coordT, mry) } : { max: plus(coordT, -mry) })
             yreverse = vmax0 + movementY < vmin0
         }

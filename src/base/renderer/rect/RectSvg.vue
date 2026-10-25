@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import CoreTile from '#src/core/element/CoreTile.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -21,7 +21,7 @@ const binds = computed(() => {
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         class: className, style, $raw
     }) => {
-        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin, xmax, ymin, ymax })
+        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = mapping.coord2pos({ xmin, xmax, ymin, ymax })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
@@ -34,7 +34,7 @@ const binds = computed(() => {
             class: className, style,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von]
     }).filter(x => x != null))

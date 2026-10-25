@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import CoreEllipse from '#src/core/element/CoreEllipse.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -23,9 +23,9 @@ const binds = computed(() => {
     }) => {
         let dx = Math.sqrt(C / (A * C - B * B)),
             dy = Math.sqrt(A / (A * C - B * B))
-        const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-        let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
-            { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+        const { h: ch, v: cv } = mapping.coord2pos({ x: cx, y: cy })
+        let { h: h1, v: v1 } = mapping.coord2pos({ x: cx - dx, y: cy - dy }),
+            { h: h2, v: v2 } = mapping.coord2pos({ x: cx + dx, y: cy + dy })
         if (
             h1 < xlim_min && h2 < xlim_min ||
             h2 > xlim_max && h1 > xlim_max ||
@@ -47,7 +47,7 @@ const binds = computed(() => {
             class: className, style,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von]
     }).filter(x => x != null))

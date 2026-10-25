@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { pointerEvents, parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
@@ -35,9 +35,9 @@ const layerCanvas = computed(() => {
     } of data) {
         let dx = Math.sqrt(C / (A * C - B * B)),
             dy = Math.sqrt(A / (A * C - B * B))
-        const { h: ch, v: cv } = coord2pos({ x: cx, y: cy })
-        let { h: h1, v: v1 } = coord2pos({ x: cx - dx, y: cy - dy }),
-            { h: h2, v: v2 } = coord2pos({ x: cx + dx, y: cy + dy })
+        const { h: ch, v: cv } = mapping.coord2pos({ x: cx, y: cy })
+        let { h: h1, v: v1 } = mapping.coord2pos({ x: cx - dx, y: cy - dy }),
+            { h: h2, v: v2 } = mapping.coord2pos({ x: cx + dx, y: cy + dy })
         let scaleX = (h2 - h1) / (2 * dx), scaleY = (v2 - v1) / (2 * dy)
         A /= scaleX * scaleX
         B /= scaleX * scaleY
@@ -72,7 +72,7 @@ const layerCanvas = computed(() => {
             const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, getCoord(e), data)
+                    emit(evt, e, mapping.getCoord(e), data)
                     e._vhandled = true
                     break
                 }

@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import CoreCurve from '#src/core/element/CoreCurve.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -22,7 +22,7 @@ const binds = computed(() => {
         class: className, style, $raw,
         interpolate,
     }) => {
-        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(coord2pos(p)))
+        points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(mapping.coord2pos(p)))
         if (
             points.every(p => p.x < xlim_min) || points.every(p => p.x > xlim_max) ||
             points.every(p => p.y < ylim_min) || points.every(p => p.y > ylim_max)
@@ -34,7 +34,7 @@ const binds = computed(() => {
             class: className, style, interpolate,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von]
     }).filter(x => x != null))

@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { pointerEvents, parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
@@ -35,15 +35,15 @@ const layerCanvas = computed(() => {
         fill = 'white', color = "black", linewidth = 1, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
     } of data) {
-        const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
-        const { h: lx1, v: ly1 } = coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
-        const { h: lx2, v: ly2 } = coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
-        const { h: mx1, v: my1 } = coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
-        const { h: mx2, v: my2 } = coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
-        const { h: uwx1, v: uwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
-        const { h: uwx2, v: uwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
-        const { h: lwx1, v: lwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
-        const { h: lwx2, v: lwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
+        const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = mapping.coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
+        const { h: lx1, v: ly1 } = mapping.coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
+        const { h: lx2, v: ly2 } = mapping.coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
+        const { h: mx1, v: my1 } = mapping.coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
+        const { h: mx2, v: my2 } = mapping.coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
+        const { h: uwx1, v: uwy1 } = mapping.coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
+        const { h: uwx2, v: uwy2 } = mapping.coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
+        const { h: lwx1, v: lwy1 } = mapping.coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
+        const { h: lwx2, v: lwy2 } = mapping.coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
         ctx.globalAlpha = alpha
         ctx.setLineDash(parseLinetype(linetype))
         const linepath2d = new Path2D()
@@ -76,7 +76,7 @@ const layerCanvas = computed(() => {
             ctx.stroke(medianpath2d)
         }
         for (let { x, y, $raw } of outliers) {
-            const { h: ox, v: oy } = coord2pos({ x, y })
+            const { h: ox, v: oy } = mapping.coord2pos({ x, y })
             const outlierpath2d = new Path2D()
             outlierpath2d.arc(ox + translateX, oy + translateY, 2, 0, Math.PI * 2)
             if (color != null && color !== 'none') {
@@ -97,7 +97,7 @@ const layerCanvas = computed(() => {
             const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, getCoord(e), data)
+                    emit(evt, e, mapping.getCoord(e), data)
                     e._vhandled = true
                     break
                 }

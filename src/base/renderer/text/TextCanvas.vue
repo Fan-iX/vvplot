@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { pointerEvents, parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
@@ -37,7 +37,7 @@ const layerCanvas = computed(() => {
         angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", $raw
     } of data) {
         ctx.save()
-        const { h: tx, v: ty } = coord2pos({ x, y })
+        const { h: tx, v: ty } = mapping.coord2pos({ x, y })
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.lineWidth = linewidth
@@ -49,15 +49,15 @@ const layerCanvas = computed(() => {
             width = w, height = a + d
         if (typeof (textLength) == "object") {
             let { x: lx = 0, y: ly = 0 } = textLength
-            let { h: h1, v: v1 } = coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
-                { h: h2, v: v2 } = coord2pos({ x: x - lx / 2, y: y - ly / 2 })
+            let { h: h1, v: v1 } = mapping.coord2pos({ x: x + lx / 2, y: y + ly / 2 }),
+                { h: h2, v: v2 } = mapping.coord2pos({ x: x - lx / 2, y: y - ly / 2 })
             width = Math.hypot(h1 - h2 || 0, v1 - v2 || 0)
         } else if (textLength != null) {
             width = textLength
         }
         if (typeof (angle) == "object") {
             let { dx = 0, dy = 0 } = angle
-            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            let { h, v } = mapping.coord2pos({ x: x + dx, y: y + dy })
             angle = Math.atan2(v - ty, h - tx) * 180 / Math.PI
         }
         if (dockX != null || dockY != null) {
@@ -100,7 +100,7 @@ const layerCanvas = computed(() => {
             const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, getCoord(e), data)
+                    emit(evt, e, mapping.getCoord(e), data)
                     e._vhandled = true
                     break
                 }

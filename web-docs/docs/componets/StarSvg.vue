@@ -2,11 +2,11 @@
 import { computed } from 'vue'
 import { parseLinetype } from '#src/core/utils.js'
 const {
-    extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle
+    extendX, extendY, data, mapping, layout, groupClass, groupStyle
 } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 let events = [
@@ -31,7 +31,7 @@ const binds = computed(() => {
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle,
         class: className, style, $raw
     }) => {
-        const { h: cx, v: cy } = coord2pos({ x, y })
+        const { h: cx, v: cy } = mapping.coord2pos({ x, y })
         if (cx < xlim_min || cx > xlim_max || cy < ylim_min || cy > ylim_max) return null
         const d = Array.from({ length: points * 2 }, (_, i) => {
             let r = size * (i % 2 ? inner : 1)
@@ -52,7 +52,7 @@ const binds = computed(() => {
             class: className, style
         }
         let von = Object.fromEntries(events.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbind, von, title]
     }).filter(x => x != null))

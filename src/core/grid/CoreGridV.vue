@@ -1,10 +1,8 @@
 <script setup>
 import { computed } from 'vue'
-const { breaks, coord2pos, layout, activeTransform, transition } = defineProps({
+const { breaks, mapping, layout, activeTransform, transition } = defineProps({
     breaks: { type: Array, default: () => [] },
-    coord2pos: Function,
-    pos2coord: Function,
-    layout: Object,
+    mapping: Object, layout: Object,
     action: { type: Object, default: () => ({}) },
     activeTransform: Object, transition: String,
 })
@@ -15,7 +13,7 @@ const majorLines = computed(() => {
     let result = []
     for (let b of breaks) {
         if (b.type != "major") continue
-        let pos = coord2pos({ h: b.value }).h
+        let pos = mapping.coord2pos({ h: b.value }).h
         if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
         pos += layout.l
@@ -36,7 +34,7 @@ const minorLines = computed(() => {
     let result = []
     for (let b of breaks) {
         if (b.type != "minor") continue
-        let pos = coord2pos({ h: b.value }).h
+        let pos = mapping.coord2pos({ h: b.value }).h
         if (isNaN(pos)) continue
         let tsl = pos * (activeTransform.scaleH - 1) + activeTransform.translateH
         pos += layout.l

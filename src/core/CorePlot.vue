@@ -311,6 +311,8 @@ function getCoord(event) {
     let { x, y } = pos2coord({ h: l, v: t })
     return { l, t, r, b, x, y }
 }
+
+const mapping = { coord2pos, pos2coord, getCoord }
 function isInPlot(event) {
     let rect = svgRef.value.getBoundingClientRect()
     let scaleX = rect.width / svgRef.value.clientWidth,
@@ -693,8 +695,7 @@ const axes = computed(() => {
             orientation,
             bind: {
                 coord, orientation, ticks: breaks.filter(x => x.type == "major"),
-                layout: innerRect,
-                coord2pos, pos2coord,
+                layout: innerRect, mapping,
                 ...etc
             },
             on: { zoom, move, rescale, nudge, rangechange: changerange }
@@ -712,10 +713,10 @@ const axes = computed(() => {
         <rect :transform="`translate(${panel.left}, ${panel.top})`" :width="panel.width" :height="panel.height"
             :fill="theme.plot.background" v-if="theme.plot.background"></rect>
         <g :transform="`translate(${panel.left}, ${panel.top})`" style="pointer-events: none;">
-            <CoreGridH :breaks="gridBreaks.h" :layout="innerRect" :activeTransform="activeTransform"
-                :coord2pos="coord2pos" :transition="transition" />
-            <CoreGridV :breaks="gridBreaks.v" :layout="innerRect" :activeTransform="activeTransform"
-                :coord2pos="coord2pos" :transition="transition" />
+            <CoreGridH :breaks="gridBreaks.h" :layout="innerRect" :activeTransform="activeTransform" :mapping="mapping"
+                :transition="transition" />
+            <CoreGridV :breaks="gridBreaks.v" :layout="innerRect" :activeTransform="activeTransform" :mapping="mapping"
+                :transition="transition" />
         </g>
         <g :transform="`translate(${panel.left}, ${panel.top})`">
             <CoreAxis v-for="axis in axes.filter(a => typeof a.bind.position !== 'number')" v-bind="axis.bind"
@@ -729,15 +730,14 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in computedLayers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :geom="layer.geom" :coord2pos="coord2pos" :getCoord="getCoord"
-                    :default-render="props.render" :default-dpi="props.dpi" />
+                    :layout="innerRect" :geom="layer.geom" :mapping="mapping" :default-render="props.render"
+                    :default-dpi="props.dpi" />
             </g>
-            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect" @selecting="onselecting"
-                @selectend="onselectend" :transition="transition" :activeTransform="activeTransform" v-bind="sel"
-                v-for="sel in props.selections" :flip />
-            <CoreSelection :coord2pos="coord2pos" :pos2coord="pos2coord" :layout="innerRect"
-                :modelValue="selectionPreview" :transition="transition" :activeTransform="activeTransform"
-                :theme="_selectionPreviewTheme" :flip />
+            <CoreSelection :mapping="mapping" :layout="innerRect" @selecting="onselecting" @selectend="onselectend"
+                :transition="transition" :activeTransform="activeTransform" v-bind="sel" v-for="sel in props.selections"
+                :flip />
+            <CoreSelection :mapping="mapping" :layout="innerRect" :modelValue="selectionPreview"
+                :transition="transition" :activeTransform="activeTransform" :theme="_selectionPreviewTheme" :flip />
         </g>
         <slot></slot>
         <foreignObject v-if="props.legendTeleport">

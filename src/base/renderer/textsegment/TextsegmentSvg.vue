@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import { parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -23,8 +23,8 @@ const binds = computed(() => {
         class: className, style, $raw
     }) => {
         if (label == null) return null
-        const { h: x1, v: y1 } = coord2pos({ x: x, y: y })
-        const { h: x2, v: y2 } = coord2pos({ x: xend, y: yend })
+        const { h: x1, v: y1 } = mapping.coord2pos({ x: x, y: y })
+        const { h: x2, v: y2 } = mapping.coord2pos({ x: xend, y: yend })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
@@ -42,7 +42,7 @@ const binds = computed(() => {
             class: className, style,
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         if (["stretch", "pre", "start", "center", "end", "post"].includes(textAlign)) {
             let radian = Math.atan2(y2 - y1, x2 - x1)

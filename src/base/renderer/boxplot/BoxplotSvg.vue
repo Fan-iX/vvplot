@@ -4,10 +4,10 @@ import { pointerEvents } from '#src/core/utils.js'
 import CoreTile from '#src/core/element/CoreTile.vue'
 import CorePoint from '#src/core/element/CorePoint.vue'
 import CoreLine from '#src/core/element/CoreLine.vue'
-const { extendX, extendY, data, coord2pos, getCoord, layout, groupClass, groupStyle } = defineProps({
+const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
@@ -25,20 +25,20 @@ const binds = computed(() => {
         'translate-x': translateX = 0, 'translate-y': translateY = 0,
         class: className, style, $raw
     }) => {
-        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = coord2pos({ xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax })
+        const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = mapping.coord2pos({ xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax })
         if (
             x1 < xlim_min && x2 < xlim_min || x1 > xlim_max && x2 > xlim_max ||
             y1 < ylim_min && y2 < ylim_min || y1 > ylim_max && y2 > ylim_max
         ) return null
-        const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
-        const { h: lx1, v: ly1 } = coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
-        const { h: lx2, v: ly2 } = coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
-        const { h: mx1, v: my1 } = coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
-        const { h: mx2, v: my2 } = coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
-        const { h: uwx1, v: uwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
-        const { h: uwx2, v: uwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
-        const { h: lwx1, v: lwy1 } = coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
-        const { h: lwx2, v: lwy2 } = coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
+        const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = mapping.coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
+        const { h: lx1, v: ly1 } = mapping.coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })
+        const { h: lx2, v: ly2 } = mapping.coord2pos(x == null ? { y, x: uwisker } : { x, y: uwisker })
+        const { h: mx1, v: my1 } = mapping.coord2pos(x == null ? { y: ymin, x: median } : { x: xmin, y: median })
+        const { h: mx2, v: my2 } = mapping.coord2pos(x == null ? { y: ymax, x: median } : { x: xmax, y: median })
+        const { h: uwx1, v: uwy1 } = mapping.coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: uwisker } : { x: xmin * 0.25 + xmax * 0.75, y: uwisker })
+        const { h: uwx2, v: uwy2 } = mapping.coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: uwisker } : { x: xmin * 0.75 + xmax * 0.25, y: uwisker })
+        const { h: lwx1, v: lwy1 } = mapping.coord2pos(x == null ? { y: ymin * 0.25 + ymax * 0.75, x: lwisker } : { x: xmin * 0.25 + xmax * 0.75, y: lwisker })
+        const { h: lwx2, v: lwy2 } = mapping.coord2pos(x == null ? { y: ymin * 0.75 + ymax * 0.25, x: lwisker } : { x: xmin * 0.75 + xmax * 0.25, y: lwisker })
         let vbinds = {
             rect: {
                 x: (rx1 + rx2) / 2, width: rx2 - rx1,
@@ -72,20 +72,20 @@ const binds = computed(() => {
                 class: className, style,
             },
             outliers: outliers?.map(({ x, y, $raw }) => {
-                const { h: cx, v: cy } = coord2pos({ x, y })
+                const { h: cx, v: cy } = mapping.coord2pos({ x, y })
                 let vbind = {
                     x: cx, y: cy, shape: 'circle', size: 4, color, alpha,
                     translateX, translateY,
                     class: className, style,
                 }
                 let von = Object.fromEntries(pointerEvents.map(
-                    evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+                    evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
                 ))
                 return [vbind, von]
             })
         }
         let von = Object.fromEntries(pointerEvents.map(
-            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), getCoord(e), $raw)]
+            evt => [evt, (e) => emit(evt, Object.assign(e, { _vhandled: true }), mapping.getCoord(e), $raw)]
         ))
         return [vbinds, von]
     }).filter(x => x != null))

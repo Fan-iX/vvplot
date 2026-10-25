@@ -1,10 +1,10 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
 import { pointerEvents, parseLinetype } from '#src/core/utils.js'
-const { extendX, extendY, data, coord2pos, getCoord, layout, dpi } = defineProps({
+const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
-    data: Object, coord2pos: Function, getCoord: Function, layout: Object,
+    data: Object, mapping: Object, layout: Object,
     dpi: { type: Number, default: 96 },
 })
 const emit = defineEmits(pointerEvents)
@@ -41,10 +41,10 @@ const layerCanvas = computed(() => {
         shape, color, stroke, linewidth, linetype, alpha,
         'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
     } of data) {
-        const { h: cx, v: cy } = coord2pos({ x, y })
+        const { h: cx, v: cy } = mapping.coord2pos({ x, y })
         if (typeof (angle) == "object") {
             let { dx = 0, dy = 0 } = angle
-            let { h, v } = coord2pos({ x: x + dx, y: y + dy })
+            let { h, v } = mapping.coord2pos({ x: x + dx, y: y + dy })
             angle = Math.atan2(v - cy, h - cx) * 180 / Math.PI
         }
         const path2d = new Path2D()
@@ -86,7 +86,7 @@ const layerCanvas = computed(() => {
             const y = (e.clientY - rect.top) * canvas.height / rect.height
             for (const [path, data] of path_data) {
                 if (ctx.isPointInPath(path, x, y)) {
-                    emit(evt, e, getCoord(e), data)
+                    emit(evt, e, mapping.getCoord(e), data)
                     e._vhandled = true
                     break
                 }
