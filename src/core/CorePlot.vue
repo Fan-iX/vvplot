@@ -730,8 +730,8 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in computedLayers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :geom="layer.geom" :mapping="mapping" :default-render="props.render"
-                    :default-dpi="props.dpi" />
+                    :layout="innerRect" :geom="layer.geom" :mapping="mapping" :options="layer.options"
+                    :default-render="props.render" :default-dpi="props.dpi" />
             </g>
             <CoreSelection :mapping="mapping" :layout="innerRect" @selecting="onselecting" @selectend="onselectend"
                 :transition="transition" :activeTransform="activeTransform" v-bind="sel" v-for="sel in props.selections"

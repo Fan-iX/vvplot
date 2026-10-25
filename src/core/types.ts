@@ -25,8 +25,8 @@ export interface LayerDefinitionOptions {
     name: string
     geom: string | GeomDefinition
     stat?: string | StatTransform
-    args?: string[]
-    attrs?: string[]
+    argnames?: string[]
+    optnames?: string[]
     defaults?: Record<string, any>
 }
 
@@ -43,6 +43,7 @@ export interface RendererProps {
     data: Array<Record<string, any>>
     layout: Record<string, number>
     mapping: CoordinateMapping
+    options?: Record<string, any>
     extendX?: number
     extendY?: number
     dpi?: number

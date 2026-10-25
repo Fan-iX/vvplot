@@ -43,13 +43,13 @@ export function defineStat(transform, { core_attrs } = {}) {
  * @param {Object} options
  * @param {string|Object} options.geom geometry name or definition
  * @param {string|Function} [options.stat="identity"] statistic name or transform
- * @param {string[]} [options.args=[]] stat argument names
- * @param {string[]} [options.attrs=[]] constant attribute names
+ * @param {string[]} [options.argnames=[]] stat argument names
+ * @param {string[]} [options.optnames=[]] renderer-only option names
  * @returns {Object} Vue component carrying layer metadata
  */
 export function registerLayer(name, {
     key, geom, stat = 'identity', renderer,
-    args = [], ...defaults
+    argnames = [], optnames = [], ...defaults
 }) {
     if (typeof name !== 'string' || name.length == 0)
         throw new Error('registerLayer() requires a non-empty "name"')
@@ -69,7 +69,8 @@ export function registerLayer(name, {
     let component = markRaw(defineComponent({
         $_type: 'layer',
         $_props: { geom, stat, ...defaults },
-        $_argnames: args,
+        $_argnames: argnames,
+        $_optnames: optnames,
     }))
     registerComponent(name, component)
     return component

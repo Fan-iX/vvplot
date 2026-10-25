@@ -59,6 +59,7 @@ function makePlot(geom, stat, data, attrs = {}) {
         scales: {},
         levels: {},
         args: {},
+        opts: attrs.opts ?? {},
         vBind: {},
     }])
 }
@@ -97,14 +98,30 @@ test('registerLayer creates a declarative layer component', () => {
     let layer = registerLayer('VVGeomTest', {
         geom: 'test.named',
         stat: 'test.named',
-        args: ['width'],
+        argnames: ['width'],
+        optnames: ['mode', 'padding'],
         width: 1,
+        mode: 'hide',
+        padding: 2,
     })
     assert.equal(layer.$_type, 'layer')
     assert.equal(layer.$_props.geom, 'test.named')
     assert.deepEqual(layer.$_argnames, ['width'])
+    assert.deepEqual(layer.$_optnames, ['mode', 'padding'])
     assert.equal(layer.$_props.width, 1)
+    assert.equal(layer.$_props.mode, 'hide')
     assert.equal(getComponent('VVGeomTest'), layer)
+})
+
+test('options are carried through GPlot unchanged', () => {
+    let options = { mode: 'hide', padding: 2, maxLabels: 200 }
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], {
+        attrs: { width: 1, height: 1 },
+        opts: options,
+    })
+    plot.useScales({}, {}).useCoordLevels({})
+    let layer = plot.getComputedLayers()[0]
+    assert.equal(layer.options, options)
 })
 
 test('renderer registry merges svg and canvas renderers', () => {

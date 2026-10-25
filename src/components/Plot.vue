@@ -187,13 +187,16 @@ const layers = computed(() => {
     return vlayer.value.map(layer => {
         let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
-        let aes = {}, args = {}, attrs = {}
+        let optnames = layer.type.$_optnames || []
+        let aes = {}, args = {}, attrs = {}, opts = {}
         let vBind = {}
         let skipKeys = ['key', ...Object.keys(etc).filter(k => `^${k}` in etc)]
         for (let key in etc) {
             if (skipKeys.includes(key)) continue
             if (argnames.includes(key)) {
                 args[key] = etc[key]
+            } else if (optnames.includes(key)) {
+                opts[key] = etc[key]
             } else if (key.startsWith("^")) {
                 attrs[key.slice(1)] = etc[key]
             } else if (key.startsWith('on')) {
@@ -215,7 +218,7 @@ const layers = computed(() => {
             }
         }
         return {
-            geom, stat, data, aes, attrs, scales, args, extendX, extendY, vBind
+            geom, stat, data, aes, attrs, scales, args, opts, extendX, extendY, vBind
         }
     })
 })

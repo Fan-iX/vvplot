@@ -51,7 +51,7 @@ class GLayer {
             geom: $$geom, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
-            attrs: $$attrs, args: $$args,
+            attrs: $$attrs, args: $$args, opts: $$opts,
             vBind: $$vBind,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
@@ -67,6 +67,7 @@ class GLayer {
         }
         this.geom = $$geom
         this.geomDef = geomDef
+        this.options = $$opts
         this.vBind = Object.assign($$vBind, {
             extendX: $$extendX ?? $extendX ?? 0,
             extendY: $$extendY ?? $extendY ?? 0
@@ -275,12 +276,14 @@ export class GPlot {
     }
 
     getComputedLayers() {
-        return this.layers.map(layer => {
-            let validate = layer.geomDef?.validate ?? (d => d)
-            let data = layer.data.$group.map(
-                (_, i) => validate(object_map(layer.data, (k, v) => v?.[i]))
-            ).filter(x => x != null)
-            return { data, geom: layer.geom, vBind: layer.vBind }
+        return this.layers.map(({ geom, geomDef, data, options, vBind }) => {
+            let validate = geomDef?.validate ?? (d => d)
+            return {
+                data: data.$group.map(
+                    (_, i) => validate(object_map(data, (k, v) => v?.[i]))
+                ).filter(x => x != null),
+                geom, options, vBind
+            }
         })
     }
 
