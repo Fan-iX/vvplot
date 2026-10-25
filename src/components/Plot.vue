@@ -493,7 +493,7 @@ useResizeObserver(plotRef, ([entry]) => {
     visible.value = entry.target.getClientRects().length > 0
     if (!visible.value) return
     let { width: w, height: h } = entry.contentRect
-    if (width.value - w < 0.5 && height.value - h < 0.5) return
+    if (Math.abs(width.value - w) < 0.5 && Math.abs(height.value - h) < 0.5) return
     if (wrapperRef.value.style.width) width.value = w
     if (wrapperRef.value.style.height) height.value = h
     if ((w > 0 || h > 0) && (oldSize.width > 0 || oldSize.height > 0))
