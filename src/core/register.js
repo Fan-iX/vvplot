@@ -49,7 +49,7 @@ export function defineStat(transform, { core_attrs } = {}) {
  */
 export function registerLayer(name, {
     key, geom, stat = 'identity', renderer,
-    args = [], attrs = [], ...defaults
+    args = [], ...defaults
 }) {
     if (typeof name !== 'string' || name.length == 0)
         throw new Error('registerLayer() requires a non-empty "name"')
@@ -70,7 +70,6 @@ export function registerLayer(name, {
         $_type: 'layer',
         $_props: { geom, stat, ...defaults },
         $_argnames: args,
-        $_attrnames: attrs,
     }))
     registerComponent(name, component)
     return component

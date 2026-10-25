@@ -6,6 +6,5 @@ export default {
         interpolate: 'catmullRomClosed',
     },
     $_type: 'layer',
-    $_attrnames: ["interpolate"],
 }
 </script>
