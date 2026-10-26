@@ -50,3 +50,19 @@ export interface RendererProps {
     groupClass?: any
     groupStyle?: any
 }
+
+export interface TextElementProps {
+    x: number
+    y: number
+    text: string
+    title?: string
+    alpha?: number
+    angle?: number
+    translateX?: number
+    translateY?: number
+    anchorX?: number
+    anchorY?: number
+    dockX?: number
+    dockY?: number
+    fontSize?: number
+}

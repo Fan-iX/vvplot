@@ -1,5 +1,7 @@
 export { default as curve } from './CoreCurve.vue'
+export { default as ellipse } from './CoreEllipse.vue'
 export { default as line } from './CoreLine.vue'
+export { default as markdown } from './CoreMarkdown.vue'
 export { default as point } from './CorePoint.vue'
 export { default as polygon } from './CorePolygon.vue'
 export { default as text } from './CoreText.vue'

@@ -7,6 +7,7 @@ import {
     registerRenderer, getRenderer,
     getComponent,
     defineStat, registerLayer, registerLayers,
+    registerElement, resolveElement, getElementNames,
 } from '../src/core/register.js'
 
 const testGeom = {
@@ -122,6 +123,14 @@ test('options are carried through GPlot unchanged', () => {
     plot.useScales({}, {}).useCoordLevels({})
     let layer = plot.getComputedLayers()[0]
     assert.equal(layer.options, options)
+})
+
+test('core registry registers and resolves core components', () => {
+    let component = { name: 'test-core' }
+    registerElement('test.core', component)
+    assert.equal(resolveElement('test.core'), component)
+    assert.equal(resolveElement(component), component)
+    assert.ok(getElementNames().includes('test.core'))
 })
 
 test('renderer registry merges svg and canvas renderers', () => {

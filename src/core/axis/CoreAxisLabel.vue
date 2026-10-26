@@ -1,4 +1,7 @@
 <script setup>
+import { computed } from 'vue'
+import { resolveElement } from '../registry/element.js'
+
 const { type, value, getPosition } = defineProps({
     type: String, value: null, getPosition: Function
 })
@@ -19,11 +22,9 @@ const vOn = {
     pointermove(e) { emit('pointermove', e, getPosition(e), value) },
     wheel(e) { emit('wheel', e, getPosition(e), value) },
 }
-import CoreText from '../element/CoreText.vue'
-import CoreMarkdown from '../element/CoreMarkdown.vue'
+const LabelElement = computed(() => resolveElement(type) ?? resolveElement('text'))
 </script>
 
 <template>
-    <CoreMarkdown v-if="type == 'markdown'" v-on="vOn" />
-    <CoreText v-else v-on="vOn" />
+    <component :is="LabelElement" v-on="vOn" />
 </template>

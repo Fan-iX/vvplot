@@ -14,9 +14,11 @@ export * as vvutils from './js/utils.js'
 export * from './core/register.js'
 export type * from './core/types.ts'
 
-import { registerLayers } from './core/register.js'
+import { registerElements, registerLayers } from './core/register.js'
 import baseLayers from './base'
 registerLayers(baseLayers)
+import * as coreElements from './core/element'
+registerElements(coreElements)
 import * as layers from './base/components'
 import * as components from './components'
 import type { App, Plugin } from 'vue'

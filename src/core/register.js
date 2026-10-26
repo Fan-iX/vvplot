@@ -1,23 +1,25 @@
 /**
  * Unified public registration API.
  *
- * The four registries are kept separate because they model different
- * dimensions:
+ * The registries are kept separate because they model different dimensions:
  *  - geom:      geometry semantics
  *  - stat:      statistical transforms
  *  - renderer:  SVG / canvas implementations
  *  - component: metadata-only <VVGeom*> declaration components
+ *  - core:      low-level SVG building blocks such as text and markdown
  */
 export * from './registry/geom.js'
 export * from './registry/stat.js'
 export * from './registry/renderer.js'
 export * from './registry/component.js'
+export * from './registry/element.js'
 
 import { defineComponent, markRaw } from 'vue'
 import { registerGeom, resolveGeom } from './registry/geom.js'
 import { registerStat, resolveStat } from './registry/stat.js'
 import { registerRenderer } from './registry/renderer.js'
 import { registerComponent } from './registry/component.js'
+import { registerElement } from './registry/element.js'
 
 
 /**
@@ -102,5 +104,16 @@ export function registerLayers({
     }
     for (const [name, component] of Object.entries(components)) {
         registerComponent(name, component)
+    }
+}
+
+/**
+ * Register the built-in core SVG components.
+ *
+ * @param {Record<string, Object>} elements
+ */
+export function registerElements(elements) {
+    for (const [name, component] of Object.entries(elements)) {
+        registerElement(name, component)
     }
 }

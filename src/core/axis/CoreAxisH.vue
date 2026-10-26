@@ -2,8 +2,7 @@
 import { computed, inject, useTemplateRef } from 'vue'
 import { oob_squish_any } from '#src/js/utils.js'
 import { dropNull, emitEvent } from '#src/core/utils.js'
-import CoreText from '../element/CoreText.vue'
-import CoreMarkdown from '../element/CoreMarkdown.vue'
+import { resolveElement } from '../registry/element.js'
 import CoreAxisLabel from './CoreAxisLabel.vue'
 const { coord, ticks, title, mapping, layout, theme, action, position, activeTransform, transition } = defineProps({
     coord: String,
@@ -48,6 +47,8 @@ const axisTitle = computed(() => {
         ...theme.title_style,
     }
 })
+const TitleElement = computed(() => resolveElement(theme.title_type) ?? resolveElement('text'))
+
 const axisLine = computed(() => {
     return {
         'stroke': theme.line_color,
@@ -323,8 +324,7 @@ const axisVOn = {
                 @pointerdown="axisRescaleRightPointerdown" />
         </g>
         <template v-if="axisTitle.text">
-            <CoreMarkdown v-bind="axisTitle" v-if="theme.title_type == 'markdown'" />
-            <CoreText v-bind="axisTitle" v-else />
+            <component :is="TitleElement" v-bind="axisTitle" />
         </template>
     </g>
 </template>
