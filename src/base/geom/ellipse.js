@@ -3,6 +3,7 @@ import { vecutils } from '#src/js/utils.js'
 let { sum: psum, coalesce } = vecutils
 
 export default {
+    legend_glyph: 'tile',
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
         let { A, B, C } = ds

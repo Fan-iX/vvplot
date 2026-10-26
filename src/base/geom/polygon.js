@@ -1,5 +1,6 @@
 // Metadata and coordinate system helpers for polygon geometry
 export default {
+    legend_glyph: 'tile',
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
         let xnudge = ds.xnudge?.map(v => +v),

@@ -2,6 +2,7 @@
 import { is_continuous } from '#src/js/utils.js'
 
 export default {
+    legend_glyph: 'tile',
     scale_attrs: ['fill', 'color', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
         let x = levels.x?.apply?.(ds.x) ?? ds.x,

@@ -3,6 +3,7 @@ import { vecutils } from '#src/js/utils.js'
 let { sum: psum, coalesce } = vecutils
 
 export default {
+    legend_glyph: 'point',
     scale_attrs: ['shape', 'size', 'color', 'stroke', 'linewidth', 'linetype', 'alpha'],
     coord_scale(ds, levels) {
         let xnudge = coalesce(ds.xnudge, 0),

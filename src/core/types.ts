@@ -1,19 +1,12 @@
-import type { Component } from 'vue'
+export type LegendGlyph = 'tile' | 'line' | 'point' | 'text' | 'boxplot'
 
 export interface GeomDefinition {
-    name?: string
+    legend_glyph?: LegendGlyph | LegendGlyph[]
     scale_attrs?: string[]
     coord_scale?: (data: Record<string, any>, levels: Record<string, any>) => Record<string, any>
     get_values?: (data: Record<string, any>, orientation: 'x' | 'y') => any[] | undefined
     get_range?: (data: Record<string, any>, orientation: 'x' | 'y') => any[] | undefined
     validate?: (datum: Record<string, any>) => Record<string, any> | null | undefined
-    render?: {
-        svg?: Component
-        canvas?: Component
-        default?: 'svg' | 'canvas'
-    }
-    legend?: 'point' | 'line' | 'tile' | 'text' | false
-    [key: string]: any
 }
 
 export interface StatTransform {

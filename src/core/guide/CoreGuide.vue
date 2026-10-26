@@ -3,6 +3,7 @@ defineOptions({ inheritAttrs: false })
 import { computed } from 'vue'
 import vvbreak from '#src/js/break.js'
 import { obj_merge } from '#src/js/utils.js'
+import { resolveGeom } from '../registry/geom.js'
 const { scales, type } = defineProps({
     scales: Array,
     type: { type: String, default: 'legendkey' },
@@ -32,11 +33,18 @@ const breaks = computed(() => {
 const binds = computed(() => {
     let result = { scales: scales.map(([s]) => s) }
     if (type == "legendkey") {
-        result.appearances = {
-            tile: obj_merge(...scales.flatMap(([s, a]) => [a.rect, a.tile, a.polygon, a.ellipse])),
-            line: obj_merge(...scales.flatMap(([s, a]) => [a.line, a.linerange, a.curve])),
-            point: obj_merge(...scales.flatMap(([s, a]) => [a.point])),
-            text: obj_merge(...scales.flatMap(([s, a]) => [a.text, a.markdown])),
+        let groups = {}
+        for (let [geom, attrs] of scales.flatMap(([s, a]) => Object.entries(a))) {
+            let ele = resolveGeom(geom)?.legend_glyph
+            if (ele == null) continue
+            for (let name of [].concat(ele)) {
+                groups[name] ??= []
+                groups[name].push(attrs)
+            }
+        }
+        result.appearances = {}
+        for (let name in groups) {
+            result.appearances[name] = obj_merge(...groups[name])
         }
     } else if (type == "gradientbar") {
         let max = scales.map(([s]) => s.limits?.max).filter(v => v != null).reduce((a, b) => Math.min(a, b), Infinity)
