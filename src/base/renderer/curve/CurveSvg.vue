@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreCurve from '#src/core/element/CoreCurve.vue'
+import ElementCurve from '#src/elements/ElementCurve.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -43,7 +43,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer vvplot-layer-curve">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreCurve v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementCurve v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

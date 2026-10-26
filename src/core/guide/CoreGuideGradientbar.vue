@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
-import CoreTile from '../element/CoreTile.vue'
+import ElementTile from '../../elements/ElementTile.vue'
 const { scales, appearance, theme, breaks, limits } = defineProps({
     scales: Array,
     appearance: { type: Object, default: () => ({}) },
@@ -33,7 +33,7 @@ watch(guide_breaks, async () => {
 </script>
 <template>
     <svg :height="gradient_values.length * 3 + 20" :width="width" ref="svg">
-        <CoreTile v-for="v, i in gradient_values" :width="10" :height="3.1" :x="10" :y="10 + (29 - i + 0.5) * 3"
+        <ElementTile v-for="v, i in gradient_values" :width="10" :height="3.1" :x="10" :y="10 + (29 - i + 0.5) * 3"
             :alpha="appearance.alpha" v-bind="v" />
         <g v-for="v, i in guide_breaks">
             <line x1="15" x2="18" :y1="10 + (1 - v.position) * 90" :y2="10 + (1 - v.position) * 90" stroke="black" />

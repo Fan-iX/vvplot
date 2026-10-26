@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreTile from '#src/core/element/CoreTile.vue'
+import ElementTile from '#src/elements/ElementTile.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -43,7 +43,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreTile v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementTile v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

@@ -6,7 +6,7 @@
  *  - stat:      statistical transforms
  *  - renderer:  SVG / canvas implementations
  *  - component: metadata-only <VVGeom*> declaration components
- *  - core:      low-level SVG building blocks such as text and markdown
+ *  - element:   low-level SVG building blocks such as text and markdown
  */
 export * from './registry/geom.js'
 export * from './registry/stat.js'
@@ -108,7 +108,7 @@ export function registerLayers({
 }
 
 /**
- * Register the built-in core SVG components.
+ * Register the built-in SVG elements.
  *
  * @param {Record<string, Object>} elements
  */

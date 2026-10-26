@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
 import { Parser as MarkdownParser, HtmlRenderer } from 'commonmark'
-import CoreMarkdown from '#src/core/element/CoreMarkdown.vue'
+import ElementMarkdown from '#src/elements/ElementMarkdown.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -57,7 +57,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreMarkdown v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementMarkdown v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

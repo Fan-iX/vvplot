@@ -1,0 +1,8 @@
+export { default as curve } from './ElementCurve.vue'
+export { default as ellipse } from './ElementEllipse.vue'
+export { default as line } from './ElementLine.vue'
+export { default as markdown } from './ElementMarkdown.vue'
+export { default as point } from './ElementPoint.vue'
+export { default as polygon } from './ElementPolygon.vue'
+export { default as text } from './ElementText.vue'
+export { default as tile } from './ElementTile.vue'

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
-import * as element from '../element'
+import * as elements from '../../elements'
 import { categorize } from '#src/js/utils.js'
 const { scales, appearances, theme, breaks } = defineProps({
     scales: Array,
@@ -20,7 +20,7 @@ const guide_breaks = computed(() => {
     return Array.from(group).map(([$bind, labels]) => {
         let bind = { tile: {}, line: {}, point: {}, text: {} }
         for (let geom in bind) {
-            for (let prop of Object.keys(element[geom].props)) {
+            for (let prop of Object.keys(elements[geom].props)) {
                 if ($bind[prop]) bind[geom][prop] = $bind[prop]
             }
         }
@@ -49,7 +49,7 @@ watch(guide_breaks, async () => {
     <svg :height="guide_breaks.length * 20" :width="width" ref="svg">
         <g v-for="v, i in guide_breaks" :transform="`translate(0, ${i * 20})`">
             <g :transform="`translate(10, 10)`">
-                <component :is="element[geom]" v-for="bind, geom in geoms" v-bind="{ ...bind, ...v.bind[geom] }" />
+                <component :is="elements[geom]" v-for="bind, geom in geoms" v-bind="{ ...bind, ...v.bind[geom] }" />
             </g>
             <text x="20" y="10" alignment-baseline="central">{{ v.label }}</text>
         </g>

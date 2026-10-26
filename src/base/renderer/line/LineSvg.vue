@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreLine from '#src/core/element/CoreLine.vue'
+import ElementLine from '#src/elements/ElementLine.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -44,7 +44,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer vvplot-layer-line">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreLine v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementLine v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

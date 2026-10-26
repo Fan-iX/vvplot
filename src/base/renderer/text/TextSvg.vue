@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreText from '#src/core/element/CoreText.vue'
+import ElementText from '#src/elements/ElementText.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -55,7 +55,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreText v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementText v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>

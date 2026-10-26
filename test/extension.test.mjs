@@ -125,12 +125,12 @@ test('options are carried through GPlot unchanged', () => {
     assert.equal(layer.options, options)
 })
 
-test('core registry registers and resolves core components', () => {
-    let component = { name: 'test-core' }
-    registerElement('test.core', component)
-    assert.equal(resolveElement('test.core'), component)
+test('element registry registers and resolves elements', () => {
+    let component = { name: 'test-element' }
+    registerElement('test.element', component)
+    assert.equal(resolveElement('test.element'), component)
     assert.equal(resolveElement(component), component)
-    assert.ok(getElementNames().includes('test.core'))
+    assert.ok(getElementNames().includes('test.element'))
 })
 
 test('renderer registry merges svg and canvas renderers', () => {

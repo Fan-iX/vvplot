@@ -17,8 +17,8 @@ export type * from './core/types.ts'
 import { registerElements, registerLayers } from './core/register.js'
 import baseLayers from './base'
 registerLayers(baseLayers)
-import * as coreElements from './core/element'
-registerElements(coreElements)
+import * as elements from './elements'
+registerElements(elements)
 import * as layers from './base/components'
 import * as components from './components'
 import type { App, Plugin } from 'vue'

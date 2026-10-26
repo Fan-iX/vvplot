@@ -1,9 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreTile from '#src/core/element/CoreTile.vue'
-import CorePoint from '#src/core/element/CorePoint.vue'
-import CoreLine from '#src/core/element/CoreLine.vue'
+import ElementTile from '#src/elements/ElementTile.vue'
+import ElementPoint from '#src/elements/ElementPoint.vue'
+import ElementLine from '#src/elements/ElementLine.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -95,12 +95,12 @@ const binds = computed(() => {
     <g class="vvplot-layer">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <g v-for="[vbinds, von] in group">
-                <CoreLine v-bind="vbinds.line" />
-                <CoreTile v-bind="vbinds.rect" v-on="von" />
-                <CoreLine v-bind="vbinds.midline" />
-                <CoreLine v-bind="vbinds.uwisker" />
-                <CoreLine v-bind="vbinds.lwisker" />
-                <CorePoint v-bind="vbind" v-on="von" v-for="[vbind, von] in vbinds.outliers" />
+                <ElementLine v-bind="vbinds.line" />
+                <ElementTile v-bind="vbinds.rect" v-on="von" />
+                <ElementLine v-bind="vbinds.midline" />
+                <ElementLine v-bind="vbinds.uwisker" />
+                <ElementLine v-bind="vbinds.lwisker" />
+                <ElementPoint v-bind="vbind" v-on="von" v-for="[vbind, von] in vbinds.outliers" />
             </g>
         </g>
     </g>

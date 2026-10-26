@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { pointerEvents } from '#src/core/utils.js'
-import CoreEllipse from '#src/core/element/CoreEllipse.vue'
+import ElementEllipse from '#src/elements/ElementEllipse.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },
@@ -56,7 +56,7 @@ const binds = computed(() => {
 <template>
     <g class="vvplot-layer vvplot-layer-ellipse">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
-            <CoreEllipse v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
+            <ElementEllipse v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>
     </g>
 </template>
