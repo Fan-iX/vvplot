@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
-import * as elements from '../../elements'
+import * as glyphs from './glyph'
 import { categorize } from '#src/js/utils.js'
 const { scales, appearances, theme, breaks } = defineProps({
     scales: Array,
@@ -20,21 +20,12 @@ const guide_breaks = computed(() => {
     return Array.from(group).map(([$bind, labels]) => {
         let bind = { tile: {}, line: {}, point: {}, text: {} }
         for (let geom in bind) {
-            for (let prop of Object.keys(elements[geom].props)) {
-                if ($bind[prop]) bind[geom][prop] = $bind[prop]
+            for (let prop in $bind) {
+                bind[geom][prop] = $bind[prop]
             }
         }
         return { bind, label: labels.join('; ') }
     })
-})
-const geoms = computed(() => {
-    let { text, line, point, tile } = appearances
-    let result = {}
-    if (tile != null) result.tile = { width: 10, height: 10, fill: 'none', ...tile }
-    if (line != null) result.line = { x1: -5, x2: 5, color: 'black', ...line }
-    if (point != null) result.point = { size: 6, ...point }
-    if (text != null) result.text = { size: 4, text: 'a', ...text }
-    return result
 })
 const width = ref(0)
 const svgRef = useTemplateRef('svg')
@@ -49,7 +40,9 @@ watch(guide_breaks, async () => {
     <svg :height="guide_breaks.length * 20" :width="width" ref="svg">
         <g v-for="v, i in guide_breaks" :transform="`translate(0, ${i * 20})`">
             <g :transform="`translate(10, 10)`">
-                <component :is="elements[geom]" v-for="bind, geom in geoms" v-bind="{ ...bind, ...v.bind[geom] }" />
+                <template v-for="bind, geom in appearances">
+                    <component :is="glyphs[geom]" v-if="glyphs[geom]" v-bind="{ ...bind, ...v.bind[geom] }" />
+                </template>
             </g>
             <text x="20" y="10" alignment-baseline="central">{{ v.label }}</text>
         </g>
