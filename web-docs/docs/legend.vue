@@ -76,10 +76,9 @@ const templates = ref({})
             </blockquote>
             <hr>
             <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="iris" :width="600" :height="400" legend-teleport="#legend-4">
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
-        :color="d => d.Species" :shape="d => d.Species" />
+    <VVGeomBoxplot :x="d => d.Species" :y="d => d.Sepal_Length" :color="d => d.Species" />
     <template #panel>
-        <div id="legend-4" class="absolute bottom-0 right-0"></div>
+        <div id="legend-4" class="absolute top-0 left-0 p-2"></div>
     </template>
 </VVPlot>` }}</pre-highlight>
             <component :is="{ template: templates[4], props: Object.keys(vBind) }" v-bind="vBind" />

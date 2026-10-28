@@ -1,3 +1,4 @@
+export { default as boxplot } from './CoreGuideGlyphBoxplot.vue'
 export { default as line } from './CoreGuideGlyphLine.vue'
 export { default as point } from './CoreGuideGlyphPoint.vue'
 export { default as text } from './CoreGuideGlyphText.vue'
