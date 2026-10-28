@@ -194,7 +194,7 @@ function palette_scale_auto({
     let scale_hue = palette_scale_hue({ alpha }),
         scale_gradient = palette_scale_gradient()
     let fn = function (arr) {
-        if (arr.level != null) {
+        if (arr.level != null || this.level != null) {
             return scale_hue.call(this, arr)
         } else {
             return scale_gradient.call(this, arr)

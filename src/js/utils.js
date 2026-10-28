@@ -361,31 +361,41 @@ export function oob_squish_infinite(value, { min, max }) {
  * test deep equality between two values
  * @param {*} a 
  * @param {*} b 
+ * @param {function(*, *, number): boolean | undefined} [comparer] optional comparer function, will be applied before deep comparison, should return true/false or undefined (to continue deep comparison)
+ * @param {number} [level=0] the current depth of the comparison
  * @returns {boolean}
  */
-export function deepEqual(a, b) {
+export function deepEqual(a, b, comparer, level = 0) {
+    if (level > 25) throw new Error('deepEqual: maximum recursion depth exceeded')
+    if (comparer != null && typeof comparer !== 'function')
+        throw new Error('comparer must be a function')
     if (a === b) return true
+    if (comparer != null) {
+        let res = comparer(a, b, level)
+        if (res === true || res === false || res instanceof Boolean) return Boolean(res)
+    }
     if (typeof a !== 'object' || typeof b !== 'object' || a == null || b == null) return false
     let aKeys = Object.keys(a), bKeys = Object.keys(b)
     if (aKeys.length !== bKeys.length) return false
     for (let key of aKeys) {
-        if (!deepEqual(a[key], b[key])) return false
+        if (!deepEqual(a[key], b[key], comparer, level + 1)) return false
     }
     return true
 }
 
 /**
  * Create a shallow categorical representation for a list of object.
- * @param  {object[]} array
+ * @param {object[]} array
+ * @param {function} [comparer] optional comparer function, will be passed to `deepEqual` to decide equality.
  * @returns {number[]} result
  * @returns {Array[]} result.categories
  */
-export function categorize(array) {
+export function categorize(array, comparer) {
     if (!Array.isArray(array)) throw new Error('Argument must be an array')
     let categories = [], result = []
     for (let i = 0; i < array.length; i++) {
         let obj = array[i]
-        let idx = categories.findIndex(cat => deepEqual(cat, obj))
+        let idx = categories.findIndex(cat => deepEqual(cat, obj, comparer))
         if (idx === -1) {
             categories.push(obj)
             idx = categories.length - 1

@@ -1,36 +1,51 @@
 <script setup>
 import { computed } from 'vue'
-import { interaction, EnumLevel } from '#src/js/utils.js'
+import { EnumElement, categorize } from '#src/js/utils.js'
+import vvbreak from '#src/js/break.js'
 import CoreGuide from './guide/CoreGuide.vue'
+import scale from '#src/js/scale.js'
 const { scales, theme } = defineProps({
     theme: { type: Object, default: () => ({}) },
     scales: Map,
 })
 const guides = computed(() => {
-    let guide_scales = new Map(Array.from(scales).filter(([fn]) => fn.legend !== false && (fn.limits?.min != fn.limits?.max)))
-    let scale_fns = Array.from(guide_scales.keys())
-    let keys = scale_fns.map(s => s.key)
-    let n = 1
-    for (let i = 0; i < keys.length; i++) {
-        while (keys.includes("_guide_" + n)) n++
-        keys[i] ??= keys.find((_, j) => keys[j] != null && EnumLevel.isEqual(scale_fns[j].level, scale_fns[i].level)) ?? "_guide_" + n
-    }
-    let types = scale_fns.map(s => getGuideType(s))
-    let groups = interaction(keys, types)
-    return Map.groupBy(guide_scales, (s, i) => groups.categories[groups[i]])
-})
+    let entries = Array.from(scales)
+        .filter(([fn]) => fn.legend !== false && (fn.limits?.min != fn.limits?.max))
+        .map(([scale, appearance]) => {
+            let breaks = scale.breaks
+            if (typeof breaks === "function") breaks = breaks(scale.limits)
+            if (scale.level != null) breaks ??= scale.level.apply(scale.level)
+            breaks ??= vvbreak.number({ minor: true })(scale.limits)
+            breaks = Array.isArray(breaks) ? Array.from(breaks) : []
 
-function getGuideType(scale) {
-    if (scale == null) return null
-    if (['gradientbar', 'legendkey'].includes(scale.guide)) return scale.guide
-    if (scale.level) return 'legendkey'
-    if (['color', 'fill', 'alpha'].includes(scale.aesthetics)) return 'gradientbar'
-    return 'legendkey'
-}
+            let guide = scale.guide
+            if (!scale.level && ['color', 'fill', 'alpha'].includes(scale.aesthetics)) guide ??= 'gradientbar'
+            guide ??= 'legendkey'
+
+            return { guide, breaks, scale, appearance }
+        })
+    let cate = categorize(
+        entries.map(({ guide, breaks, scale }) => ({ guide, breaks, key: scale.key })),
+        (a, b, lvl) => {
+            if (a instanceof EnumElement && b instanceof EnumElement)
+                return a.label === b.label && a.value === b.value
+            if (a instanceof EnumElement || b instanceof EnumElement)
+                return false
+        }
+    )
+    return Array.from(Map.groupBy(
+        entries.map(({ scale, appearance }) => ({ scale, appearance })),
+        (_, i) => cate.categories[cate[i]]
+    )).map(([{ guide, breaks, key }, sources], i) => {
+        key ??= '_guide_' + (i + 1)
+        return { sources, guide, breaks, key }
+    })
+})
 </script>
 <template>
     <div v-if="scales" class="vvplot-legend" :style="{ gap: theme.spacing + 'px' }">
-        <CoreGuide :key :type :scales v-for="[[key, type], scales] in guides" />
+        <CoreGuide :key="key" :sources="sources" :type="guide" :breaks="breaks"
+            v-for="{ sources, guide, breaks, key } in guides" />
     </div>
 </template>
 <style>
