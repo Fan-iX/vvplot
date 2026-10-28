@@ -64,8 +64,12 @@ const unitInPx = {
     'pt': 96 / 72,
     'pc': 16
 }
-
-export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
+/**
+ * Normalize an SVG element by embedding canvas images and removing comments.
+ * @param {SVGElement} svgElement 
+ * @returns {SVGElement}
+ */
+function normalizeSVG(svgElement) {
     if (!(svgElement instanceof SVGElement)) return null
     function removeComments(node) {
         let i = node.childNodes.length
@@ -100,10 +104,55 @@ export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
     svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
     svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
     svgClone.setAttribute('version', '1.1')
-    if (!unitInPx[unit]) unit = ''
-    svgClone.setAttribute('width', svgElement.scrollWidth / unitInPx[unit] + unit)
-    svgClone.setAttribute('height', svgElement.scrollHeight / unitInPx[unit] + unit)
+    svgClone.removeAttribute('width')
+    svgClone.removeAttribute('height')
     svgClone.setAttribute('viewBox', `0 0 ${svgElement.scrollWidth} ${svgElement.scrollHeight}`)
-    const serializer = new XMLSerializer()
-    return serializer.serializeToString(svgClone)
+    return svgClone
+}
+
+/**
+ * Serialize an SVG element to a string.
+ * @param {SVGElement} svgElement 
+ * @param {Object} options
+ * @param {string} options.unit - The unit for width and height (default: 'mm').
+ * @returns {string}
+ */
+export function serializeSVG(svgElement, { unit = 'mm' } = {}) {
+    if (!(svgElement instanceof SVGElement)) return null
+    let svg = normalizeSVG(svgElement)
+    if (!unitInPx[unit]) unit = ''
+    svg.setAttribute('width', svgElement.scrollWidth / unitInPx[unit] + unit)
+    svg.setAttribute('height', svgElement.scrollHeight / unitInPx[unit] + unit)
+    return new XMLSerializer().serializeToString(svg)
+}
+
+/**
+ * Export an SVG element to a string, inlining images as data URLs.
+ * @param {SVGElement} svgElement 
+ * @param {Object} options
+ * @param {string} options.unit - The unit for width and height (default: 'mm').
+ * @returns {string}
+ */
+export async function exportSVG(svgElement, { unit = 'mm' } = {}) {
+    if (!(svgElement instanceof SVGElement)) return null
+    let svg = normalizeSVG(svgElement)
+    if (!unitInPx[unit]) unit = ''
+    svg.setAttribute('width', svgElement.scrollWidth / unitInPx[unit] + unit)
+    svg.setAttribute('height', svgElement.scrollHeight / unitInPx[unit] + unit)
+    const cache = new Map()
+    for (let el of svg.querySelectorAll('image')) {
+        let href = el.getAttribute('href') ?? el.getAttribute('xlink:href')
+        if (href.startsWith('data:')) continue
+        try {
+            let response = await fetch(href)
+            if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`)
+            cache.set(href, await blobToDataURL(await response.blob()))
+        } catch (e) {
+            console.warn(`Failed to inline image ${href}: ${e.message}`)
+        }
+        if (cache.has(href)) {
+            el.setAttribute('href', cache.get(href))
+        }
+    }
+    return new XMLSerializer().serializeToString(svg)
 }

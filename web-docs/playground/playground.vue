@@ -200,7 +200,7 @@ watch([tab, () => dataConfig?.value?.output, templateText, layerText], async ([t
     if (t == 'plot') nextTick(buildPlot)
 }, { immediate: true })
 async function exportSVG(options) {
-    let url = URL.createObjectURL(await svg2svg(instance.plot.serialize(), options))
+    let url = URL.createObjectURL(svg2svg(await instance.plot.export(), options))
     let a = document.createElement('a')
     a.href = url
     a.download = 'plot.svg'

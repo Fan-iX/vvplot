@@ -5,7 +5,7 @@ import { baseParse } from '@vue/compiler-core'
 import { isSVGTag, camelize, capitalize } from '@vue/shared'
 import { theme_base, theme_default, themeBuild, themeMerge, themePreprocess } from '../js/theme.js'
 import { str_c, deepEqual } from '#src/js/utils.js'
-import { serializeSVG, expandFragment } from '#src/core/utils.js'
+import { serializeSVG, exportSVG, expandFragment } from '#src/core/utils.js'
 import { getComponent } from '#src/core/registry/component.js'
 import { createRangeStore } from '#src/core/range.js'
 defineOptions({ inheritAttrs: false })
@@ -529,6 +529,7 @@ const wrapperStyle = computed(() => {
 defineExpose({
     get svg() { return plotRef.value.svg },
     serialize(options) { return serializeSVG(plotRef.value.svg, options) },
+    async export(options) { return exportSVG(plotRef.value.svg, options) },
 })
 </script>
 <template>

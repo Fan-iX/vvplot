@@ -5,7 +5,7 @@ import { svg2png, svg2svg } from './script/utils.js'
 const plot = useTemplateRef('plot')
 
 async function exportSVG(options) {
-    let url = URL.createObjectURL(await svg2svg(plot.value.serialize(), options))
+    let url = URL.createObjectURL(svg2svg(await plot.value.export(), options))
     const win = window.open(url, '_blank')
     if (win) {
         win.onload = () => URL.revokeObjectURL(url)

@@ -40,10 +40,9 @@ async function blobToDataURL(blob) {
  * @param {boolean} options.pageSize whether to add `@page` CSS rule to set page size to match SVG dimensions when printing
  * @param {boolean} options.dominantBaseline whether to convert text elements with dominant-baseline="central" or "middle" to use dy="0.35em" for better vertical alignment in some renderers
  * @param {boolean} options.transformOrigin whether to convert elements with transform-origin attribute to use equivalent translate() in transform attribute for better compatibility
- * @param {boolean} options.inlineImages whether to inline images (e.g., <image> elements) as data URLs for better portability
  * @returns svg XML Blob
  */
-export async function svg2svg(svgXml, {
+export function svg2svg(svgXml, {
     pageSize = true,
     dominantBaseline = true,
     transformOrigin = true,
@@ -74,23 +73,6 @@ export async function svg2svg(svgXml, {
                 const newTransform = `translate(${ox}, ${oy}) ${transformAttr} translate(${-ox}, ${-oy})`
                 el.setAttribute('transform', newTransform)
                 el.removeAttribute('transform-origin')
-            }
-        }
-    }
-    if (inlineImages) {
-        const cache = new Map()
-        for (let el of svg.querySelectorAll('image')) {
-            let href = el.getAttribute('href') ?? el.getAttribute('xlink:href')
-            if (href.startsWith('data:')) continue
-            try {
-                let response = await fetch(href)
-                if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`)
-                cache.set(href, await blobToDataURL(await response.blob()))
-            } catch (e) {
-                console.warn(`Failed to inline image ${href}: ${e.message}`)
-            }
-            if (cache.has(href)) {
-                el.setAttribute('href', cache.get(href))
             }
         }
     }
