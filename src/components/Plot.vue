@@ -192,11 +192,12 @@ const layers = computed(() => {
         let vBind = {}
         let skipKeys = ['key', ...Object.keys(etc).filter(k => `^${k}` in etc)]
         for (let key in etc) {
-            if (skipKeys.includes(key)) continue
-            if (argnames.includes(key)) {
-                args[key] = etc[key]
-            } else if (optnames.includes(key)) {
-                opts[key] = etc[key]
+            let isArg = argnames.includes(key), isOpt = optnames.includes(key)
+            if (isArg || isOpt) {
+                if (isArg) args[key] = etc[key]
+                if (isOpt) opts[key] = etc[key]
+            } else if (skipKeys.includes(key)) {
+                continue
             } else if (key.startsWith("^")) {
                 attrs[key.slice(1)] = etc[key]
             } else if (key.startsWith('on')) {
