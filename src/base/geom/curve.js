@@ -17,6 +17,7 @@ export default {
     },
     validate(d) {
         if (!Array.isArray(d.points)) return null
+        if (Array.from(d.points).some(p => isNaN(p.x) || isNaN(p.y))) return null
         return d
     }
 }
