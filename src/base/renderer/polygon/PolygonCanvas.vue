@@ -30,7 +30,7 @@ const layerCanvas = computed(() => {
     let _path_data = new Map(), path_data = new Map()
     for (let {
         points, fill, color, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        translateX = 0, translateY = 0, $raw
     } of data) {
         points = points.map(p => (({ h: x, v: y }) => ({ x, y }))(mapping.coord2pos(p))).filter(p => p.x != null && p.y != null)
         if (points.length === 0) continue

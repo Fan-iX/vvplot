@@ -39,7 +39,7 @@ const layerCanvas = computed(() => {
     for (let {
         x, y, size = 6,
         shape, color, stroke, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle = 0, $raw
+        translateX = 0, translateY = 0, angle = 0, $raw
     } of data) {
         const { h: cx, v: cy } = mapping.coord2pos({ x, y })
         if (typeof (angle) == "object") {

@@ -18,7 +18,7 @@ const binds = computed(() => {
     return Object.values(Object.groupBy(data, d => d.$group)).map(group => group.map(({
         x, y, shape, size = 6,
         color, stroke, linetype, linewidth, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, angle,
+        translateX = 0, translateY = 0, angle,
         class: className, style, $raw
     }) => {
         const { h: cx, v: cy } = mapping.coord2pos({ x, y })

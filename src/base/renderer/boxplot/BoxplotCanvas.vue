@@ -33,7 +33,7 @@ const layerCanvas = computed(() => {
         lwisker, Q1, median, Q3, uwisker, outliers,
         $xmin, $xmax, $ymin, $ymax,
         fill = 'white', color = "black", linewidth = 1, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        translateX = 0, translateY = 0, $raw
     } of data) {
         const { hmin: rx1, hmax: rx2, vmin: ry1, vmax: ry2 } = mapping.coord2pos(x == null ? { ymin, ymax, xmin: Q1, xmax: Q3 } : { xmin, xmax, ymin: Q1, ymax: Q3 })
         const { h: lx1, v: ly1 } = mapping.coord2pos(x == null ? { y, x: lwisker } : { x, y: lwisker })

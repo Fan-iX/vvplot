@@ -31,7 +31,7 @@ const layerCanvas = computed(() => {
     for (let {
         cx, cy, A, B, C,
         fill, color, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        translateX = 0, translateY = 0, $raw
     } of data) {
         let dx = Math.sqrt(C / (A * C - B * B)),
             dy = Math.sqrt(A / (A * C - B * B))

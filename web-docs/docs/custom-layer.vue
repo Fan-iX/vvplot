@@ -47,7 +47,7 @@ registerStat('centroid-text', defineStat(function (data) {
         result[key] = cates.map(x => group.categories[x.group][key])
     }
     return result
-}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'text-length'] }))
+}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'textLength'] }))
 
 const VVGeomStar = registerLayer('VVGeomStar', { geom: 'star', stat: 'point' })
 const VVGeomCentroidText = registerLayer('VVGeomCentroidText', { geom: 'text', stat: 'centroid-text' })
@@ -190,7 +190,7 @@ registerStat('centroid-text', defineStat(function (data) {
         result[key] = cates.map(x => group.categories[x.group][key])
     }
     return result
-}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'text-length'] }))`}}</pre-highlight>
+}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'textLength'] }))`}}</pre-highlight>
 
             <p>
                 We can then register a layer component <code>&lt;VVGeomCentroidText&gt;</code> for this statistical

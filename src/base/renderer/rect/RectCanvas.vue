@@ -31,7 +31,7 @@ const layerCanvas = computed(() => {
     for (let {
         xmin, xmax, ymin, ymax,
         fill, color, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        translateX = 0, translateY = 0, $raw
     } of data) {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = mapping.coord2pos({ xmin, xmax, ymin, ymax })
         const path2d = new Path2D()

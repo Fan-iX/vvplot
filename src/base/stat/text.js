@@ -8,4 +8,4 @@ export default defineStat(function (data) {
     if (missingAes.length > 0)
         throw new Error(`Missing aesthetics for "StatText": "${missingAes.join('", "')}"`)
     return data
-}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'text-length'] })
+}, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'textLength'] })

@@ -18,7 +18,7 @@ const binds = computed(() => {
     return Object.values(Object.groupBy(data, d => d.$group)).map(group => group.map(({
         cx, cy, A, B, C,
         fill, color, linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        translateX = 0, translateY = 0,
         class: className, style, $raw
     }) => {
         let dx = Math.sqrt(C / (A * C - B * B)),

@@ -18,8 +18,8 @@ const binds = computed(() => {
     return Object.values(Object.groupBy(data, d => d.$group)).map(group => group.map(({
         x, xend, y, yend, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto', inset = 0,
+        translateX = 0, translateY = 0,
+        fontFamily = "sans-serif", textAlign = 'justify', angle = 'auto', inset = 0,
         class: className, style, $raw
     }) => {
         if (label == null) return null

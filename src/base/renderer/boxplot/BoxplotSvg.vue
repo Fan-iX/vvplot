@@ -22,7 +22,7 @@ const binds = computed(() => {
         lwisker, Q1, median, Q3, uwisker, outliers,
         $xmin, $xmax, $ymin, $ymax,
         fill = 'white', color = "black", linewidth, linetype, alpha, title,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
+        translateX = 0, translateY = 0,
         class: className, style, $raw
     }) => {
         const { hmin: x1, hmax: x2, vmin: y1, vmax: y2 } = mapping.coord2pos({ xmin: $xmin, xmax: $xmax, ymin: $ymin, ymax: $ymax })

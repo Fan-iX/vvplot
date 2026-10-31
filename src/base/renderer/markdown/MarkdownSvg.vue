@@ -19,10 +19,8 @@ const binds = computed(() => {
     return Object.values(Object.groupBy(data, d => d.$group)).map(group => group.map(({
         x, y, size = 4, label, title,
         color, stroke, linewidth, linetype, alpha,
-        'anchor-x': anchorX, 'anchor-y': anchorY,
-        'dock-x': dockX, 'dock-y': dockY,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        angle, 'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-anchor': textAnchor,
+        anchorX, anchorY, dockX, dockY, translateX = 0, translateY = 0,
+        angle, textLength, fontFamily = "sans-serif", textAnchor,
         class: className, style, $raw
     }) => {
         if (label == null) return null

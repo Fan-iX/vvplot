@@ -31,7 +31,7 @@ const layerCanvas = computed(() => {
     for (let {
         x, y, xend, yend,
         color = 'black', linewidth, alpha, linetype,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0, $raw
+        translateX = 0, translateY = 0, $raw
     } of data) {
         const { h: x1, v: y1 } = mapping.coord2pos({ x: x, y: y })
         const { h: x2, v: y2 } = mapping.coord2pos({ x: xend, y: yend })

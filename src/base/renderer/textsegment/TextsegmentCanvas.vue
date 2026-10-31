@@ -31,8 +31,8 @@ const layerCanvas = computed(() => {
     for (let {
         x, xend, y, yend, size = 4, label = "", title,
         color, stroke, linewidth, linetype, alpha,
-        'translate-x': translateX = 0, 'translate-y': translateY = 0,
-        'text-length': textLength, 'font-family': fontFamily = "sans-serif", 'text-align': textAlign = 'justify', angle = 'auto', inset = 0,
+        translateX = 0, translateY = 0,
+        textLength, fontFamily = "sans-serif", textAlign = 'justify', angle = 'auto', inset = 0,
         $raw
     } of data) {
         const { h: x1, v: y1 } = mapping.coord2pos({ x: x, y: y })

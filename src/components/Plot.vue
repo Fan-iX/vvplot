@@ -190,31 +190,33 @@ const layers = computed(() => {
         let optnames = layer.type.$_optnames || []
         let aes = {}, args = {}, attrs = {}, opts = {}
         let vBind = {}
-        let skipKeys = ['key', ...Object.keys(etc).filter(k => `^${k}` in etc)]
         for (let key in etc) {
-            let isArg = argnames.includes(key), isOpt = optnames.includes(key)
+            let k = camelize(key)
+            let isArg = argnames.includes(k), isOpt = optnames.includes(k)
             if (isArg || isOpt) {
-                if (isArg) args[key] = etc[key]
-                if (isOpt) opts[key] = etc[key]
-            } else if (skipKeys.includes(key)) {
+                if (isArg) args[k] = etc[key]
+                if (isOpt) opts[k] = etc[key]
+            } else if (key == 'key') {
                 continue
             } else if (key.startsWith("^")) {
-                attrs[key.slice(1)] = etc[key]
+                attrs[k.slice(1)] = etc[key]
+                delete aes[k.slice(1)]
             } else if (key.startsWith('on')) {
-                vBind[key] = etc[key]
+                vBind[k] = etc[key]
             } else if (typeof etc[key] === 'function') {
                 if (["item-class", "item-style"].includes(key)) {
                     aes[key.slice(5)] = etc[key]
                 } else {
-                    aes[key] = etc[key]
+                    aes[k] = etc[key]
+                    delete attrs[k]
                 }
             } else {
                 if (['class', 'style', 'group-class', 'group-style', 'dpi', 'render'].includes(key)) {
-                    vBind[key] = etc[key]
+                    vBind[k] = etc[key]
                 } else if (["item-class", "item-style"].includes(key)) {
                     attrs[key.slice(5)] = etc[key]
                 } else {
-                    attrs[key] = etc[key]
+                    attrs[k] = etc[key]
                 }
             }
         }
