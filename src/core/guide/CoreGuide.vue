@@ -1,6 +1,6 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
-import { computed } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import { obj_merge } from '#src/js/utils.js'
 const { sources, breaks, type } = defineProps({
     breaks: Array, sources: Array,
@@ -15,7 +15,12 @@ const guide = {
 const scales = computed(() => sources.map(source => source.scale))
 const title = computed(() => {
     let scales = sources.map(source => source.scale)
-    return scales.reduce((v, s) => v ?? s.title, null) ?? scales.reduce((v, s) => v ?? s._title, null)
+    for (let { title } of scales) {
+        if (title !== undefined) return title
+    }
+    for (let { _title } of scales) {
+        if (_title !== undefined) return _title
+    }
 })
 const binds = computed(() => {
     let result = {}
@@ -30,8 +35,21 @@ const binds = computed(() => {
     }
     return result
 })
+const width = ref(0), height = ref(0)
+const svgRef = useTemplateRef('svg')
+watch(() => title, async () => {
+    await nextTick()
+    let bbox = svgRef.value?.getBBox?.()
+    if (!bbox) return
+    width.value = bbox.width + bbox.x
+    height.value = bbox.height + bbox.y
+}, { immediate: true })
 </script>
 <template>
-    <span>{{ title }}</span>
-    <component :is="guide[type]" v-bind="binds" :breaks="breaks" />
+    <svg ref="svg" :width="width" :height="height">
+        <text dominant-baseline="central" y="10" v-if="title">{{ title }}</text>
+        <g :transform="title ? `translate(0, 20)` : null">
+            <component :is="guide[type]" v-bind="binds" :breaks="breaks" />
+        </g>
+    </svg>
 </template>

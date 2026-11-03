@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch, useTemplateRef, nextTick } from 'vue'
+defineOptions({ inheritAttrs: false })
+import { computed } from 'vue'
 import * as glyphs from './glyph'
 import { categorize, obj_merge } from '#src/js/utils.js'
 import { resolveGeom } from '../registry/geom.js'
@@ -43,25 +44,14 @@ const guide_breaks = computed(() => {
         Map.groupBy(breaks.map(x => String(x)), (_, i) => cates.categories[cates[i]])
     ).map(([bind, labels]) => ({ label: labels.join("; "), bind }))
 })
-
-const width = ref(0)
-const svgRef = useTemplateRef('svg')
-watch(guide_breaks, async () => {
-    await nextTick()
-    let bbox = svgRef.value?.getBBox?.()
-    if (!bbox) return
-    width.value = bbox.width + bbox.x
-}, { immediate: true })
 </script>
 <template>
-    <svg :height="guide_breaks.length * 20" :width="width" ref="svg">
-        <g v-for="{ bind, label }, i in guide_breaks" :transform="`translate(0, ${i * 20})`">
-            <g :transform="`translate(10, 10)`">
-                <template v-for="appearance, glyph in appearances" :key="glyph">
-                    <component :is="glyphs[glyph]" v-if="glyphs[glyph]" v-bind="{ ...appearance, ...bind[glyph] }" />
-                </template>
-            </g>
-            <text x="20" y="10" alignment-baseline="central">{{ label }}</text>
+    <g v-for="{ bind, label }, i in guide_breaks" :transform="`translate(0, ${i * 20})`">
+        <g :transform="`translate(10, 10)`">
+            <template v-for="appearance, glyph in appearances" :key="glyph">
+                <component :is="glyphs[glyph]" v-if="glyphs[glyph]" v-bind="{ ...appearance, ...bind[glyph] }" />
+            </template>
         </g>
-    </svg>
+        <text x="20" y="10" dominant-baseline="central">{{ label }}</text>
+    </g>
 </template>
