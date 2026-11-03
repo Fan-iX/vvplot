@@ -732,14 +732,18 @@ const axes = computed(() => {
                 <CoreLayer ref="layers" v-for="layer in computedLayers" :data="layer.data" v-bind="layer.vBind"
                     :layout="innerRect" :geom="layer.geom" :mapping="mapping" :options="layer.options"
                     :default-render="props.render" :default-dpi="props.dpi" />
+                <slot name="overlay-layer" :mapping="mapping" :layout="innerRect"></slot>
             </g>
             <CoreSelection :mapping="mapping" :layout="innerRect" @selecting="onselecting" @selectend="onselectend"
                 :transition="transition" :activeTransform="activeTransform" v-bind="sel" v-for="sel in props.selections"
                 :flip />
             <CoreSelection :mapping="mapping" :layout="innerRect" :modelValue="selectionPreview"
                 :transition="transition" :activeTransform="activeTransform" :theme="_selectionPreviewTheme" :flip />
+            <slot name="overlay-panel" :mapping="mapping" :layout="innerRect" :activeTransform="activeTransform"></slot>
         </g>
         <slot></slot>
+        <slot name="overlay-plot" :mapping="mapping" :layout="innerRect" :panel="panel"
+            :activeTransform="activeTransform"></slot>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
                 <CoreLegend :scales="gplot?.scales" :theme="theme.legend" />

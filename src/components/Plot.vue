@@ -96,6 +96,7 @@ const vnodes = reactive({
     dom: {},
 })
 for (let key in $slots) {
+    if (key.startsWith('overlay')) continue
     watch(() => $slots[key]?.(), s => {
         let comps = expandFragment(s).flatMap(c => {
             if (c.type?.template && c.type.$_type == null) {
@@ -115,6 +116,7 @@ for (let key in $slots) {
         }
     }, { immediate: true })
 }
+const overlays = computed(() => Object.keys($slots).filter(k => k.startsWith('overlay')))
 const vlayer = computed(() => Object.values(vnodes.layer).flat())
 const vaxis = computed(() => Object.values(vnodes.axis).flat())
 const vaction = computed(() => Object.values(vnodes.action).flat())
@@ -545,6 +547,9 @@ defineExpose({
             :action="action" :clip="clip" :render="render" :dpi="dpi ?? 96 * pixelRatio"
             :legendTeleport="legendTeleport" @select="(d, e) => emit('select', d, e)">
             <component v-for="c in vdom_svg" :is="c" />
+            <template #[slot]="ctx" v-for="slot in overlays">
+                <slot :name="slot" v-bind="ctx"></slot>
+            </template>
         </CorePlot>
         <div class="vvplot-panel-container" :style="panelStyle">
             <div class="vvplot-panel" style="pointer-events:auto;display:contents;" v-if="vnodes.dom.panel?.length">
