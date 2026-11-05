@@ -1,8 +1,0 @@
-export { default as VVPlot } from './Plot.vue'
-export { default as VVAxis } from './Axis.vue'
-export { default as VVAxisX } from './AxisX.vue'
-export { default as VVAxisY } from './AxisY.vue'
-export { default as VVAxisBreak } from './AxisBreak.vue'
-export { default as VVAction } from './Action.vue'
-export { default as VVSelection } from './Selection.vue'
-export { default as VVGeom } from './Geom.vue'
