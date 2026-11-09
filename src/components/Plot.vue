@@ -187,10 +187,10 @@ const schema = computed(() => {
 */
 const layers = computed(() => {
     return vlayer.value.map(layer => {
-        let { geom, stat, scales, data, 'extend-x': extendX, 'extend-y': extendY, ...etc } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, aes, scales, data, 'extend-x': extendX, 'extend-y': extendY, key, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let optnames = layer.type.$_optnames || []
-        let aes = {}, args = {}, attrs = {}, opts = {}
+        let $$aes = {}, args = {}, attrs = {}, opts = {}
         let vBind = {}
         for (let key in etc) {
             let k = camelize(key)
@@ -198,18 +198,16 @@ const layers = computed(() => {
             if (isArg || isOpt) {
                 if (isArg) args[k] = etc[key]
                 if (isOpt) opts[k] = etc[key]
-            } else if (key == 'key') {
-                continue
             } else if (key.startsWith("^")) {
                 attrs[k.slice(1)] = etc[key]
-                delete aes[k.slice(1)]
+                delete $$aes[k.slice(1)]
             } else if (key.startsWith('on')) {
                 vBind[k] = etc[key]
             } else if (typeof etc[key] === 'function') {
                 if (["item-class", "item-style"].includes(key)) {
-                    aes[key.slice(5)] = etc[key]
+                    $$aes[key.slice(5)] = etc[key]
                 } else {
-                    aes[k] = etc[key]
+                    $$aes[k] = etc[key]
                     delete attrs[k]
                 }
             } else {
@@ -222,8 +220,10 @@ const layers = computed(() => {
                 }
             }
         }
+        aes = Array.isArray(aes) ? Array.from(aes) : [aes]
+        if (Object.keys($$aes).length) aes.push($$aes)
         return {
-            geom, stat, data, aes, attrs, scales, args, opts, extendX, extendY, vBind
+            geom, stat, data, attrs, scales, args, opts, aes, extendX, extendY, vBind
         }
     })
 })

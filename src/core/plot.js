@@ -76,13 +76,63 @@ class GLayer {
         // filter and prepare data by aesthetics
         if (typeof $$data == 'function') $$data = $$data($data)
         if ($$data == null) $$data = $data
-        $$aes = { ...$aes, ...$$aes }
+        $aes = Array.isArray($aes) ? Array.from($aes) : [$aes]
         let data = {}
-        this.$fnames = {} // function names for legend titles
-        for (const aes in $$aes) {
-            this.$fnames[aes] = String($$aes[aes])
-            data[aes] = $$data.map($$aes[aes]).map(x => x instanceof String || x instanceof Number ? new Asis(x) : x)
+
+        let assigned = new Set()
+        let rowKeys = new Set()
+        let rows = new Array($$data.length).fill(null)
+        this.$ftitles = {} // explicit legend titles
+        this.$fnames = {}  // function-name fallbacks for legend titles
+        this.$fn = {}
+
+        for (let aes of $aes.concat($$aes).reverse()) {
+            if (aes == null) continue
+
+            if (typeof aes === 'function') {
+                for (let i = 0; i < $$data.length; i++) {
+                    let part = aes($$data[i], i, $$data)
+                    if (part == null || typeof part !== 'object' || Array.isArray(part)) continue
+                    for (let key in part) {
+                        if (key.startsWith('$') || assigned.has(key) || part[key] === undefined) continue
+                        let row = rows[i] ??= {}
+                        if (key in row) continue
+                        row[key] = part[key]
+                        rowKeys.add(key)
+                        let { name, title } = aes
+                        if (name === key || ['anonymous', 'bound'].includes(name)) name = undefined
+                        this.$fnames[key] ||= name
+                        this.$ftitles[key] ??= title
+                        this.$fn[key] ??= aes
+                    }
+                }
+            } else if (typeof aes === 'object') {
+                for (let key in aes) {
+                    if (key.startsWith('$') || assigned.has(key) || typeof aes[key] !== 'function') continue
+                    data[key] = $$data.map(aes[key])
+                    let { name, title } = aes[key]
+                    if (name === key || ['anonymous', 'bound'].includes(name)) name = undefined
+                    this.$fnames[key] ||= name
+                    this.$ftitles[key] ??= title
+                    this.$fn[key] ??= aes[key]
+                    assigned.add(key)
+                }
+            }
         }
+
+        for (let key of rowKeys) {
+            data[key] ??= new Array($$data.length).fill(undefined)
+            let column = data[key]
+            for (let i = 0; i < $$data.length; i++) {
+                let val = rows[i]?.[key]
+                if (val !== undefined) column[i] = val
+            }
+        }
+
+        for (let key in data) {
+            data[key] = data[key].map(x => x instanceof String || x instanceof Number ? new Asis(x) : x)
+        }
+
         data.$raw = $$data
 
         // apply core attributes (attributes required in stat and coord_scale function)
@@ -134,7 +184,7 @@ class GLayer {
             if ($$scales[aes] != null) {
                 let scale = new Scale($$scales[aes])
                 scale.aesthetics = aes
-                scale._title = this.$fnames[aes]
+                scale._title = this.$ftitles[aes] ?? this.$fnames[aes] ?? (this.$fn[aes] ? String(this.$fn[aes]) : undefined)
                 let values = this.$data[aes]
                 if (!values?.length) continue
                 if (!scale.asis) {
@@ -225,7 +275,9 @@ export class GPlot {
                         scale.extent = numutils.extent(values.filter(v => !(v instanceof Asis)))
                     }
                 }
-                scale._title = this.layers.reduce((v, layer) => v ?? layer.$fnames?.[aes], null)
+                for (let layer of this.layers) scale._title ??= layer.$ftitles?.[aes]
+                for (let layer of this.layers) scale._title ??= layer.$fnames?.[aes]
+                for (let layer of this.layers) scale._title ??= (layer.$fn?.[aes] ? String(layer.$fn?.[aes]) : undefined)
                 for (const layer of this.layers) {
                     if (!layer.localScales.has(aes)) {
                         layer.applyScale(aes, scale)

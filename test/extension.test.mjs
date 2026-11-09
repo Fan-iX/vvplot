@@ -51,11 +51,13 @@ function makePlot(geom, stat, data, attrs = {}) {
         geom,
         stat,
         data: null,
-        aes: {
-            x: d => d.x,
-            y: d => d.y,
-            ...attrs.aes,
-        },
+        aes: Array.isArray(attrs.aes) || typeof attrs.aes === 'function'
+            ? attrs.aes
+            : {
+                x: d => d.x,
+                y: d => d.y,
+                ...attrs.aes,
+            },
         attrs: attrs.attrs ?? {},
         scales: {},
         levels: {},
@@ -78,6 +80,105 @@ test('custom geometry and stat can be registered under names', () => {
     assert.equal(layers[0].data.length, 1)
     assert.equal(layers[0].data[0].xmin, 1)
     assert.equal(layers[0].data[0].xmax, 3)
+})
+
+test('layer aes spec resolves multiple aesthetics once per row', () => {
+    let calls = 0
+    let plot = makePlot('test.named', 'test.named', [{ x: 2, y: 3 }], {
+        aes: d => {
+            calls++
+            return { x: d.x, y: d.y, width: 2, height: 2 }
+        },
+    })
+    let layer = plot.layers[0]
+    assert.deepEqual(layer.$data.x, [2])
+    assert.deepEqual(layer.$data.y, [3])
+    assert.deepEqual(layer.$data.width, [2])
+    assert.deepEqual(layer.$data.height, [2])
+    assert.equal(calls, 1)
+})
+
+test('layer aes spec supports arrays, objects, and layer aes priority', () => {
+    let plot = makePlot('test.named', 'test.named', [{ x: 2, y: 3, c: 'a' }], {
+        aes: [
+            d => ({ x: d.x, y: d.y, color: 'red' }),
+            { color: d => d.c, width: () => 2, height: () => 2 },
+            { x: d => d.x + 10 },
+        ],
+    })
+    let layer = plot.layers[0]
+    assert.deepEqual(layer.$data.x, [12])
+    assert.deepEqual(layer.$data.y, [3])
+    assert.deepEqual(layer.$data.color, ['a'])
+    assert.deepEqual(layer.$data.width, [2])
+})
+
+test('aes titles prefer explicit title over function-name fallback', () => {
+    function species(d) {
+        return d.c
+    }
+    species.title = 'Species'
+
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2, c: 'a' }], {
+        aes: [
+            { color: d => d.c },
+            { color: species },
+        ],
+    })
+    let layer = plot.layers[0]
+    assert.equal(layer.$fnames.color, 'species')
+    assert.equal(layer.$ftitles.color, 'Species')
+})
+
+test('assigned key accessor blocks lower titles', () => {
+    function fallback(d) {
+        return d.c
+    }
+    fallback.title = 'Fallback'
+
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2, c: 'a' }], {
+        aes: [
+            { color: fallback },
+            { color: d => d.c },
+        ],
+    })
+    let layer = plot.layers[0]
+    assert.equal(layer.$fnames.color, undefined)
+    assert.equal(layer.$ftitles.color, undefined)
+})
+
+test('key-accessor undefined is explicit and blocks lower fallbacks', () => {
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }, { x: 3, y: 4 }], {
+        aes: [
+            { color: () => 'blue' },
+            { color: () => undefined },
+        ],
+    })
+    let layer = plot.layers[0]
+    assert.deepEqual(layer.$data.color, [undefined, undefined])
+    assert.equal(layer.$ftitles.color, undefined)
+})
+
+test('row-function partial values override lower key-accessor columns', () => {
+    let plot = makePlot('test.named', 'test.named', [
+        { x: 1, y: 2, c: 'a' },
+        { x: 3, y: 4, c: 'b' },
+    ], {
+        aes: [
+            { color: () => 'fallback' },
+            d => d.c === 'a' ? { color: 'a-color' } : {},
+        ],
+    })
+    let layer = plot.layers[0]
+    assert.deepEqual(layer.$data.color, ['a-color', 'fallback'])
+})
+
+test('constant values in aes are ignored', () => {
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], {
+        aes: [{ color: 'red' }],
+    })
+    let layer = plot.layers[0]
+    assert.equal(layer.$data.color, undefined)
 })
 
 test('unknown custom aesthetics fall back to identity scaling', () => {
