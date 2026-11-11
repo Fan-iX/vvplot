@@ -13,11 +13,11 @@ class AsisNumber extends Number {
     static #cache = new Map()
     constructor(num) {
         const n = Number(num)
-        if (new.target.#cache.has(x)) {
-            return new.target.#cache.get(x)
+        if (new.target.#cache.has(n)) {
+            return new.target.#cache.get(n)
         }
-        super(x)
-        new.target.#cache.set(x, this)
+        super(n)
+        new.target.#cache.set(n, this)
     }
 }
 export class Asis {
