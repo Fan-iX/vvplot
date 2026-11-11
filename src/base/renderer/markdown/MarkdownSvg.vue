@@ -53,7 +53,7 @@ const binds = computed(() => {
 })
 </script>
 <template>
-    <g class="vvplot-layer">
+    <g class="vvplot-layer vvplot-layer-markdown">
         <g class="vvplot-group" v-for="group in binds" v-bind="{ class: groupClass, style: groupStyle }">
             <ElementMarkdown v-bind="vbind" v-on="von" v-for="[vbind, von] in group" />
         </g>

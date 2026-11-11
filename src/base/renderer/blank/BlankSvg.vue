@@ -9,5 +9,5 @@ const { extendX, extendY, data, mapping, layout } = defineProps({
 const emit = defineEmits(pointerEvents)
 </script>
 <template>
-    <g class="vvplot-layer"></g>
+    <g class="vvplot-layer vvplot-layer-blank"></g>
 </template>

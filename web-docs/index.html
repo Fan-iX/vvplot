@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VVPlot</title>
     <link rel="icon" type="image/svg+xml" href="../assets/vvplot-logo.svg" />
-    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
     <div id="app"></div>
     <script type="module">
+        import './style/style.css'
         import PreHighlightElement from './script/pre-highlight.js'
         customElements.define('pre-highlight', PreHighlightElement)
 

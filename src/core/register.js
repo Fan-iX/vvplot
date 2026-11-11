@@ -29,7 +29,8 @@ import { registerElement } from './registry/element.js'
  * `registerStat(name, stat)` or `registerLayers` to register it.
  *
  * @param {import('./types.ts').StatTransform} transform
- * @param {{core_attrs?: string[]}} [options]
+ * @param {Object} options
+ * @param {string[]} [options.core_attrs] attributes that need to be vectorized before statistic transformation and coordinate scale
  * @returns {import('./types.ts').StatTransform}
  */
 export function defineStat(transform, { core_attrs } = {}) {

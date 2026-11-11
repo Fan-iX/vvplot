@@ -14,7 +14,8 @@ const {
     alpha: { type: Number, default: 1 },
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
-    anchorX: Number, anchorY: Number, dockX: Number, dockY: Number,
+    anchorX: [Number, String], anchorY: [Number, String],
+    dockX: [Number, String], dockY: [Number, String],
     fontFamily: String, fontSize: Number, textLength: Number, textAnchor: { type: String, default: 'middle' },
 })
 const parser = new MarkdownParser()

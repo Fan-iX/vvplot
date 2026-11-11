@@ -11,7 +11,8 @@ const {
     alpha: { type: Number, default: 1 },
     angle: { type: Number, default: 0 },
     translateX: { type: Number, default: 0 }, translateY: { type: Number, default: 0 },
-    anchorX: Number, anchorY: Number, dockX: Number, dockY: Number,
+    anchorX: [Number, String], anchorY: [Number, String],
+    dockX: [Number, String], dockY: [Number, String],
     fontFamily: String, fontSize: Number, textLength: Number, textAnchor: { type: String, default: 'middle' },
 })
 const ele = useTemplateRef('ele')
@@ -30,13 +31,14 @@ watch(
 const binds = computed(() => {
     let { width, height } = textBox, transform = []
     let xoffset = ({ start: -0.5, end: 0.5 }[textAnchor] ?? 0) * width
+    let theta = angle * Math.PI / 180
     if (dockX != null || dockY != null) {
         let alnX = { left: 0, center: 0.5, right: 1 }[dockX] ?? +(dockX ?? 0.5),
             alnY = { bottom: 0, center: 0.5, top: 1 }[dockY] ?? +(dockY ?? 0.5)
         if (isNaN(alnX)) alnX = 0.5
         if (isNaN(alnY)) alnY = 0.5
-        let w = width * Math.abs(Math.cos(angle * Math.PI / 180)) + height * Math.abs(Math.sin(angle * Math.PI / 180)),
-            h = width * Math.abs(Math.sin(angle * Math.PI / 180)) + height * Math.abs(Math.cos(angle * Math.PI / 180)),
+        let w = width * Math.abs(Math.cos(theta)) + height * Math.abs(Math.sin(theta)),
+            h = width * Math.abs(Math.sin(theta)) + height * Math.abs(Math.cos(theta)),
             dx = translateX, dy = translateY
         transform.push(`translate(${w * (0.5 - alnX) + dx},${h * (alnY - 0.5) + dy})`)
         if (angle) transform.push(`rotate(${angle})`)
@@ -47,8 +49,8 @@ const binds = computed(() => {
         if (isNaN(alnX)) alnX = 0.5
         if (isNaN(alnY)) alnY = 0.5
         let w = width, h = height,
-            dx = translateX * Math.cos(angle * Math.PI / 180) + translateY * Math.sin(angle * Math.PI / 180),
-            dy = translateY * Math.cos(angle * Math.PI / 180) - translateX * Math.sin(angle * Math.PI / 180)
+            dx = translateX * Math.cos(theta) + translateY * Math.sin(theta),
+            dy = translateY * Math.cos(theta) - translateX * Math.sin(theta)
         if (angle) transform.push(`rotate(${angle})`)
         transform.push(`translate(${w * (0.5 - alnX) + dx + xoffset},${h * (alnY - 0.5) + dy})`)
     }

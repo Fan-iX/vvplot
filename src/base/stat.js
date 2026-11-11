@@ -1,7 +1,3 @@
-/**
- * Statistical transformations and metadata
- *  - core_attrs: attributes that need to be vectorized before statistic transformation
- */
 export { default as bar } from './stat/bar.js'
 export { default as boxplot } from './stat/boxplot.js'
 export { default as col } from './stat/col.js'
