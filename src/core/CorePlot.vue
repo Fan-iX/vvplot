@@ -704,7 +704,7 @@ const axes = computed(() => {
 })
 </script>
 <template>
-    <svg ref="svg" width="100%" height="100%" v-on="svgVOn" v-bind="$attrs">
+    <svg ref="svg" width="100%" height="100%" v-on="svgVOn" v-bind="$attrs" style="touch-action: none;">
         <defs>
             <clipPath :id="`${vid}-plot-clip`">
                 <rect x="0" y="0" :width="panel.width" :height="panel.height" />
