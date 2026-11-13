@@ -55,13 +55,15 @@ const axisActionModifiers = reactive({
     zoom: { ctrl: false, shift: false, meta: false, alt: false },
     rescale: { ctrl: false, shift: false, meta: false, alt: false },
 })
+const extend = ref(0)
 const actionTemplate = computed(() => {
     let plotActionComponents = Object.keys(plotActions).filter(act => plotActions[act])
         .map(act => `<VVAction ${act}${Object.entries(plotActionModifiers[act]).map(([k, v]) => v ? ` ${k}` : "").join('')} @${act}="d => actionData = d" />`)
     let axisActionComponents = Object.keys(axisActions).filter(act => axisActions[act])
         .map(act => `<VVAction ${act}${Object.entries(axisActionModifiers[act]).map(([k, v]) => v ? ` ${k}` : "").join('')} @${act}="d => actionData = d" />`)
     return `<VVPlot :width="600" :height="400">
-    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" 
+        :color="d => d.Species" ${extend.value ? `:extend-x="${extend.value}" :extend-y="${extend.value}"` : ''} />
 ${plotActionComponents.map(x => "    " + x + "\n").join('')}    <VVAxisX>
 ${axisActionComponents.map(x => "        " + x + "\n").join('')}    </VVAxisX>
 </VVPlot>`})
@@ -204,9 +206,14 @@ ${axisActionComponents.map(x => "        " + x + "\n").join('')}    </VVAxisX>
             </p>
             <p>
                 A <code>rangechange</code> event will also be emitted to the plot when the plot limits change.
-            </p>
-            <p>
                 The <code>min</code> and <code>max</code> model value of the primary axis will be updated as well.
+            </p>
+            <h4>Extension of data point clip range</h4>
+            <p>
+                By default, VVPlot will automatically clip out data points that are outside the plot range, which
+                may lead to missing data points when the plot range is being changed interactively.
+                The <code>extend-x</code> and <code>extend-y</code> property of each <code>&lt;VVGeom*&gt;</code>
+                component can be used to extend the data point clip range.
             </p>
             <fieldset>
                 <legend>plot and axis actions</legend>
@@ -232,10 +239,16 @@ ${axisActionComponents.map(x => "        " + x + "\n").join('')}    </VVAxisX>
                         </label>
                     </template>
                 </div>
+                <label class="inline-block">
+                    clip range extension:
+                    <input type="number" v-model="extend" step="0.1" min="0" class="w-16">
+                </label>
+                <hr>
                 <pre-highlight lang="html">{{ actionTemplate }}</pre-highlight>
                 <div class="grid grid-cols-[600px_1fr] gap-2 grid-flow-col">
                     <VVPlot :data="iris" :width="600" :height="400" @rangechange="e => actionData = e">
-                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species" />
+                        <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
+                            :extend-x="extend" :extend-y="extend" />
                         <template v-for="enabled, act in plotActions">
                             <VVAction v-if="enabled" :[act]="true" v-bind="plotActionModifiers[act]"
                                 @[act]="actionHist.push('plot:' + act)" />
@@ -247,14 +260,14 @@ ${axisActionComponents.map(x => "        " + x + "\n").join('')}    </VVAxisX>
                             </template>
                         </VVAxisX>
                     </VVPlot>
-                    <div class="row-span-full">
+                    <div class="row-span-full overflow-auto">
                         <div>
                             <p>action history:</p>
-                            <pre class="overflow-auto h-48" ref="hist-container">{{ actionHist.join('\n') }}</pre>
+                            <pre class="overflow-auto h-40" ref="hist-container">{{ actionHist.join('\n') }}</pre>
                         </div>
                         <div>
                             <p>action data:</p>
-                            <pre class="overflow-auto h-36">{{ actionData }}</pre>
+                            <pre class="overflow-auto h-40">{{ actionData }}</pre>
                         </div>
                     </div>
                 </div>

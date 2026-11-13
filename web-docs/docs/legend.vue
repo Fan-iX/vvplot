@@ -73,7 +73,7 @@ const templates = ref({})
     <VVGeomEllipse :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
         :color="d => d.Species" :fill="d => d.Species" />
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length" :color="d => d.Species"
-        :shape="Object.assign(d => d.Species, { toString: () => 'Shape' })" />
+        :shape="Object.assign(d => d.Species, { title: 'Shape' })" />
 </VVPlot>
 <div id="legend-3"></div>` }}</pre-highlight>
             <div class="flex flex-row">
@@ -87,7 +87,7 @@ const templates = ref({})
             <hr>
             <pre-highlight lang="html">{{templates[4] = `<VVPlot :data="letters" :width="600" :height="400" legend-teleport="#legend-4">
     <VVAxisY :min="0" :expand-mult="0" />
-    <VVGeomBar :x="d => d" :fill="Object.assign(d => d, { toString: () => 'Alphabet' })"
+    <VVGeomBar :x="d => d" :fill="Object.assign(d => d, { title: 'Alphabet' })"
         :scales="{ fill: vvscale.fill.custom((v) => ['blue', 'gold'][v % 2]) }" />
     <template #panel>
         <div id="legend-4" class="absolute top-0 right-0"></div>
