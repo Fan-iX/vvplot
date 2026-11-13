@@ -64,6 +64,7 @@ function makePlot(geom, stat, data, attrs = {}) {
         args: {},
         opts: attrs.opts ?? {},
         vBind: {},
+        showLegend: attrs.showLegend,
     }])
 }
 
@@ -258,4 +259,39 @@ test('registerLayers registers all four registries', () => {
     assert.equal(resolveStat('test.package'), stat)
     assert.equal(getRenderer('test.package').svg, svg)
     assert.equal(getComponent('VVGeomPackage'), component)
+})
+
+test('showLegend suppresses only the legend association of a layer', () => {
+    let legendGeom = { ...testGeom, scale_attrs: ['color'] }
+    registerGeom('test.legend', legendGeom)
+    registerStat('test.legend', testStat)
+
+    let visible = makePlot('test.legend', 'test.legend', [{ x: 1, y: 2, c: 'a' }], {
+        aes: { color: d => d.c },
+    })
+    visible.useScales({}, {})
+    assert.equal(visible.scales.size, 1)
+
+    let hidden = makePlot('test.legend', 'test.legend', [{ x: 1, y: 2, c: 'a' }], {
+        aes: { color: d => d.c },
+        showLegend: false,
+    })
+    hidden.useScales({}, {})
+    assert.equal(hidden.scales.size, 0)
+})
+
+test('showLegend can hide individual aesthetics of a layer', () => {
+    let legendGeom = { ...testGeom, scale_attrs: ['color', 'shape'] }
+    registerGeom('test.legend-per-aes', legendGeom)
+    registerStat('test.legend-per-aes', testStat)
+
+    let plot = makePlot('test.legend-per-aes', 'test.legend-per-aes', [{ x: 1, y: 2, c: 'a', s: 'b' }], {
+        aes: {
+            color: d => d.c,
+            shape: d => d.s,
+        },
+        showLegend: { color: false },
+    })
+    plot.useScales({}, {})
+    assert.deepEqual(Array.from(plot.scales.keys()).map(scale => scale.aesthetics), ['shape'])
 })

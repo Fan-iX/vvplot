@@ -52,7 +52,7 @@ class GLayer {
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
             attrs: $$attrs, args: $$args, opts: $$opts,
-            vBind: $$vBind,
+            vBind: $$vBind, showLegend,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
         let geomDef = resolveGeom($$geom)
@@ -67,6 +67,7 @@ class GLayer {
         }
         this.geom = $$geom
         this.geomDef = geomDef
+        this.showLegend = showLegend
         this.options = $$opts
         this.vBind = Object.assign($$vBind, {
             extendX: $$extendX ?? $extendX ?? 0,
@@ -275,16 +276,18 @@ export class GPlot {
                         scale.extent = numutils.extent(values.filter(v => !(v instanceof Asis)))
                     }
                 }
-                for (let layer of this.layers) scale._title ??= layer.$ftitles?.[aes]
-                for (let layer of this.layers) scale._title ??= layer.$fnames?.[aes]
-                for (let layer of this.layers) scale._title ??= (layer.$fn?.[aes] ? String(layer.$fn?.[aes]) : undefined)
+                let title, fname, fn
                 for (const layer of this.layers) {
-                    if (!layer.localScales.has(aes)) {
-                        layer.applyScale(aes, scale)
-                    }
+                    if (!layer.localScales.has(aes)) layer.applyScale(aes, scale)
+                    if (layer.showLegend === false || layer.showLegend?.[aes] === false) continue
+                    title ??= layer.$ftitles?.[aes]
+                    fname ||= layer.$fnames?.[aes]
+                    fn ??= layer.$fn?.[aes]
                 }
+                scale._title ??= title ?? (fname || (fn ? String(fn) : undefined))
             }
             for (const layer of this.layers) {
+                if (layer.showLegend === false || layer.showLegend?.[aes] === false) continue
                 let scale = layer.scales?.[aes]
                 if (scale == null) continue
                 if (!scale.asis) {

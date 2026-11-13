@@ -21,6 +21,7 @@ export interface LayerDefinitionOptions {
     argnames?: string[]
     optnames?: string[]
     defaults?: Record<string, any>
+    showLegend?: boolean | Record<string, boolean>
 }
 
 export interface CoordinateMapping {

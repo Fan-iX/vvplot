@@ -183,17 +183,21 @@ const schema = computed(() => {
 })
 /* layers
     data and data transformation of each layer.
-    [ layer<geom, stat, data, aes, attrs, scales, vBind> ]
+    [ layer<geom, stat, data, aes, attrs, scales, vBind, extendX, extendY, showLegend> ]
 */
 const layers = computed(() => {
     return vlayer.value.map(layer => {
-        let { geom, stat, aes, scales, data, 'extend-x': extendX, 'extend-y': extendY, key, ...etc } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, aes, scales, data, key, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let optnames = layer.type.$_optnames || []
-        let $$aes = {}, args = {}, attrs = {}, opts = {}
-        let vBind = {}
+        let $$aes = {}, args = {}, attrs = {}, opts = {}, vBind = {}
+        let config = { extendX: 0, extendY: 0, showLegend: true }
         for (let key in etc) {
             let k = camelize(key)
+            if (k in config) {
+                config[k] = etc[key]
+                continue
+            }
             let isArg = argnames.includes(k), isOpt = optnames.includes(k)
             if (isArg || isOpt) {
                 if (isArg) args[k] = etc[key]
@@ -223,7 +227,7 @@ const layers = computed(() => {
         aes = Array.isArray(aes) ? Array.from(aes) : [aes]
         if (Object.keys($$aes).length) aes.push($$aes)
         return {
-            geom, stat, data, attrs, scales, args, opts, aes, extendX, extendY, vBind
+            geom, stat, data, attrs, scales, args, opts, aes, vBind, ...config
         }
     })
 })
