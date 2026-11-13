@@ -4,13 +4,14 @@ import { GPlot } from '../src/core/plot.js'
 import {
     registerGeom, resolveGeom,
     registerStat, resolveStat,
-    registerRenderer, getRenderer,
+    registerRenderer, resolveRenderer, getRendererNames,
     getComponent,
     defineStat, registerLayer, registerLayers,
     registerElement, resolveElement, getElementNames,
 } from '../src/core/register.js'
 
 const testGeom = {
+    name: 'test.geom',
     scale_attrs: [],
     coord_scale(ds, levels) {
         let x = levels.x?.apply?.(ds.x) ?? ds.x
@@ -42,6 +43,8 @@ const testStat = defineStat(data => data, {
 
 registerGeom('test.named', testGeom)
 registerStat('test.named', testStat)
+registerRenderer('test.named', { svg: { name: 'test-named-svg' } })
+registerRenderer('test.renderer', { svg: { name: 'test-renderer-svg' } })
 
 function makePlot(geom, stat, data, attrs = {}) {
     return new GPlot({
@@ -64,6 +67,7 @@ function makePlot(geom, stat, data, attrs = {}) {
         args: {},
         opts: attrs.opts ?? {},
         vBind: {},
+        renderer: attrs.renderer,
         showLegend: attrs.showLegend,
     }])
 }
@@ -216,6 +220,68 @@ test('registerLayer creates a declarative layer component', () => {
     assert.equal(getComponent('VVGeomTest'), layer)
 })
 
+test('registerLayer stores an explicit renderer key', () => {
+    let layer = registerLayer('VVGeomTestRenderer', {
+        geom: 'test.named',
+        stat: 'test.named',
+        renderer: 'test.renderer',
+    })
+    assert.equal(layer.$_props.renderer, 'test.renderer')
+    assert.equal(getComponent('VVGeomTestRenderer'), layer)
+})
+
+test('registerLayer accepts a custom stat function', () => {
+    let stat = data => data
+    let layer = registerLayer('VVGeomFunctionStat', {
+        geom: 'test.named',
+        stat,
+        renderer: 'test.renderer',
+    })
+    assert.equal(layer.$_props.stat, stat)
+    assert.equal(layer.$_props.geom, 'test.named')
+})
+
+test('registerLayer registers an inline renderer for a shared geom', () => {
+    let svg = { name: 'inline-svg' }
+    let layer = registerLayer('VVGeomInlineRenderer', {
+        geom: 'test.named',
+        stat: 'test.named',
+        renderer: { svg },
+    })
+    assert.equal(layer.$_props.renderer.svg, svg)
+    assert.equal(resolveRenderer('VVGeomInlineRenderer'), undefined)
+})
+
+test('registerLayer passes an inline renderer for a custom geom', () => {
+    let geom = { ...testGeom }
+    let svg = { name: 'custom-geom-svg' }
+    let layer = registerLayer('VVGeomCustomRenderer', {
+        geom,
+        stat: 'test.named',
+        renderer: { svg },
+    })
+    assert.equal(layer.$_props.renderer.svg, svg)
+    assert.equal(resolveGeom('test.geom'), geom)
+    assert.equal(resolveRenderer('test.geom'), undefined)
+})
+
+test('GPlot carries the layer renderer key', () => {
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], {
+        renderer: 'test.renderer',
+    })
+    plot.useScales({}, {}).useCoordLevels({})
+    assert.equal(plot.layers[0].renderer, 'test.renderer')
+    assert.equal(plot.getComputedLayers()[0].renderer, 'test.renderer')
+})
+
+test('GPlot carries a direct renderer object', () => {
+    let renderer = { svg: { name: 'direct-svg' } }
+    let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], { renderer })
+    plot.useScales({}, {}).useCoordLevels({})
+    assert.equal(plot.layers[0].renderer, renderer)
+    assert.equal(plot.getComputedLayers()[0].renderer, renderer)
+})
+
 test('options are carried through GPlot unchanged', () => {
     let options = { mode: 'hide', padding: 2, maxLabels: 200 }
     let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], {
@@ -240,8 +306,9 @@ test('renderer registry merges svg and canvas renderers', () => {
     let canvas = { name: 'canvas-renderer' }
     registerRenderer('test.renderer', { svg })
     registerRenderer('test.renderer', { canvas })
-    assert.equal(getRenderer('test.renderer').svg, svg)
-    assert.equal(getRenderer('test.renderer').canvas, canvas)
+    assert.equal(resolveRenderer('test.renderer').svg, svg)
+    assert.equal(resolveRenderer('test.renderer').canvas, canvas)
+    assert.ok(getRendererNames().includes('test.renderer'))
 })
 
 test('registerLayers registers all four registries', () => {
@@ -257,7 +324,7 @@ test('registerLayers registers all four registries', () => {
     })
     assert.equal(resolveGeom('test.package'), geom)
     assert.equal(resolveStat('test.package'), stat)
-    assert.equal(getRenderer('test.package').svg, svg)
+    assert.equal(resolveRenderer('test.package').svg, svg)
     assert.equal(getComponent('VVGeomPackage'), component)
 })
 

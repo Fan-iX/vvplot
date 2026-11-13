@@ -1,10 +1,9 @@
 /**
  * Runtime registry for layer renderers.
  *
- * A geometry definition can either embed its renderers:
- *   { render: { svg: MySvgRenderer, canvas: MyCanvasRenderer } }
- * or register them separately under a geometry name:
- *   registerRenderer('my-geom', { svg: MySvgRenderer })
+ * Renderers are registered under a renderer name. A layer can reference that
+ * key explicitly, or fall back to the geometry name for backward compatibility:
+ *   registerRenderer('my-text', { svg: MyTextSvg })
  *
  * This module is engine-side only. The built-in `base` layers register their
  * renderers from `src/base/index.js`.
@@ -12,14 +11,14 @@
 const registry = new Map()
 
 /**
- * Register or extend the renderers of a geometry.
- * @param {string} name geometry name
- * @param {{svg?: Object, canvas?: Object, default?: string}} renderers
- * @returns {{svg?: Object, canvas?: Object, default?: string}}
+ * Register or extend a renderer set.
+ * @param {string} name renderer name
+ * @param {{svg?: Object, canvas?: Object}} renderers
+ * @returns {{svg?: Object, canvas?: Object}}
  */
 export function registerRenderer(name, renderers) {
     if (typeof name !== 'string' || name.length == 0)
-        throw new Error('Geometry name must be a non-empty string')
+        throw new Error('Renderer name must be a non-empty string')
     if (renderers == null || typeof renderers !== 'object')
         throw new Error(`Invalid renderers for "${name}"`)
     let merged = { ...registry.get(name), ...renderers }
@@ -28,12 +27,13 @@ export function registerRenderer(name, renderers) {
 }
 
 /**
- * Get the renderers registered for a geometry name.
- * @param {string} name
- * @returns {{svg?: Object, canvas?: Object, default?: string}|undefined}
+ * Get the renderers registered for a renderer name.
+ * @param {string} ref
+ * @returns {{svg?: Object, canvas?: Object}|undefined}
  */
-export function getRenderer(name) {
-    return registry.get(name)
+export function resolveRenderer(ref) {
+    if (typeof ref === 'string') return registry.get(ref)
+    return ref ?? undefined
 }
 
 /**

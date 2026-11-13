@@ -14,10 +14,17 @@ export interface StatTransform {
     core_attrs?: string[]
 }
 
+export interface RendererSet {
+    svg?: any
+    canvas?: any
+}
+
 export interface LayerDefinitionOptions {
     name: string
     geom: string | GeomDefinition
     stat?: string | StatTransform
+    /** Renderer key, or an inline renderer set registered under the layer name. */
+    renderer?: string | RendererSet
     argnames?: string[]
     optnames?: string[]
     defaults?: Record<string, any>

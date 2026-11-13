@@ -73,7 +73,7 @@ const components = { VVGeomCentroidText, VVGeomStar }
                     validate it.
                 </li>
                 <li>
-                    The <code>renderer</code> registry holds the SVG/canvas renderer components for each geometry.
+                    The <code>renderer</code> registry holds the SVG/canvas renderer components keyed by renderer name.
                 </li>
                 <li>
                     The <code>stat</code> registry defines the statistical transforms that will be applied to the data.

@@ -183,11 +183,11 @@ const schema = computed(() => {
 })
 /* layers
     data and data transformation of each layer.
-    [ layer<geom, stat, data, aes, attrs, scales, vBind, extendX, extendY, showLegend> ]
+    [ layer<geom, stat, renderer, data, aes, attrs, scales, vBind, extendX, extendY, showLegend> ]
 */
 const layers = computed(() => {
     return vlayer.value.map(layer => {
-        let { geom, stat, aes, scales, data, key, ...etc } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, renderer = geom, aes, scales, data, key, ...etc } = { ...layer.type.$_props, ...layer.props }
         let argnames = layer.type.$_argnames || []
         let optnames = layer.type.$_optnames || []
         let $$aes = {}, args = {}, attrs = {}, opts = {}, vBind = {}
@@ -227,7 +227,7 @@ const layers = computed(() => {
         aes = Array.isArray(aes) ? Array.from(aes) : [aes]
         if (Object.keys($$aes).length) aes.push($$aes)
         return {
-            geom, stat, data, attrs, scales, args, opts, aes, vBind, ...config
+            geom, stat, renderer, data, attrs, scales, args, opts, aes, vBind, ...config
         }
     })
 })

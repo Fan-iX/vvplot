@@ -19,6 +19,7 @@ function object_map(obj, expr) {
 /**
  * Graphic Layer object
  * @property {string} geom geometry type
+ * @property {string|Object} [renderer] renderer key or renderer set
  * @property {string} geomDef geometry definition
  * @property {Object} data scaled data
  * @property {Object} $data unscaled data
@@ -32,6 +33,7 @@ class GLayer {
      * @param {Array} layerSchema.data layer data
      * @param {Function[]} layerSchema.aes layer aesthetics
      * @param {string} layerSchema.geom geometry type
+     * @param {string|Object} [layerSchema.renderer] renderer key or renderer set
      * @param {string|Function} layerSchema.stat statistical transformation
      * @param {Object} layerSchema.levels aesthetic levels
      * @param {Object} layerSchema.scales aesthetic scales
@@ -48,7 +50,7 @@ class GLayer {
             extendX: $extendX, extendY: $extendY,
         } = plotSchema
         let {
-            geom: $$geom, stat: $$stat,
+            geom: $$geom, renderer: $$renderer, stat: $$stat,
             data: $$data, aes: $$aes,
             levels: $$levels = {}, scales: $$scales = {},
             attrs: $$attrs, args: $$args, opts: $$opts,
@@ -66,6 +68,7 @@ class GLayer {
             return
         }
         this.geom = $$geom
+        this.renderer = $$renderer
         this.geomDef = geomDef
         this.showLegend = showLegend
         this.options = $$opts
@@ -331,13 +334,13 @@ export class GPlot {
     }
 
     getComputedLayers() {
-        return this.layers.map(({ geom, geomDef, data, options, vBind }) => {
+        return this.layers.map(({ geom, renderer, geomDef, data, options, vBind }) => {
             let validate = geomDef?.validate ?? (d => d)
             return {
                 data: data.$group.map(
                     (_, i) => validate(object_map(data, (k, v) => v?.[i]))
                 ).filter(x => x != null),
-                geom, options, vBind
+                geom, renderer, options, vBind
             }
         })
     }

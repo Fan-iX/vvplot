@@ -17,7 +17,7 @@ export * from './registry/element.js'
 import { defineComponent, markRaw } from 'vue'
 import { registerGeom, resolveGeom } from './registry/geom.js'
 import { registerStat, resolveStat } from './registry/stat.js'
-import { registerRenderer } from './registry/renderer.js'
+import { registerRenderer, resolveRenderer } from './registry/renderer.js'
 import { registerComponent } from './registry/component.js'
 import { registerElement } from './registry/element.js'
 
@@ -46,32 +46,38 @@ export function defineStat(transform, { core_attrs } = {}) {
  * @param {Object} options
  * @param {string|Object} options.geom geometry name or definition
  * @param {string|Function} [options.stat="identity"] statistic name or transform
+ * @param {string|Object} [options.renderer] renderer key or inline renderer set
  * @param {string[]} [options.argnames=[]] stat argument names
  * @param {string[]} [options.optnames=[]] renderer-only option names
  * @returns {Object} Vue component carrying layer metadata
  */
 export function registerLayer(name, {
-    key, geom, stat = 'identity', renderer,
+    geom, stat = 'identity', renderer,
     argnames = [], optnames = [], ...defaults
 }) {
     if (typeof name !== 'string' || name.length == 0)
         throw new Error('registerLayer() requires a non-empty "name"')
     if (geom == null)
         throw new Error('registerLayer() requires a "geom"')
-    if (typeof geom === 'string' && !resolveGeom(geom))
-        throw new Error(`Unknown geometry "${geom}"`)
+    if (typeof geom === 'string') {
+        if (!resolveGeom(geom))
+            throw new Error(`Unknown geometry "${geom}"`)
+    } else {
+        if (!geom.name)
+            throw new Error('Inline geometry definition must have a "name" property')
+        registerGeom(geom.name, markRaw(geom))
+        geom = geom.name
+    }
+
     if (typeof stat === 'string' && !resolveStat(stat))
         throw new Error(`Unknown statistic "${stat}"`)
-    if (typeof geom !== 'string') {
-        if (!renderer) throw new Error(`registerLayer() requires a "renderer" for custom geometries`)
-        registerGeom(name, markRaw(geom))
-        registerRenderer(name, renderer)
-        geom = name
-    }
+    renderer ??= geom
+    if (typeof renderer === 'string' && !resolveRenderer(renderer))
+        throw new Error(`Unknown renderer "${renderer}"`)
 
     let component = markRaw(defineComponent({
         $_type: 'layer',
-        $_props: { geom, stat, ...defaults },
+        $_props: { ...defaults, geom, stat, renderer },
         $_argnames: argnames,
         $_optnames: optnames,
     }))
@@ -82,13 +88,15 @@ export function registerLayer(name, {
 /**
  * Register a complete layer package.
  *
- * `renderers` is keyed by geometry name and contains `{ svg, canvas }`.
+ * `renderers` is keyed by renderer name and contains `{ svg, canvas }`.
+ * A geometry name is still used as the default renderer key when a layer does
+ * not specify one, so existing packages remain compatible.
  * `components` is keyed by declaration tag name.
  *
  * @param {Object} pack
  * @param {Record<string, Object>} [pack.geoms]
  * @param {Record<string, Function>} [pack.stats]
- * @param {Record<string, {svg?: Object, canvas?: Object, default?: string}>} [pack.renderers]
+ * @param {Record<string, {svg?: Object, canvas?: Object}>} [pack.renderers]
  * @param {Record<string, Object>} [pack.components]
  */
 export function registerLayers({
