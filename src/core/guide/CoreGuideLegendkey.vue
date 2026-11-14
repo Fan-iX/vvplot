@@ -3,7 +3,6 @@ defineOptions({ inheritAttrs: false })
 import { computed } from 'vue'
 import * as glyphs from './glyph'
 import { categorize, obj_merge } from '#src/js/utils.js'
-import { resolveGeom } from '../registry/geom.js'
 
 const { sources, theme, breaks } = defineProps({
     sources: Array,
@@ -11,15 +10,9 @@ const { sources, theme, breaks } = defineProps({
     breaks: Array
 })
 
-const scales = computed(() => {
-    let res = new Map()
-    for (let { scale, appearance } of sources) {
-        res.set(scale, Object.fromEntries(Object.entries(appearance).flatMap(
-            ([geom, attr]) => [].concat(resolveGeom(geom)?.legend_glyph ?? []).map(g => [g, attr])
-        )))
-    }
-    return res
-})
+const scales = computed(() => new Map(
+    sources.map(({ scale, appearance }) => [scale, appearance ?? {}])
+))
 
 const appearances = computed(() => {
     let glyphs = Array.from(scales.value.values().flatMap(v => Object.keys(v)))

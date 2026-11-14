@@ -49,7 +49,7 @@ registerStat('centroid-text', defineStat(function (data) {
     return result
 }, { core_attrs: ['x', 'y', 'xnudge', 'ynudge', 'label', 'textLength'] }))
 
-const VVGeomStar = registerLayer('VVGeomStar', { geom: 'star', stat: 'point' })
+const VVGeomStar = registerLayer('VVGeomStar', { geom: 'star', stat: 'point', renderer: 'star' })
 const VVGeomCentroidText = registerLayer('VVGeomCentroidText', { geom: 'text', stat: 'centroid-text' })
 
 const templates = ref({})
@@ -154,7 +154,7 @@ registerRenderer('star', { svg: StarSvg })`}}</pre-highlight>
                 VVPlot provides a helper function <code>registerLayer</code> to do this.
             </p>
             <pre-highlight lang="javascript">{{ `import { registerLayer } from 'vvplot'
-const VVGeomStar = registerLayer('VVGeomStar', { geom: 'star', stat: 'point' })`}}</pre-highlight>
+const VVGeomStar = registerLayer('VVGeomStar', { geom: 'star', stat: 'point', renderer: 'star' })`}}</pre-highlight>
             <p>
                 <code>registerLayer</code> will return a Vue component,
                 which can be used in SFC or for <code>app.component</code>

@@ -11,7 +11,6 @@ import {
 } from '../src/core/register.js'
 
 const testGeom = {
-    name: 'test.geom',
     scale_attrs: [],
     coord_scale(ds, levels) {
         let x = levels.x?.apply?.(ds.x) ?? ds.x
@@ -47,6 +46,7 @@ registerRenderer('test.named', { svg: { name: 'test-named-svg' } })
 registerRenderer('test.renderer', { svg: { name: 'test-renderer-svg' } })
 
 function makePlot(geom, stat, data, attrs = {}) {
+    geom = typeof geom === 'string' ? resolveGeom(geom) : geom
     return new GPlot({
         data,
         aes: {},
@@ -261,7 +261,7 @@ test('registerLayer passes an inline renderer for a custom geom', () => {
         renderer: { svg },
     })
     assert.equal(layer.$_props.renderer.svg, svg)
-    assert.equal(resolveGeom('test.geom'), geom)
+    assert.equal(layer.$_props.geom.coord_scale, geom.coord_scale)
     assert.equal(resolveRenderer('test.geom'), undefined)
 })
 
@@ -361,4 +361,18 @@ test('showLegend can hide individual aesthetics of a layer', () => {
     })
     plot.useScales({}, {})
     assert.deepEqual(Array.from(plot.scales.keys()).map(scale => scale.aesthetics), ['shape'])
+})
+
+test('legend appearances are keyed by legend glyph rather than geom name', () => {
+    let geom = { ...testGeom, scale_attrs: ['color'], legend_glyph: 'point' }
+    registerGeom('test.legend-glyph', geom)
+    registerStat('test.legend-glyph', testStat)
+    let plot = makePlot('test.legend-glyph', 'test.legend-glyph', [{ x: 1, y: 2, c: 'a' }], {
+        aes: { color: d => d.c },
+        attrs: { color: 'red' },
+    })
+    plot.useScales({}, {})
+    let appearance = Array.from(plot.scales.values())[0]
+    assert.deepEqual(Object.keys(appearance), ['point'])
+    assert.equal(appearance.point.color, 'red')
 })

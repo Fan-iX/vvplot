@@ -2,8 +2,8 @@
 import { computed, useTemplateRef } from 'vue'
 import { resolveRenderer } from './register.js'
 
-const { data, geom, renderer, mapping, options, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
-    data: Object, geom: String, renderer: [String, Object], mapping: Object, options: Object,
+const { data, renderer, mapping, options, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
+    data: Object, renderer: [String, Object], mapping: Object, options: Object,
     render: String, defaultRender: { type: String, default: "auto" },
     dpi: Number, defaultDpi: Number
 })

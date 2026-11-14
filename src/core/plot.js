@@ -18,9 +18,8 @@ function object_map(obj, expr) {
 
 /**
  * Graphic Layer object
- * @property {string} geom geometry type
+ * @property {Object} geom geometry definition
  * @property {string|Object} [renderer] renderer key or renderer set
- * @property {string} geomDef geometry definition
  * @property {Object} data scaled data
  * @property {Object} $data unscaled data
  * @property {Object} aes aesthetics
@@ -32,7 +31,7 @@ class GLayer {
      * @param {Object} layerSchema layer schema
      * @param {Array} layerSchema.data layer data
      * @param {Function[]} layerSchema.aes layer aesthetics
-     * @param {string} layerSchema.geom geometry type
+     * @param {Object} layerSchema.geom geometry definition
      * @param {string|Object} [layerSchema.renderer] renderer key or renderer set
      * @param {string|Function} layerSchema.stat statistical transformation
      * @param {Object} layerSchema.levels aesthetic levels
@@ -57,9 +56,9 @@ class GLayer {
             vBind: $$vBind, showLegend,
             extendX: $$extendX, extendY: $$extendY,
         } = layerSchema
-        let geomDef = resolveGeom($$geom)
-        if (!geomDef) {
-            console.error(`Invalid geom "${$$geom}"`, "in layer", layerSchema, ", plot", plotSchema)
+        $$geom = typeof $$geom === 'string' ? resolveGeom($$geom) : $$geom
+        if ($$geom == null) {
+            console.error('Missing geom', "in layer", layerSchema, ", plot", plotSchema)
             return
         }
         let stat = resolveStat($$stat)
@@ -69,7 +68,6 @@ class GLayer {
         }
         this.geom = $$geom
         this.renderer = $$renderer
-        this.geomDef = geomDef
         this.showLegend = showLegend
         this.options = $$opts
         this.vBind = Object.assign($$vBind, {
@@ -179,7 +177,7 @@ class GLayer {
         ])
         this.aes = new Set([
             ...this.localScales,
-            ...this.geomDef.scale_attrs ?? []
+            ...this.geom.scale_attrs ?? []
         ])
 
         this.$data = data
@@ -235,7 +233,7 @@ class GLayer {
 
     applyCoordScale(coord_levels) {
         try {
-            Object.assign(this.data, this.geomDef?.coord_scale?.(this.$data, coord_levels))
+            Object.assign(this.data, this.geom?.coord_scale?.(this.$data, coord_levels))
         } catch (e) {
             console.error(e)
         }
@@ -298,10 +296,12 @@ export class GPlot {
                         this.scales.set(scale, {})
                     }
                     let geoms = this.scales.get(scale)
-                    if (geoms[layer.geom] == null) geoms[layer.geom] = {}
-                    for (let attr of layer.geomDef?.scale_attrs ?? []) {
-                        if (layer.attrs[attr] != null) {
-                            geoms[layer.geom][attr] = layer.attrs[attr]
+                    for (let glyph of [].concat(layer.geom?.legend_glyph ?? [])) {
+                        if (geoms[glyph] == null) geoms[glyph] = {}
+                        for (let attr of layer.geom?.scale_attrs ?? []) {
+                            if (layer.attrs[attr] != null) {
+                                geoms[glyph][attr] = layer.attrs[attr]
+                            }
                         }
                     }
                 }
@@ -316,13 +316,13 @@ export class GPlot {
                 this.levels[aes] = new EnumLevel(...levels[aes])
             } else {
                 let values = this.layers.flatMap(layer => {
-                    let fn = layer.geomDef?.get_values ?? layer.geomDef?.get_range
+                    let fn = layer.geom?.get_values ?? layer.geom?.get_range
                     return fn?.(layer.$data, aes)
                 })
                 if (values.some(is_categorical)) {
                     this.levels[aes] = EnumLevel.from(values)
                 } else {
-                    values = this.layers.flatMap(layer => layer.geomDef?.get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
+                    values = this.layers.flatMap(layer => layer.geom?.get_range?.(layer.$data, aes)).filter(v => !isNaN(v))
                     this.extents[aes] = numutils.extent(values.filter(v => !(v instanceof Asis)))
                 }
             }
@@ -334,13 +334,13 @@ export class GPlot {
     }
 
     getComputedLayers() {
-        return this.layers.map(({ geom, renderer, geomDef, data, options, vBind }) => {
-            let validate = geomDef?.validate ?? (d => d)
+        return this.layers.map(({ renderer, geom, data, options, vBind }) => {
+            let validate = geom?.validate ?? (d => d)
             return {
                 data: data.$group.map(
                     (_, i) => validate(object_map(data, (k, v) => v?.[i]))
                 ).filter(x => x != null),
-                geom, renderer, options, vBind
+                renderer, options, vBind
             }
         })
     }

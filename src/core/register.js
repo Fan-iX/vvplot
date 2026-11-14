@@ -42,6 +42,16 @@ export function defineStat(transform, { core_attrs } = {}) {
 
 /**
  * Create a reusable metadata-only layer declaration component.
+ *
+ * Resolution order:
+ *  1. geom: a string is validated against the geometry registry; an object is
+ *     used directly. The layer keeps the original geom reference; Plot
+ *     resolves it to the actual geom definition before handing it to GPlot.
+ *  2. stat: a string must already be registered; a function is used directly.
+ *  3. renderer: a string must already be registered; an object is passed
+ *     through as an inline renderer set. No implicit renderer registration
+ *     is performed.
+ *
  * @param {string} name component name, e.g. "VVGeomPoint"
  * @param {Object} options
  * @param {string|Object} options.geom geometry name or definition
@@ -59,21 +69,17 @@ export function registerLayer(name, {
         throw new Error('registerLayer() requires a non-empty "name"')
     if (geom == null)
         throw new Error('registerLayer() requires a "geom"')
-    if (typeof geom === 'string') {
-        if (!resolveGeom(geom))
-            throw new Error(`Unknown geometry "${geom}"`)
-    } else {
-        if (!geom.name)
-            throw new Error('Inline geometry definition must have a "name" property')
-        registerGeom(geom.name, markRaw(geom))
-        geom = geom.name
-    }
+
+    if (typeof geom === 'string' && !resolveGeom(geom))
+        throw new Error(`Unknown geometry "${geom}"`)
 
     if (typeof stat === 'string' && !resolveStat(stat))
         throw new Error(`Unknown statistic "${stat}"`)
-    renderer ??= geom
+
     if (typeof renderer === 'string' && !resolveRenderer(renderer))
         throw new Error(`Unknown renderer "${renderer}"`)
+    if (renderer != null && typeof renderer !== 'string' && typeof renderer !== 'object')
+        throw new Error(`Invalid renderer for "${name}"`)
 
     let component = markRaw(defineComponent({
         $_type: 'layer',
@@ -89,8 +95,9 @@ export function registerLayer(name, {
  * Register a complete layer package.
  *
  * `renderers` is keyed by renderer name and contains `{ svg, canvas }`.
- * A geometry name is still used as the default renderer key when a layer does
- * not specify one, so existing packages remain compatible.
+ * Layer components should declare the renderer key they use. The Plot layer
+ * parser still supports legacy manual components that omit renderer and use a
+ * string `geom`; new components should be explicit.
  * `components` is keyed by declaration tag name.
  *
  * @param {Object} pack

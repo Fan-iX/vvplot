@@ -187,7 +187,8 @@ const schema = computed(() => {
 */
 const layers = computed(() => {
     return vlayer.value.map(layer => {
-        let { geom, stat, renderer = geom, aes, scales, data, key, ...etc } = { ...layer.type.$_props, ...layer.props }
+        let { geom, stat, renderer, aes, scales, data, key, ...etc } = { ...layer.type.$_props, ...layer.props }
+        if (typeof geom === 'string') renderer ??= geom
         let argnames = layer.type.$_argnames || []
         let optnames = layer.type.$_optnames || []
         let $$aes = {}, args = {}, attrs = {}, opts = {}, vBind = {}
