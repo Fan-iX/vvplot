@@ -1,4 +1,4 @@
-import { Fragment } from 'vue'
+import { Fragment, computed } from 'vue'
 export function expandFragment(componentList) {
     if (componentList == null) return []
     return componentList.flatMap(layer => {
@@ -11,6 +11,33 @@ export function expandFragment(componentList) {
             })
         }
         return layer
+    })
+}
+
+
+const pointerEventClones = new WeakMap()
+
+/**
+ * Lazily clone a pointer event through a Vue ref. Reading `.value` (normally
+ * with `unref`) creates the clone; never reading it avoids the allocation.
+ * @param {PointerEvent} event
+ */
+export function useEventClone(event) {
+    return computed(() => {
+        let cached = pointerEventClones.get(event)
+        if (cached) return cached
+
+        let options = {}
+        for (let key in event) options[key] = event[key]
+        options.bubbles = false
+        let clone = new PointerEvent(event.type, options)
+        for (let key of Object.keys(event)) {
+            let prop = Object.getOwnPropertyDescriptor(clone, key)
+            if (prop && !prop.writable && !prop.set) continue
+            clone[key] = event[key]
+        }
+        pointerEventClones.set(event, clone)
+        return clone
     })
 }
 

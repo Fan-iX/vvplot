@@ -49,14 +49,14 @@ export function defineStat(transform, { core_attrs } = {}) {
  *     resolves it to the actual geom definition before handing it to GPlot.
  *  2. stat: a string must already be registered; a function is used directly.
  *  3. renderer: a string must already be registered; an object is passed
- *     through as an inline renderer set. No implicit renderer registration
+ *     through as an inline renderer component. No implicit renderer registration
  *     is performed.
  *
  * @param {string} name component name, e.g. "VVGeomPoint"
  * @param {Object} options
  * @param {string|Object} options.geom geometry name or definition
  * @param {string|Function} [options.stat="identity"] statistic name or transform
- * @param {string|Object} [options.renderer] renderer key or inline renderer set
+ * @param {string|Object} [options.renderer] renderer key or inline renderer component
  * @param {string[]} [options.argnames=[]] stat argument names
  * @param {string[]} [options.optnames=[]] renderer-only option names
  * @returns {Object} Vue component carrying layer metadata
@@ -78,7 +78,8 @@ export function registerLayer(name, {
 
     if (typeof renderer === 'string' && !resolveRenderer(renderer))
         throw new Error(`Unknown renderer "${renderer}"`)
-    if (renderer != null && typeof renderer !== 'string' && typeof renderer !== 'object')
+    if (renderer != null && typeof renderer !== 'string' &&
+        typeof renderer !== 'object' && typeof renderer !== 'function')
         throw new Error(`Invalid renderer for "${name}"`)
 
     let component = markRaw(defineComponent({
@@ -94,16 +95,14 @@ export function registerLayer(name, {
 /**
  * Register a complete layer package.
  *
- * `renderers` is keyed by renderer name and contains `{ svg, canvas }`.
- * Layer components should declare the renderer key they use. The Plot layer
- * parser still supports legacy manual components that omit renderer and use a
- * string `geom`; new components should be explicit.
+ * `renderers` is keyed by renderer name and contains renderer entry
+ * components.
  * `components` is keyed by declaration tag name.
  *
  * @param {Object} pack
  * @param {Record<string, Object>} [pack.geoms]
  * @param {Record<string, Function>} [pack.stats]
- * @param {Record<string, {svg?: Object, canvas?: Object}>} [pack.renderers]
+ * @param {Record<string, Object|Function>} [pack.renderers]
  * @param {Record<string, Object>} [pack.components]
  */
 export function registerLayers({

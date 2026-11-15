@@ -1,35 +1,35 @@
 <script setup>
 import { computed, useTemplateRef } from 'vue'
 import { resolveRenderer } from './register.js'
+import { useEventClone } from './utils.js'
 
-const { data, renderer, mapping, options, render: $render, defaultRender: $$render, dpi: $dpi, defaultDpi: $$dpi } = defineProps({
-    data: Object, renderer: [String, Object], mapping: Object, options: Object,
-    render: String, defaultRender: { type: String, default: "auto" },
-    dpi: Number, defaultDpi: Number
+const {
+    renderer, render: $render, defaultRender: $$render,
+    dpi: $dpi, defaultDpi: $$dpi,
+} = defineProps({
+    renderer: [String, Object, Function],
+    render: String, defaultRender: { type: String, default: 'auto' },
+    dpi: Number, defaultDpi: Number,
 })
 
-const candidates = computed(() => typeof renderer === 'string' ? resolveRenderer(renderer) : renderer)
-
-const rend = computed(() => {
-    let render = $render ?? $$render
-    if (candidates.value?.[render])
-        return render
-    if (render == "auto") {
-        let n_data = data.map(d => d.length).reduce((a, b) => a + b, 0)
-        return n_data > 1e3 ? "canvas" : "svg"
-    }
-    if (candidates.value?.[render]) return render
-    return 'svg'
-})
+const Renderer = computed(() => typeof renderer === 'string' ? resolveRenderer(renderer) : renderer)
+const render = computed(() => $render ?? $$render)
+const dpi = computed(() => $dpi ?? $$dpi)
 const layer = useTemplateRef('layer')
-const style = computed(() => rend.value == 'canvas' ? 'pointer-events: none;' : '')
+
 defineExpose({
-    render: rend,
-    dispatchEvent: e => layer.value?.dispatchEvent?.(e)
+    dispatchEvent(event) {
+        let $event = layer.value?.dispatchEvent?.(useEventClone(event))
+        if ($event == null || $event === event) return
+        if ($event.defaultPrevented) event.preventDefault()
+        for (let key of Object.keys($event)) {
+            let prop = Object.getOwnPropertyDescriptor(event, key)
+            if (prop && !prop.writable && !prop.set) continue
+            event[key] = $event[key]
+        }
+    }
 })
-const dpi = computed(() => rend.value === "canvas" ? $dpi ?? $$dpi : undefined)
 </script>
 <template>
-    <component v-if="candidates?.[rend]" ref="layer" :is="candidates?.[rend]" :style="style" :data="data" :mapping="mapping"
-        :options="options" :dpi="dpi" />
+    <component v-if="Renderer" :is="Renderer" ref="layer" :render="render" :dpi="dpi" />
 </template>

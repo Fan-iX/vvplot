@@ -1,3 +1,5 @@
+import type { Component } from 'vue'
+
 export type LegendGlyph = 'tile' | 'line' | 'point' | 'text' | 'boxplot'
 
 export interface GeomDefinition {
@@ -14,17 +16,11 @@ export interface StatTransform {
     core_attrs?: string[]
 }
 
-export interface RendererSet {
-    svg?: any
-    canvas?: any
-}
-
 export interface LayerDefinitionOptions {
     name: string
     geom: string | GeomDefinition
     stat?: string | StatTransform
-    /** Renderer key, or an inline renderer set registered under the layer name. */
-    renderer?: string | RendererSet
+    renderer?: string | Component
     argnames?: string[]
     optnames?: string[]
     defaults?: Record<string, any>

@@ -6,6 +6,7 @@ const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendY: { type: Number, default: 0 },
     data: Object, mapping: Object, layout: Object, options: Object,
     dpi: { type: Number, default: 96 },
+    groupClass: null, groupStyle: null,
 })
 const emit = defineEmits(pointerEvents)
 

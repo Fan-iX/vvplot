@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { unref } from 'vue'
 import { GPlot } from '../src/core/plot.js'
+import { useEventClone } from '../src/core/utils.js'
 import {
     registerGeom, resolveGeom,
     registerStat, resolveStat,
@@ -42,8 +44,10 @@ const testStat = defineStat(data => data, {
 
 registerGeom('test.named', testGeom)
 registerStat('test.named', testStat)
-registerRenderer('test.named', { svg: { name: 'test-named-svg' } })
-registerRenderer('test.renderer', { svg: { name: 'test-renderer-svg' } })
+const testNamedRenderer = { name: 'test-named-renderer' }
+const testRenderer = { name: 'test-renderer' }
+registerRenderer('test.named', testNamedRenderer)
+registerRenderer('test.renderer', testRenderer)
 
 function makePlot(geom, stat, data, attrs = {}) {
     geom = typeof geom === 'string' ? resolveGeom(geom) : geom
@@ -241,26 +245,26 @@ test('registerLayer accepts a custom stat function', () => {
     assert.equal(layer.$_props.geom, 'test.named')
 })
 
-test('registerLayer registers an inline renderer for a shared geom', () => {
-    let svg = { name: 'inline-svg' }
+test('registerLayer registers an inline renderer component for a shared geom', () => {
+    let renderer = { name: 'inline-renderer' }
     let layer = registerLayer('VVGeomInlineRenderer', {
         geom: 'test.named',
         stat: 'test.named',
-        renderer: { svg },
+        renderer,
     })
-    assert.equal(layer.$_props.renderer.svg, svg)
+    assert.equal(layer.$_props.renderer, renderer)
     assert.equal(resolveRenderer('VVGeomInlineRenderer'), undefined)
 })
 
-test('registerLayer passes an inline renderer for a custom geom', () => {
+test('registerLayer passes an inline renderer component for a custom geom', () => {
     let geom = { ...testGeom }
-    let svg = { name: 'custom-geom-svg' }
+    let renderer = { name: 'custom-geom-renderer' }
     let layer = registerLayer('VVGeomCustomRenderer', {
         geom,
         stat: 'test.named',
-        renderer: { svg },
+        renderer,
     })
-    assert.equal(layer.$_props.renderer.svg, svg)
+    assert.equal(layer.$_props.renderer, renderer)
     assert.equal(layer.$_props.geom.coord_scale, geom.coord_scale)
     assert.equal(resolveRenderer('test.geom'), undefined)
 })
@@ -274,8 +278,8 @@ test('GPlot carries the layer renderer key', () => {
     assert.equal(plot.getComputedLayers()[0].renderer, 'test.renderer')
 })
 
-test('GPlot carries a direct renderer object', () => {
-    let renderer = { svg: { name: 'direct-svg' } }
+test('GPlot carries a direct renderer component', () => {
+    let renderer = { name: 'direct-renderer' }
     let plot = makePlot('test.named', 'test.named', [{ x: 1, y: 2 }], { renderer })
     plot.useScales({}, {}).useCoordLevels({})
     assert.equal(plot.layers[0].renderer, renderer)
@@ -301,30 +305,27 @@ test('element registry registers and resolves elements', () => {
     assert.ok(getElementNames().includes('test.element'))
 })
 
-test('renderer registry merges svg and canvas renderers', () => {
-    let svg = { name: 'svg-renderer' }
-    let canvas = { name: 'canvas-renderer' }
-    registerRenderer('test.renderer', { svg })
-    registerRenderer('test.renderer', { canvas })
-    assert.equal(resolveRenderer('test.renderer').svg, svg)
-    assert.equal(resolveRenderer('test.renderer').canvas, canvas)
-    assert.ok(getRendererNames().includes('test.renderer'))
+test('renderer registry stores a renderer entry component', () => {
+    let renderer = { name: 'single-renderer' }
+    registerRenderer('test.single-renderer', renderer)
+    assert.equal(resolveRenderer('test.single-renderer'), renderer)
+    assert.ok(getRendererNames().includes('test.single-renderer'))
 })
 
 test('registerLayers registers all four registries', () => {
     let geom = { ...testGeom, scale_attrs: ['x'] }
     let stat = defineStat(data => data, { core_attrs: ['x'] })
-    let svg = { name: 'package-svg' }
+    let renderer = { name: 'package-renderer' }
     let component = { name: 'VVGeomPackage' }
     registerLayers({
         geoms: { 'test.package': geom },
         stats: { 'test.package': stat },
-        renderers: { 'test.package': { svg } },
+        renderers: { 'test.package': renderer },
         components: { VVGeomPackage: component },
     })
     assert.equal(resolveGeom('test.package'), geom)
     assert.equal(resolveStat('test.package'), stat)
-    assert.equal(resolveRenderer('test.package').svg, svg)
+    assert.equal(resolveRenderer('test.package'), renderer)
     assert.equal(getComponent('VVGeomPackage'), component)
 })
 
@@ -375,4 +376,37 @@ test('legend appearances are keyed by legend glyph rather than geom name', () =>
     let appearance = Array.from(plot.scales.values())[0]
     assert.deepEqual(Object.keys(appearance), ['point'])
     assert.equal(appearance.point.color, 'red')
+})
+
+
+test('useEventClone clones only when the ref is unrefed', () => {
+    let OriginalPointerEvent = globalThis.PointerEvent
+    let constructed = 0
+    globalThis.PointerEvent = class {
+        constructor(type, init = {}) {
+            constructed++
+            this.type = type
+            Object.assign(this, init)
+            this.defaultPrevented = false
+        }
+        preventDefault() {
+            this.defaultPrevented = true
+        }
+    }
+    try {
+        let original = { type: 'pointermove', clientX: 8, custom: 'x' }
+        let eventRef = useEventClone(original)
+        assert.equal(constructed, 0)
+
+        let cloned = unref(eventRef)
+        assert.equal(constructed, 1)
+        assert.equal(cloned.bubbles, false)
+        assert.equal(cloned.clientX, 8)
+        assert.equal(cloned.custom, 'x')
+        assert.equal(unref(eventRef), cloned)
+        assert.equal(constructed, 1)
+    } finally {
+        if (OriginalPointerEvent === undefined) delete globalThis.PointerEvent
+        else globalThis.PointerEvent = OriginalPointerEvent
+    }
 })

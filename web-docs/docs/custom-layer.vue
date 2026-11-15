@@ -24,7 +24,7 @@ registerGeom('star', {
     }
 })
 import StarSvg from './componets/StarSvg.vue'
-registerRenderer('star', { svg: StarSvg })
+registerRenderer('star', StarSvg)
 
 const { intraaction } = vvutils
 registerStat('centroid-text', defineStat(function (data) {
@@ -136,6 +136,8 @@ registerGeom('star', {
                 It is a Vue component that receives the scaled data, the plot layout and a coordinate
                 <code>mapping</code> object as props. The mapping exposes <code>coord2pos</code>,
                 <code>pos2coord</code> and <code>getCoord</code> helpers.
+                A renderer entry is a normal Vue SFC. It can import both SVG and Canvas
+                implementations and choose between them in its template or setup.
             </p>
             <p>
                 Here is a custom <code>StarSvg</code> component, which will render the star geometric element in SVG.
@@ -146,7 +148,7 @@ registerGeom('star', {
                 Register the it with <code>registerRenderer</code>:
             </p>
             <pre-highlight lang="javascript">{{ `import { registerRenderer } from 'vvplot'
-registerRenderer('star', { svg: StarSvg })`}}</pre-highlight>
+registerRenderer('star', StarSvg)`}}</pre-highlight>
             <p>
                 To make the custom geometry work within <code>&lt;VVPlot&gt;</code>,
                 we need to define a declarative layer component <code>&lt;VVGeomStar&gt;</code> and make it available

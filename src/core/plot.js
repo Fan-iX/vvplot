@@ -19,7 +19,7 @@ function object_map(obj, expr) {
 /**
  * Graphic Layer object
  * @property {Object} geom geometry definition
- * @property {string|Object} [renderer] renderer key or renderer set
+ * @property {string|Object} [renderer] renderer key or entry component
  * @property {Object} data scaled data
  * @property {Object} $data unscaled data
  * @property {Object} aes aesthetics
@@ -32,7 +32,7 @@ class GLayer {
      * @param {Array} layerSchema.data layer data
      * @param {Function[]} layerSchema.aes layer aesthetics
      * @param {Object} layerSchema.geom geometry definition
-     * @param {string|Object} [layerSchema.renderer] renderer key or renderer set
+     * @param {string|Object} [layerSchema.renderer] renderer key or entry component
      * @param {string|Function} layerSchema.stat statistical transformation
      * @param {Object} layerSchema.levels aesthetic levels
      * @param {Object} layerSchema.scales aesthetic scales

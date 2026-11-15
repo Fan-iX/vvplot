@@ -325,27 +325,11 @@ function isInPlot(event) {
 
 function dispatchPointerEvent(e) {
     if (!layers.value || e._vhandled || !isInPlot(e)) return e
-    let canvasLayers = Array.from(layers.value).filter(l => l.render == 'canvas')
-    if (!canvasLayers.length) return e
-    // clone event
-    let options = {}
-    for (let key in e) options[key] = e[key]
-    options.bubbles = false
-    let event = new PointerEvent(e.type, options)
-    for (let key of Object.keys(e)) {
-        let prop = Object.getOwnPropertyDescriptor(event, key)
-        if (prop && !prop.writable && !prop.set) continue
-        event[key] = e[key]
+    for (let i = layers.value.length - 1; i >= 0; i--) {
+        layers.value[i].dispatchEvent?.(e)
+        if (e._vhandled) break
     }
-    // dispatch to canvas layers
-    for (let i = layers.value.length - 1; i >= 0; i--)
-        if (layers.value[i].dispatchEvent(event) === false) e.preventDefault()
-    for (let key of Object.keys(event)) {
-        let prop = Object.getOwnPropertyDescriptor(event, key)
-        if (prop && !prop.writable && !prop.set) continue
-        e[key] = event[key]
-    }
-    return event._vhandled ? event : e
+    return e
 }
 
 let moveTimer, movementX = 0, movementY = 0

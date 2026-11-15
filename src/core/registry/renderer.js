@@ -1,35 +1,34 @@
 /**
  * Runtime registry for layer renderers.
  *
- * Renderers are registered under a renderer name. A layer can reference that
- * key explicitly, or fall back to the geometry name for backward compatibility:
- *   registerRenderer('my-text', { svg: MyTextSvg })
+ * A renderer is a single Vue component that owns its rendering mode. It
+ * receives the requested `render` value and decides whether to use SVG,
+ * Canvas or another implementation.
  *
- * This module is engine-side only. The built-in `base` layers register their
- * renderers from `src/base/index.js`.
+ *   registerRenderer('my-text', MyTextRenderer)
  */
 const registry = new Map()
 
 /**
- * Register or extend a renderer set.
+ * Register a renderer entry component.
  * @param {string} name renderer name
- * @param {{svg?: Object, canvas?: Object}} renderers
- * @returns {{svg?: Object, canvas?: Object}}
+ * @param {Object|Function} component Vue component
+ * @returns {Object|Function} the registered component
  */
-export function registerRenderer(name, renderers) {
+export function registerRenderer(name, component) {
     if (typeof name !== 'string' || name.length == 0)
         throw new Error('Renderer name must be a non-empty string')
-    if (renderers == null || typeof renderers !== 'object')
-        throw new Error(`Invalid renderers for "${name}"`)
-    let merged = { ...registry.get(name), ...renderers }
-    registry.set(name, merged)
-    return merged
+    if (component == null || (typeof component !== 'object' && typeof component !== 'function'))
+        throw new Error(`Invalid renderer component for "${name}"`)
+    registry.set(name, component)
+    return component
 }
 
 /**
- * Get the renderers registered for a renderer name.
- * @param {string} ref
- * @returns {{svg?: Object, canvas?: Object}|undefined}
+ * Resolve a renderer reference. A string is looked up in the registry;
+ * a component is returned as-is.
+ * @param {string|Object|Function} ref renderer name or component
+ * @returns {Object|Function|undefined}
  */
 export function resolveRenderer(ref) {
     if (typeof ref === 'string') return registry.get(ref)
@@ -37,7 +36,7 @@ export function resolveRenderer(ref) {
 }
 
 /**
- * Get a snapshot of all registered renderer names.
+ * Get all registered renderer names.
  * @returns {string[]}
  */
 export function getRendererNames() {
