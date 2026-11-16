@@ -5,9 +5,7 @@
  * components (`components/`) stay declarative. The root entry installs this
  * package through the standard registration API.
  */
-import * as geoms from './geom.js'
-import * as stats from './stat.js'
-import * as renderers from './renderer'
-import * as components from './components'
-
-export default { geoms, stats, renderers, components }
+export * as geoms from './geom.js'
+export * as stats from './stat.js'
+export * as renderers from './renderer'
+export * as components from './components'

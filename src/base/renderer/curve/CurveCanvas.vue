@@ -1,6 +1,6 @@
 <script setup>
 import { computed, watch, useTemplateRef } from 'vue'
-import { pointerEvents, parseLinetype } from '#src/core/utils.js'
+import { pointerEvents, parseLinetype } from '#src/base/utils.js'
 import { line, curveCardinal, curveCardinalClosed, curveCatmullRom, curveCatmullRomClosed, curveLinear, curveLinearClosed, curveNatural } from 'd3-shape'
 const { extendX, extendY, data, mapping, layout, dpi } = defineProps({
     extendX: { type: Number, default: 0 },

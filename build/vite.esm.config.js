@@ -20,42 +20,36 @@ export default defineConfig({
     }),
     dts({ rollupTypes: true }),
   ],
+  publicDir: false,
   build: {
     minify: false,
+    emptyOutDir: false,
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        vvplot: resolve(__dirname, '../src/index.esm.ts'),
+        utils: resolve(__dirname, '../src/js/utils.js'),
+        components: resolve(__dirname, '../src/components.ts'),
+        base: resolve(__dirname, '../src/base/index.ts'),
+        "base-utils": resolve(__dirname, '../src/base/utils.js'),
+      },
       name: 'VVPlot',
       fileName: 'vvplot',
-      cssFileName: "style"
+      cssFileName: "vvplot"
     },
     rolldownOptions: {
       external: ['vue'],
       output: [
         {
           format: 'es',
-          entryFileNames: 'vvplot.esm.js',
+          chunkFileNames: 'chunk-[name].js',
+          entryFileNames: '[name].esm.js',
           minifyInternalExports: false,
         },
         {
           format: 'es',
-          entryFileNames: 'vvplot.esm.min.js',
+          chunkFileNames: 'chunk-[name].min.js',
+          entryFileNames: '[name].esm.min.js',
           minify: true,
-        },
-        {
-          format: 'iife',
-          entryFileNames: 'vvplot.global.js',
-          minifyInternalExports: false,
-          name: 'VVPlot',
-          globals: { vue: 'Vue' },
-          exports: "named",
-        },
-        {
-          format: 'iife',
-          entryFileNames: 'vvplot.global.min.js',
-          minify: true,
-          name: 'VVPlot',
-          globals: { vue: 'Vue' },
-          exports: "named",
         },
       ],
     },

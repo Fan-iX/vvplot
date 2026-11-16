@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { pointerEvents } from '#src/core/utils.js'
+import { pointerEvents } from '#src/base/utils.js'
 import ElementText from '#src/elements/ElementText.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },

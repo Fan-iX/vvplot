@@ -14,7 +14,6 @@ export function expandFragment(componentList) {
     })
 }
 
-
 const pointerEventClones = new WeakMap()
 
 /**
@@ -42,7 +41,7 @@ export function useEventClone(event) {
 }
 
 export const pointerEvents = [
-    'click', 'contextmenu', 'singleclick',
+    'click', 'contextmenu', 'singleclick', 'dblclick',
     'pointerover', 'pointerout', 'pointerenter', 'pointerleave',
     'pointermove', 'pointerdown', 'pointerup', 'wheel'
 ]

@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { pointerEvents } from '#src/core/utils.js'
+import { pointerEvents } from '#src/base/utils.js'
 import ElementPolygon from '#src/elements/ElementPolygon.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },

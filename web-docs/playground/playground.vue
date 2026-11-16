@@ -1,6 +1,6 @@
 <script setup>
 import { createApp, ref, useTemplateRef, onMounted, computed, watch, nextTick } from 'vue'
-import VVPlot from '#src/index.ts'
+import VVPlot from '#src/index.esm.ts'
 import { vvscale, oob, vvbreak, vvlabel, vvtheme } from '#src/index.ts'
 import { svg2svg, svg2png, read_table } from '../script/utils.js'
 import DataTable from './components/DataTable.vue'

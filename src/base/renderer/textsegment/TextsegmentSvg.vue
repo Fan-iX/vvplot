@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { pointerEvents } from '#src/core/utils.js'
-import { parseLinetype } from '#src/core/utils.js'
+import { pointerEvents, parseLinetype } from '#src/base/utils.js'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },

@@ -2,13 +2,7 @@
 import { computed, reactive } from 'vue'
 import DragList from './DragList.vue'
 defineOptions({ inheritAttrs: false })
-import { vvgeom, vvstat, components as vvcomponents } from '#src/index.ts'
-const vvlayers = {}
-for (let c in vvcomponents) {
-    if (vvcomponents[c].$_type == "layer" && vvcomponents[c].$_props?.stat) {
-        vvlayers[c] = vvcomponents[c]
-    }
-}
+import { geoms as vvgeom, stats as vvstat, components as vvlayers } from '#src/base'
 
 const { data } = defineProps({ data: Array, default: () => [] })
 const layers = defineModel({ default: () => reactive([]) }) // { layer, bind }

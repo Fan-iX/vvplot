@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { pointerEvents } from '#src/core/utils.js'
+import { pointerEvents } from '#src/base/utils.js'
 import ElementTile from '#src/elements/ElementTile.vue'
 import ElementPoint from '#src/elements/ElementPoint.vue'
 import ElementLine from '#src/elements/ElementLine.vue'

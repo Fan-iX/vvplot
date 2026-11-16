@@ -1,5 +1,5 @@
 <script setup>
-import { pointerEvents } from '#src/core/utils.js'
+import { pointerEvents } from '#src/base/utils.js'
 const { extendX, extendY, data, mapping, layout } = defineProps({
     extendX: { type: Number, default: 0 },
     extendY: { type: Number, default: 0 },

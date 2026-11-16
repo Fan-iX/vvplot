@@ -6,7 +6,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build --config build/vite.esm.config.js && vite build --config build/vite.iife.config.js",
     "build:docs": "vite build web-docs",
     "dev": "vite dev web-docs",
     "test": "node --test test/*.test.mjs"
@@ -22,7 +22,23 @@
       "import": "./dist/vvplot.esm.js",
       "types": "./dist/vvplot.d.ts"
     },
-    "./style.css": "./dist/style.css"
+    "./components": {
+      "import": "./dist/components.esm.js",
+      "types": "./dist/components.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils.esm.js",
+      "types": "./dist/utils.d.ts"
+    },
+    "./base": {
+      "import": "./dist/base.esm.js",
+      "types": "./dist/base.d.ts"
+    },
+    "./base/utils": {
+      "import": "./dist/base-utils.esm.js",
+      "types": "./dist/base-utils.d.ts"
+    },
+    "./style.css": "./dist/vvplot.css"
   },
   "homepage": "https://fan-ix.github.io/vvplot/",
   "repository": "https://github.com/Fan-iX/vvplot/",

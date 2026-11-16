@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { pointerEvents } from '#src/core/utils.js'
+import { pointerEvents } from '#src/base/utils.js'
 import ElementMarkdown from '#src/elements/ElementMarkdown.vue'
 const { extendX, extendY, data, mapping, layout, groupClass, groupStyle } = defineProps({
     extendX: { type: Number, default: 0 },
