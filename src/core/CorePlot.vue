@@ -3,7 +3,7 @@ defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, inject, useTemplateRef, useId } from 'vue'
 import { GPlot, GAxis } from './plot.js'
 import { unique, oob_squish_any, oob_squish_infinite, plus } from '#src/js/utils.js'
-import { dropNull, emitEvent } from '#src/core/utils.js'
+import { dropNull, pointerEvents, emitEvent } from '#src/core/utils.js'
 import { reactiveComputed, useResizeObserver } from '@vueuse/core'
 import CoreAxis from './axis/CoreAxis.vue'
 import CoreGridH from './grid/CoreGridH.vue'
@@ -338,7 +338,7 @@ function svgPointerdown(e) {
     emit('pointerdown', evt, coord)
     if (evt.defaultPrevented) e.preventDefault()
     if (props.clip && !isInPlot(e)) return
-    let svg = e.currentTarget
+    const svg = e.currentTarget
     let pointerMoved = false
     function detectMove(ev) {
         if (Math.abs(ev.screenX - e.screenX) > 3 || Math.abs(ev.screenY - e.screenY) > 3) {
@@ -346,9 +346,9 @@ function svgPointerdown(e) {
             ev.currentTarget.removeEventListener('pointermove', detectMove)
         }
     }
-    e.target.addEventListener('pointermove', detectMove, { passive: true })
-    e.target.addEventListener('pointerup', function (ev) {
-        e.target.removeEventListener('pointermove', detectMove)
+    svg.addEventListener('pointermove', detectMove, { passive: true })
+    svg.addEventListener('pointerup', function (ev) {
+        svg.removeEventListener('pointermove', detectMove)
         if (!pointerMoved) {
             let event = new PointerEvent("singleclick", ev)
             ev.target.dispatchEvent(event)
@@ -575,6 +575,7 @@ function applyTransform(act, event) {
     }
     changerange(coord)
 }
+const $vvplot = inject('$vvplot')
 const svgVOn = {
     pointerdown: svgPointerdown,
     pointerup(e) {
@@ -582,6 +583,7 @@ const svgVOn = {
         emit('pointerup', evt, coord)
         if (evt.defaultPrevented) e.preventDefault()
     },
+    // not dispatching because these four events will be capture by the whole canvas element but not data elements.
     pointerover(e) { emit('pointerover', e, getCoord(e)) },
     pointerout(e) { emit('pointerout', e, getCoord(e)) },
     pointerenter(e) { emit('pointerenter', e, getCoord(e)) },
@@ -604,6 +606,9 @@ const svgVOn = {
         if (evt.defaultPrevented) e.preventDefault()
     },
     wheel: svgWheel,
+    ...Object.fromEntries(pointerEvents.map(eventName => [`${eventName}Capture`, (event) => {
+        event.$vvplot = $vvplot
+    }]))
 }
 
 function changerange(coord) {
@@ -714,8 +719,8 @@ const axes = computed(() => {
             :clip-path="props.clip ? `url(#${vid}-plot-clip)` : null">
             <g v-bind="transformBind" :style="{ transition }">
                 <CoreLayer ref="layers" v-for="layer in computedLayers" :data="layer.data" v-bind="layer.vBind"
-                    :layout="innerRect" :renderer="layer.renderer" :mapping="mapping"
-                    :options="layer.options" :default-render="props.render" :default-dpi="props.dpi" />
+                    :layout="innerRect" :renderer="layer.renderer" :mapping="mapping" :options="layer.options"
+                    :default-render="props.render" :default-dpi="props.dpi" />
                 <slot name="overlay-layer" :mapping="mapping" :layout="innerRect"></slot>
             </g>
             <CoreSelection :mapping="mapping" :layout="innerRect" @selecting="onselecting" @selectend="onselectend"

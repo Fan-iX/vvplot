@@ -316,6 +316,32 @@ watch(coordRangePreview, (newRange, oldRange) => {
     rangeStore.setPreview(newRange)
 })
 
+const $vvplot = {
+    resetRange({ x = true, y = true, xmin = x, xmax = x, ymin = y, ymax = y } = {}) {
+        let next = {}
+        if (xmin) next.xmin = coordRange.value.xmin ?? null
+        if (xmax) next.xmax = coordRange.value.xmax ?? null
+        if (ymin) next.ymin = coordRange.value.ymin ?? null
+        if (ymax) next.ymax = coordRange.value.ymax ?? null
+        rangeStore.updateRange(next)
+        return { ...rangeStore.range }
+    },
+    resetRangeX({ min = true, max = true } = {}) {
+        let next = {}
+        if (min) next.xmin = coordRange.value.xmin ?? null
+        if (max) next.xmax = coordRange.value.xmax ?? null
+        rangeStore.updateRange(next)
+        return { ...rangeStore.range }
+    },
+    resetRangeY({ min = true, max = true } = {}) {
+        let next = {}
+        if (min) next.ymin = coordRange.value.ymin ?? null
+        if (max) next.ymax = coordRange.value.ymax ?? null
+        rangeStore.updateRange(next)
+        return { ...rangeStore.range }
+    }
+}
+provide('$vvplot', $vvplot)
 provide('rangeStore', rangeStore)
 provide('range', rangeStore.range)
 provide('rangePreview', rangeStore.preview)
@@ -540,6 +566,7 @@ defineExpose({
     get svg() { return plotRef.value.svg },
     serialize(options) { return serializeSVG(plotRef.value.svg, options) },
     async export(options) { return exportSVG(plotRef.value.svg, options) },
+    ...$vvplot,
 })
 </script>
 <template>

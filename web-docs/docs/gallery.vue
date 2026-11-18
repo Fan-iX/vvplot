@@ -102,14 +102,15 @@ const vBind = {
                 <component :is="{ template: templates[7], props: Object.keys(vBind) }" v-bind="vBind" />
             </div>
             <hr>
-            <pre-highlight lang="html">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false">
-    <VVAxisY :position="0">
-        <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
-    </VVAxisY>
-    <VVAxisX position="center">
+            <pre-highlight lang="html">{{templates[8] = `<VVPlot :data="iris" legend-teleport="#legend-8" flip :clip="false"
+    @dblclick="$event.$vvplot.resetRange()">
+    <VVAxisX position="center" @dblclick.stop="$event.$vvplot.resetRangeX()">
         <VVAction move :nudge="{ shift: true }" :min="-2" :max="10" />
         <VVAction :zoom="{ min: -5 }" :rescale="{ max: 10 }" :min-range="4" />
     </VVAxisX>
+    <VVAxisY :position="0" @dblclick.stop="$event.$vvplot.resetRangeY()">
+        <VVAction :zoom="{ max: 10, min: -2 }" :move="{ min: -2 }" :rescale="{ max: 10 }" />
+    </VVAxisY>
     <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
         :color="d => d.Species" :shape="d => d.Species" :group="d => d.Species"
         class="stroke-current stroke-[0.2]" group-class="hover:stroke-[black]" />
@@ -148,10 +149,12 @@ const vBind = {
             <hr>
             <pre-highlight lang="html">{{templates[11] = `<VVPlot :data="[{ x: 2, y: -1 }, { x: -1, y: 2 }]">
     <VVAxisX :position="0" :expand-mult="1" :breaks="vvbreak.number({ step: 1 })" title="x"
+        @dblclick="$event.$vvplot.resetRangeX()"
         :theme="{ title_position: 'right', title_size: 16 }">
         <VVAction move rescale zoom />
     </VVAxisX>
     <VVAxisY :position="0" :expand-mult="1" title="y"
+        @dblclick="$event.$vvplot.resetRangeY()"
         :theme="{ title_position: 'top', title_dock_x: 0, title_size: 16, title_angle: 0 }">
         <VVAction move rescale zoom />
     </VVAxisY>
