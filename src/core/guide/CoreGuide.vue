@@ -1,10 +1,14 @@
 <script setup>
 defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 import { obj_merge } from '#src/js/utils.js'
-const { sources, breaks, type } = defineProps({
+import ElementText from '#src/elements/ElementText.vue'
+import ElementMarkdown from '#src/elements/ElementMarkdown.vue'
+const { sources, breaks, type, theme } = defineProps({
     breaks: Array, sources: Array,
     type: { type: String, default: 'legendkey' },
+    theme: Object,
 })
 import CoreGuideGradientbar from './CoreGuideGradientbar.vue'
 import CoreGuideLegendkey from './CoreGuideLegendkey.vue'
@@ -22,34 +26,47 @@ const title = computed(() => {
         if (_title !== undefined) return _title
     }
 })
+const title_bind = computed(() => {
+    let size = theme.title_size || 0
+    return {
+        'font-size': size,
+        color: theme.title_color,
+        y: size * 1.2 / 2,
+        'anchor-x': 0,
+        text: title.value,
+    }
+})
 const binds = computed(() => {
-    let result = {}
     if (type == 'legendkey') {
-        result.sources = sources
+        return { sources }
     } else if (type == 'gradientbar') {
         let max = scales.value.map(s => s.limits?.max).filter(v => v != null).reduce((a, b) => Math.min(a, b), Infinity)
         let min = scales.value.map(s => s.limits?.min).filter(v => v != null).reduce((a, b) => Math.max(a, b), -Infinity)
-        result.scales = scales.value
-        result.limits = { min, max }
-        result.appearance = obj_merge(...sources.flatMap(source => Object.values(source.appearance)))
+        return {
+            scales: scales.value,
+            limits: { min, max },
+            appearance: obj_merge(...sources.flatMap(source => Object.values(source.appearance)))
+        }
     }
-    return result
 })
 const width = ref(0), height = ref(0)
 const svgRef = useTemplateRef('svg')
-watch(() => title, async () => {
-    await nextTick()
+const gRef = useTemplateRef('g')
+useResizeObserver(gRef, ([entry]) => {
     let bbox = svgRef.value?.getBBox?.()
     if (!bbox) return
     width.value = bbox.width + bbox.x
     height.value = bbox.height + bbox.y
-}, { immediate: true })
+})
 </script>
 <template>
     <svg ref="svg" :width="width" :height="height">
-        <text dominant-baseline="central" y="10" v-if="title">{{ title }}</text>
-        <g :transform="title ? `translate(0, 20)` : null">
-            <component :is="guide[type]" v-bind="binds" :breaks="breaks" />
+        <g ref="g">
+            <ElementMarkdown v-bind="title_bind" v-if="title && theme.title_type == 'markdown'" />
+            <ElementText v-bind="title_bind" v-else-if="title" />
+            <g :transform="title ? `translate(0, ${title_bind.y * 2})` : null">
+                <component :is="guide[type]" v-bind="binds" :theme="theme" :breaks="breaks" />
+            </g>
         </g>
     </svg>
 </template>

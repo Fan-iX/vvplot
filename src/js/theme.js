@@ -39,7 +39,11 @@ export const theme_base = {
         padding_v: 30,
     },
     legend: {
-        spacing: 4
+        spacing: 4,
+        title_size: 18,
+        label_size: 16,
+        key_size: 10,
+        key_spacing: 10,
     },
     selection: {
         background: "#00000020",
@@ -209,9 +213,7 @@ export function themeBuild(theme) {
             background: theme?.plot?.background
         },
         selection: theme?.selection ?? {},
-        legend: {
-            spacing: theme?.legend?.spacing ?? 0
-        }
+        legend: theme?.legend ?? {}
     }
 }
 

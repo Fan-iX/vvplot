@@ -43,9 +43,9 @@ const guides = computed(() => {
 })
 </script>
 <template>
-    <div v-if="scales" class="vvplot-legend" :style="{ gap: theme.spacing + 'px' }">
+    <div v-if="scales" class="vvplot-legend" :style="{ gap: `${theme.spacing || 0}px` }">
         <CoreGuide :key="key" :sources="sources" :type="guide" :breaks="breaks"
-            v-for="{ sources, guide, breaks, key } in guides" />
+            v-for="{ sources, guide, breaks, key } in guides" :theme="theme" />
     </div>
 </template>
 <style>

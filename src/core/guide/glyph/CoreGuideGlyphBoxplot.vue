@@ -1,7 +1,13 @@
 <script setup>
+import { computed } from 'vue'
+const { boxSize: s } = defineProps({ boxSize: { type: Number, default: 10 } })
 import ElementPath from '#src/elements/ElementPath.vue'
+const d = computed(() => {
+    const a = s * 3 / 10, b = s / 2
+    return `M-${a}-${b}H0V-${a}V-${b}H${a}Z M-${a},${b}H0V${a}V${b}H${a}Z M-${b},0H${b}Z M-${b}-${a}H${b}V${a}H-${b}Z`
+})
 </script>
 
 <template>
-    <ElementPath d="M-3-5H0V-3V-5H3Z M-3,5H0V3V5H3Z M-5,0H5Z M-5-3H5V3H-5Z" fill="white" />
+    <ElementPath :d="d" fill="white" />
 </template>

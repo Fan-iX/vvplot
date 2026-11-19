@@ -471,6 +471,108 @@ import iris from '../data/iris.json'
                 you can also use the <code>*_x</code> and <code>*_y</code> properties that are related to x and y axes,
                 which follows the <code>flip</code> behavior of the plot.
             </blockquote>
+            <h4>Theme properties for legend guides</h4>
+            <p>The <code>legend</code> property sets control the appearance of legend guides</p>
+            <div class="w-full overflow-auto">
+                <table class="w-full doc-demo-table whitespace-nowrap">
+                    <thead>
+                        <tr>
+                            <th>Element</th>
+                            <th>Attribute</th>
+                            <th>Theme property</th>
+                            <th>Default</th>
+                            <th colspan="2">Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td rowspan="3">Legend title</td>
+                            <td>size</td>
+                            <td><code>title_size</code></td>
+                            <td><code>18</code></td>
+                            <td><code>20</code></td>
+                            <td rowspan="3">
+                                <VVPlot :data="iris" legend-teleport="#legend-1" class="hidden"
+                                    :theme="{ legend: { title_size: 20, title_color: 'red', title_type: 'markdown' } }">
+                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
+                                        :shape="Object.assign(d => d.Species, { title: 'species' })"
+                                        :color="Object.assign(d => d.Petal_Width, { title: '*W*<sub>Petal</sub>' })" />
+                                </VVPlot>
+                                <div id="legend-1"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>color</td>
+                            <td><code>title_color</code></td>
+                            <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
+                        </tr>
+                        <tr>
+                            <td>type</td>
+                            <td><code>label_type</code></td>
+                            <td><code>"text"</code></td>
+                            <td><code>"markdown"</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">Legend label</td>
+                            <td>size</td>
+                            <td><code>label_size</code></td>
+                            <td><code>16</code></td>
+                            <td><code>20</code></td>
+                            <td rowspan="3">
+                                <VVPlot :data="iris" class="hidden" legend-teleport="#legend-2"
+                                    :theme="{ legend: { label_size: 20, label_color: 'red', label_type: 'markdown' } }">
+                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
+                                        :shape="Object.assign(d => `*${d.Species}*`, { title: 'species' })"
+                                        :color="Object.assign(d => d.Petal_Width, { title: 'Petal Width' })" />
+                                </VVPlot>
+                                <div id="legend-2"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>color</td>
+                            <td><code>label_color</code></td>
+                            <td><code>"black"</code></td>
+                            <td><code>"red"</code></td>
+                        </tr>
+                        <tr>
+                            <td>type</td>
+                            <td><code>label_type</code></td>
+                            <td><code>"text"</code></td>
+                            <td><code>"markdown"</code></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="2">Legend key</td>
+                            <td>size</td>
+                            <td><code>key_size</code></td>
+                            <td><code>10</code></td>
+                            <td><code>20</code></td>
+                            <td>
+                                <VVPlot :data="iris" class="hidden" legend-teleport="#legend-3"
+                                    :theme="{ legend: { key_size: 20 } }">
+                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
+                                        :shape="Object.assign(d => d.Species, { title: 'species' })" />
+                                </VVPlot>
+                                <div id="legend-3"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>spacing</td>
+                            <td><code>key_spacing</code></td>
+                            <td><code>10</code></td>
+                            <td><code>20</code></td>
+                            <td>
+                                <VVPlot :data="iris" class="hidden" legend-teleport="#legend-4"
+                                    :theme="{ legend: { key_spacing: 20, } }">
+                                    <VVGeomPoint :x="d => d.Petal_Width" :y="d => d.Sepal_Length"
+                                        :color="Object.assign(d => d.Petal_Width, { title: 'Petal Width' })" />
+                                </VVPlot>
+                                <div id="legend-4"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <h3>List of built-in themes</h3>
             <table
                 class="w-full [&_.vvplot]:h-[200px] [&_figcaption]:mt-2 [&_figcaption]:ml-[40px] [&_figcaption]:before:content-['▼'] [&_td]:border [&_td]:border-[#ddd]">
