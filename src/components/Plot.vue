@@ -566,6 +566,7 @@ defineExpose({
     get svg() { return plotRef.value.svg },
     serialize(options) { return serializeSVG(plotRef.value.svg, options) },
     async export(options) { return exportSVG(plotRef.value.svg, options) },
+    serializeLegend(options) { return plotRef.value.legend.serialize(options) },
     ...$vvplot,
 })
 </script>

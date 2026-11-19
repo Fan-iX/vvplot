@@ -3,6 +3,7 @@ defineOptions({ inheritAttrs: false })
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 import { obj_merge } from '#src/js/utils.js'
+import { serializeSVG } from '#src/core/utils.js'
 import ElementText from '#src/elements/ElementText.vue'
 import ElementMarkdown from '#src/elements/ElementMarkdown.vue'
 const { sources, breaks, type, theme } = defineProps({
@@ -57,6 +58,9 @@ useResizeObserver(gRef, ([entry]) => {
     if (!bbox) return
     width.value = bbox.width + bbox.x
     height.value = bbox.height + bbox.y
+})
+defineExpose({
+    serialize(options) { return serializeSVG(svgRef.value, options) },
 })
 </script>
 <template>

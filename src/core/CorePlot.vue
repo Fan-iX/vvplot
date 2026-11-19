@@ -53,6 +53,7 @@ const transition = defineModel('transition')
 
 const svgRef = useTemplateRef('svg')
 const layers = useTemplateRef('layers')
+const legendRef = useTemplateRef('legend')
 const width = ref(0), height = ref(0)
 
 useResizeObserver(svgRef, entries => {
@@ -150,7 +151,7 @@ const innerRect = reactiveComputed(() => {
     }
 })
 
-defineExpose({ panel, svg: svgRef })
+defineExpose({ panel, svg: svgRef, legend: legendRef })
 
 const transformBind = computed(() => {
     let tslH = activeTransform.value.translateH + innerRect.left,
@@ -735,7 +736,7 @@ const axes = computed(() => {
             :activeTransform="activeTransform"></slot>
         <foreignObject v-if="props.legendTeleport">
             <Teleport defer :to="props.legendTeleport">
-                <CoreLegend :scales="gplot?.scales" :theme="theme.legend" />
+                <CoreLegend ref="legend" :scales="gplot?.scales" :theme="theme.legend" />
             </Teleport>
         </foreignObject>
     </svg>
