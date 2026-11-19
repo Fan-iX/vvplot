@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue'
-import { vvscale, oob } from '#src/index.ts'
+import { oob } from '#src/index.ts'
 
 import CO2 from '../data/CO2.json'
 import iris from '../data/iris.json'
 import UCBAdmissions from '../data/UCBAdmissions.json'
 import letters_txt from '../data/sentences.txt?raw'
 const letters = letters_txt.toLowerCase().replace(/[^a-z]/g, "").split("")
-const vBind = { CO2, iris, UCBAdmissions, vvscale, oob, letters }
+const vBind = { CO2, iris, UCBAdmissions, oob, letters }
 const templates = ref({})
 
 const alpha_limits_max = ref(600)

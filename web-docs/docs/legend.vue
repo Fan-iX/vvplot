@@ -1,13 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import { vvscale } from '#src/index.ts'
 
 import iris from '../data/iris.json'
 import CO2 from '../data/CO2.json'
 import UCBAdmissions from '../data/UCBAdmissions.json'
 import letters_txt from '../data/sentences.txt?raw'
 const letters = letters_txt.toLowerCase().replace(/[^a-z]/g, "").split("")
-const vBind = { CO2, iris, UCBAdmissions, letters, vvscale }
+const vBind = { CO2, iris, UCBAdmissions, letters }
 const templates = ref({})
 </script>
 <template>
@@ -41,7 +40,7 @@ const templates = ref({})
                     continuous <code>color</code>, <code>fill</code> and <code>alpha</code> aesthetics.</li>
             </ul>
             <hr>
-            <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="UCBAdmissions" :width="600" :height="400" legend-teleport="#legend-2">
+            <pre-highlight lang="html">{{templates[2] = `<VVPlot :data="UCBAdmissions" :width="600" :height="400" legend-teleport="#legend-2" :theme="{legend:{key_spacing:20} }">
     <VVGeomTile :x="d => d.Gender + '_' + d.Admit" :y="d => d.Dept" :alpha="d => d.Freq"
         :fill="d => d.Admit" :width="0.8" :height="0.8"
         :scales="{ fill: vvscale.color.manual({ values: ['lightgreen', 'lightcoral'] }) }" />

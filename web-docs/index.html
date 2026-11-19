@@ -18,8 +18,10 @@
         import { createApp } from 'vue'
         import App from './index.vue'
         import VVPlot from '#src/index.esm.ts'
+        import { vvtheme, vvbreak, vvlabel, vvscale } from '#src/index.esm.ts'
         let app = createApp(App)
         app.use(VVPlot)
+        Object.assign(app.config.globalProperties, { vvtheme, vvbreak, vvlabel, vvscale })
         app.mount('#app')
     </script>
 </body>

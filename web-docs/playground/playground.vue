@@ -104,14 +104,14 @@ const fileChanged = async (e) => {
 let app, instance
 async function buildPlot() {
     if (instance) app.unmount()
-    let template = `<VVPlot ref="plot" :data="data" :width="${width.value}" :height="${height.value}" @resize="onresize" resize>
+    let template = `<VVPlot ref="plot" :data="data" :width="${width.value}" :height="${height.value}" @resize="onresize" @dblclick="$event.$vvplot.resetRange()" resize>
 ${layerText.value}
 ${templateText.value}
 </VVPlot>`
     app = createApp({
         setup() {
             const plot = ref(null)
-            return { data: dataConfig?.value?.output, plot, vvscale, vvtheme, vvbreak, vvlabel, oob, read_table }
+            return { data: dataConfig?.value?.output, plot, oob, read_table }
         },
         methods: {
             onresize({ width: w, height: h }) {
@@ -122,6 +122,7 @@ ${templateText.value}
         template
     })
     app.use(VVPlot)
+    Object.assign(app.config.globalProperties, { vvtheme, vvbreak, vvlabel, vvscale })
     try {
         instance = app.mount('#plot')
     } catch (e) {
@@ -234,7 +235,7 @@ async function exportPNG(options) {
             </div>
         </div>
         <div>
-            <pre class="font-mono leading-none flex flex-col h-[99%] w-full whitespace-pre-wrap">&lt;VVPlot :data="data" :width="{{ width }}" :height="{{ height }}" resize&gt;
+            <pre class="font-mono leading-none flex flex-col h-[99%] w-full whitespace-pre-wrap">&lt;VVPlot :data="data" :width="{{ width }}" :height="{{ height }}" @dblclick="$event.$vvplot.resetRange()" resize&gt;
 <div class="ml-[4ch]">{{ layerText }}</div>
 <textarea class="ml-[4ch] flex-1 resize-none overflow-auto" v-model="templateText"></textarea>&lt;/VVPlot&gt;</pre>
         </div>

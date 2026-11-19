@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from 'vue'
 import { read_table } from '../script/utils'
-import { vvscale, vvtheme, vvbreak, vvlabel } from '#src/index.ts'
 
 import iris from '../data/iris.json'
 import UCBAdmissions from '../data/UCBAdmissions.json'
@@ -20,7 +19,6 @@ const pigments = read_table(pigments_txt, { sep: "\t" })
 const templates = ref({})
 const vBind = {
     iris, mtcars, UCBAdmissions, letters, economics, pigments,
-    vvscale, vvtheme, vvbreak, vvlabel
 }
 </script>
 <template>
